@@ -1,0 +1,126 @@
+ID	Name	Type	Difficulty
+c1200	Rat	0	1
+c1201	Small Rat	0	0
+c1202	Large Rat	0	3
+c1203	Snow Rat	0	1
+c2060	Infested Ghoul	0	2
+c2230	Stray Demon	1	5
+c2231	Demon Firesage	1	5
+c2232	Asylum Demon	1	3
+c2240	Capra Demon	1	4
+c2250	Taurus Demon	0	4
+c2260	Batwing Demon	0	5
+c2270	Mushroom Parent	0	5
+c2280	Mushroom Child	0	1
+c2300	Titanite Demon	0	4
+c2310	Crow Demon	0	4
+c2320	Iron Golem	1	6
+c2330	Demonic Foliage	0	3
+c2360	Smough	1	5
+c2370	Channeler	0	3
+c2380	Giant Stone Knight	0	4
+c2390	Darkwraith	0	4
+c2400	Painting Guardian	0	4
+c2410	Silver Knight	0	4
+c2430	Demonic Statue	0	3
+c2500	Hollow	0	0
+c2510	Undead Merchant	2	0
+c2520	Undead Assassin	0	1
+c2530	Blowdart Sniper	0	2
+c2540	Armored Hollow	0	0
+c2550	Undead Soldier	0	1
+c2560	Balder Knight	0	1
+c2570	Berenike Knight	0	2
+c2640	Andre of Astora	2	6
+c2650	Necromancer	0	3
+c2660	Butcher	0	3
+c2670	Ghost	0	4
+c2680	Lightning Ghost	0	4
+c2690	Serpent Soldier	0	4
+c2700	Serpent Mage	0	4
+c2710	Crystal Golem	0	3
+c2711	Golden Crystal Golem	0	4
+c2730	Crossbreed Priscilla	1	6
+c2780	Mimic	0	5
+c2790	Black Knight	0	5
+c2791	Black Knight	0	5
+c2792	Black Knight	0	5
+c2793	Black Knight	0	5
+c2794	Black Knight	0	5
+c2795	Black Knight	0	5
+c2800	Undead Crystal Soldier	0	5
+c2810	Infested Barbarian (Club)	0	3
+c2811	Infested Barbarian (Boulder)	0	3
+c2830	Phalanx	0	2
+c2840	Engorged Zombie	0	4
+c2860	Giant	0	5
+c2870	Sentinel or Royal Sentinel	0	5
+c2900	Skeleton	0	3
+c2910	Giant Skeleton	0	5
+c2920	Vamos	2	5
+c2930	Bonewheel Skeleton	0	4
+c2940	Skeleton Baby	0	1
+c2950	Skeleton Beast	0	6
+c2960	Bone Tower	0	2
+c3090	Giant Mosquito	0	1
+c3200	Slime	0	1
+c3210	Egg Carrier	0	1
+c3230	Moonlight Butterfly	1	3
+c3240	Chaos Eater	0	4
+c3250	Man-Eater Shell	0	5
+c3270	Basilisk	0	3
+c3300	Crystal Lizard	0	0
+c3320	Pinwheel	0	3
+c3330	Pisaca	0	4
+c3340	Undead Attack Dog	0	1
+c3341	Flaming Attack Dog	0	2
+c3350	Possessed Tree	0	1
+c3370	Tree Lizard	0	2
+c3380	Giant Leech	0	1
+c3390	Burrowing Rockworm	0	5
+c3400	Crag-Spider	0	2
+c3410	Frog-Ray	0	2
+c3420	Undead Dragon	1	5
+c3421	Bounding Demon of Izalith	0	5
+c3430	Hellkite Drake	1	6
+c3460	Armored Tusk	0	3
+c3461	Armored Tusk (Dukes)	0	5
+c3471	Sanctuary Guardian	1	6
+c3480	Chaos Bug	0	0
+c3500	Mass of Souls	0	5
+c3520	Drake	0	5
+c3530	Hydra	1	5
+c4100	Artorias	1	7
+c4110	Hawkeye Gough	2	5
+c4120	Stone Guardian	0	6
+c4130	Scarecrow	0	4
+c4150	Bloathead	0	5
+c4160	Bloathead Sorcerer	0	6
+c4170	Humanity Phantom (small)	0	3
+c4171	Humanity Phantom (medium)	0	4
+c4172	Humanity Phantom (large)	0	4
+c4180	Chained Prisoner	0	6
+c4190	DLC Dog	0	3
+c4500	Manus, Father of the Abyss	1	7
+c4510	Black Dragon Kalameet	1	7
+c5200	Centipede Demon	1	5
+c5210	Sif	1	5
+c5220	Gravelord Nito	1	6
+c5230	Bed of Chaos	3	6
+c5240	Parasitic Wall Hugger	0	4
+c5250	Ceaseless Discharge	1	5
+c5260	Gaping Dragon	1	4
+c5270	Ornstein	1	4
+c5271	Super Ornstein	1	5
+c5280	Quelaag	1	3
+c5290	Seath the Scaleless	1	6
+c5310	Gwynevere	1	0
+c5320	Gwyndolin	1	4
+c5340	The Fair Lady	2	5
+c5350	Bell Gargoyles	1	3
+c5351	Lightning Gargoyles	1	4
+c5360	Great Feline	0	5
+c5370	Gwyn	1	7
+c5390	Four Kings	1	6
+c5400	Bed of Chaos Arm	3	0
+c5401	Bed of Chaos Parasite	1	6

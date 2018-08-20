@@ -10,7 +10,6 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -102,3 +101,16 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Custom Files
+build.bat
+DARKSOULS.exe
+DarkSoulsRemastered.exe
+
+# Custom Directories
+/enemyRandomizerData/
+event/
+map/
+script/
+sfx/
+otherLogs/
