@@ -30,28 +30,28 @@ class FFXData():
         self.existingFiles = []
         self.fileOpen = False
 
-    def CheckDirs(self):
+    def CheckDirs(self):    #Unused
         if not (os.path.isdir("enemyRandomizerData/ffxExtract")):     #create map ai copy directory
             os.makedirs("enemyRandomizerData/ffxExtract")
             os.makedirs("enemyRandomizerData/ffxExtract/model")
             os.makedirs("enemyRandomizerData/ffxExtract/tex")
             os.makedirs("enemyRandomizerData/ffxExtract/effect")
 
-    def LoadFfxRef(self, path):
+    def LoadFfxRef(self, path):    #Unused
         with open(path, mode="r", encoding="utf-8") as f:
             for line in f:
                 enemyId, effectIdsStr = line.strip().split(":")
                 effects = effectIdsStr.split(",")
                 self.ffx_ref[enemyId] = effects
 
-    def CheckFiles(self):
+    def CheckFiles(self):    #Unused
         self.CheckDirs()
         if (os.path.isfile(self.ffxPath.format('13520')) and os.path.isfile(self.modelPath.format('15391')) and os.path.isfile(self.tpfPath.format('15395'))):
             return True
         else:
             self.ExtractEffects()
 
-    def ExtractEffects(self):
+    def ExtractEffects(self):    #Unused
         self.CheckDirs()
 
         inputFiles = ['m10', 'm10_00', 'm10_01', 'm10_02', 'm11', 'm12', 'm12_00', 'm12_01', 'm13', 'm13_00', 'm13_01', 'm13_02', 'm14', 'm14_00', 'm14_01', 'm15', 'm15_00', 'm15_01', 'm16', 'm17', 'm18', 'm18_00', 'm18_01']
@@ -90,7 +90,7 @@ class FFXData():
                                 flverFile.write(item[2])
         #print(toExtract)
 
-    def Open(self, fname):
+    def Open(self, fname):    #Unused
         print("ffx opened: " + fname)
         self.currentContent = []
         self.lastFFX = 0
@@ -119,7 +119,7 @@ class FFXData():
                         self.lastMDLIdx = i + 1
             self.fileOpen = True
 
-    def Save(self, fname):
+    def Save(self, fname):    #Unused
         print("saving: " + fname)
         if (not os.path.isfile(fname + ".bak")):
             with open(fname, 'rb') as f:
@@ -130,7 +130,7 @@ class FFXData():
             f.write(bnd_rebuilder.repack_bnd(self.currentContent))
         self.fileOpen = False
 
-    def AddEffectData(self, enemyId):
+    def AddEffectData(self, enemyId):    #Unused
         if (self.fileOpen):
             cleanedId = enemyId.replace("c", "")
             if (cleanedId in self.ffx_ref):
@@ -168,8 +168,11 @@ class FFXData():
         return False
 
     
-    # OBSOLETES
     def AddEverythingToCommon(self, useDCX):
+        """
+        Collects all effects from individual map effect files and adds them to CommonEffects
+        """
+
         inputFiles = ['m10', 'm10_00', 'm10_01', 'm10_02', 'm11', 'm12', 'm12_00', 'm12_01', 'm13', 'm13_00', 'm13_01', 'm13_02', 'm14', 'm14_00', 'm14_01', 'm15', 'm15_00', 'm15_01', 'm16', 'm17', 'm18', 'm18_00', 'm18_01']
         
         MODEL_PATTERN = r'.*s1([0-9][0-9][0-9])[0-9].*'
@@ -225,14 +228,6 @@ class FFXData():
                             tempList.append(strName)
                             self.ffx_files.append(item)
 
-                        
-                        """tempList.append(strName)
-                            fileName = match.group(0)
-                            if not (os.path.isfile(targetFolder + fileName)):
-                                with open(targetFolder + fileName, 'wb') as wf:
-                                    wf.write(item[2])"""
-                            
-        #print(len(self.ffx_files))
 
         existingEffects = []
         lastIndex = 0
@@ -272,13 +267,6 @@ class FFXData():
                     f2.write(upcontent)
 
         
-
-        """print(len(ffxEntries))
-        print(len(tpfEntries))
-        print(len(mdlEntries))"""
-        # 1612
-        """print(len(existingEffects))
-        print(lastIndex)"""
 
         oldLen = len(ffxEntries) + len(tpfEntries) + len(mdlEntries)
 

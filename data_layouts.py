@@ -1,7 +1,4 @@
-"""Fakk off docstring"""
-
 class Msbdata:
-    """Holds MSB Data"""
 
     def __init__(self):
         self.fieldNames = []
@@ -61,6 +58,7 @@ class Msbdata:
 
         return result
 
+# Format: <Field Name>:<Field Type>|...
 dataLayoutMap = {
     "eventTemplate": "Name Offset:i32|Name Offset:i32|Event Index:i32|Type:i32|Index:i32|Base Data Offset:i32|Type Data Offset:i32|x18:i32|Name:string:[NAME]|PartIndex1:i32:[PRT1]|PointIndex1:i32:[PNT1]|EventEntityID:i32|p+0x0c:i32",
     "models": "Name Offset:i32|Type:i32|Index:i32|Sib Offset:i32|x10:i32|x14:i32|x18:i32|x1C:i32|Name:string:[NAME]|Sibpath:string",

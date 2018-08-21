@@ -4,6 +4,9 @@ import zlib
 import os.path
 
 class DCXHandler:
+    """
+    Class handling .dcx (de)compression
+    """
     
     def __init__(self):
         self.req1 = 0
@@ -19,6 +22,9 @@ class DCXHandler:
         self.data = 0
 
     def open_file(self, filename):
+        """
+        Opens a .dcx compressed file @filename
+        """
         mBytes = ''
         with open(filename, 'rb') as f:
             mBytes = f.read()
@@ -26,7 +32,13 @@ class DCXHandler:
         
 
     def open_dcx(self, mBytes):
+        """
+        Reads the header and decompresses data from @mBytes
+        Returns the decompressed data.
+        """
         curr_offset = 0
+
+        # Read Header
 
         header1 = mBytes[0:4]
         if (header1 != b'DCX\x00'):
@@ -82,26 +94,30 @@ class DCXHandler:
         curr_offset += 0x4
         
         self.twobytes = mBytes[curr_offset:curr_offset + 2]
-        #curr_offset = consume_byte(mBytes, curr_offset, '0x78', 1)
-        #curr_offset = consume_byte(mBytes, curr_offset, '0xDA', 1)
+
         curr_offset += 0x2
-        self.compressed_size -= 2  # The previous two bytes are included in the compressed data, for some reason.
+        self.compressed_size -= 2
         
+        # Decompress data
         decomp_obj = zlib.decompressobj(-15)
         a = mBytes[curr_offset:curr_offset + self.compressed_size]
         self.data = decomp_obj.decompress(a, self.uncompressed_size)
-        #self.data = zlib.decompress(mBytes[curr_offset:curr_offset + self.compressed_size], -15)
+
         return self.data
 
     def save_dcx(self, filename, newData):
+        """
+        Compress @newData and save as @filename
+        """
+        # Create backup if it doesn't exist
         if not os.path.isfile(filename + '.bak'):
             with open(filename, 'rb') as origf:
                 with open(filename + '.bak', 'wb') as bakf:
                     bakf.write(origf.read())
 
+        # Recompress and save file
         with open(filename, 'wb') as f:
-            #comp_obj = zlib.compressobj(-1, zlib.DEFLATED, -15)
-            compressed_data = zlib.compress(newData, 9)#comp_obj.compress(newData)
+            compressed_data = zlib.compress(newData, 9)
             f.write(b'DCX\x00')
             f.write(struct.pack("<I", self.req1))
             f.write(struct.pack(">III", self.req2, self.req3, self.req4))
@@ -112,6 +128,5 @@ class DCXHandler:
             f.write(self.unknownHeaderPart)
             f.write(b'DCA\x00')
             f.write(struct.pack(">I", self.compressed_header_length))
-            #f.write(self.twobytes)
             f.write(compressed_data)
             print("[DCX] Compressed")
