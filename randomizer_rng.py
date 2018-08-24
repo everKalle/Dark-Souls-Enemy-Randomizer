@@ -362,22 +362,22 @@ class Randomizer:
             #print(passed1)
             #print(passed2)
             if (passed1 or passed2):
-                with open(self.MAPCOPY + j[1] + '.msb', 'wb') as bakf:
+                """with open(self.MAPCOPY + j[1] + '.msb', 'wb') as bakf:
                     with open(self.MAPSTUDIO + j[1] + '.msb', 'rb') as oldf:
-                        bakf.write(oldf.read())
+                        bakf.write(oldf.read())"""
                 
-                self.msbio.open(self.MAPCOPY + j[1] + '.msb')
+                self.msbio.open(self.MAPSTUDIO + j[1] + '.msb')
 
 
                 lastModelIndex = 0
-                for model in self.msbio.models_data:
+                for model in self.msbio.models.rows:
                     if (model[MODEL_TYPE_OFFSET] == 2):     #if it's a character model
                         if (model[MODEL_IDX_OFFSET] > lastModelIndex):
                             lastModelIndex = model[MODEL_IDX_OFFSET]
                 
                 for i, modelName in enumerate(modelsToAdd):
                     modelRow = [32, 2, lastModelIndex + 1 + i, 38, 1, 0, 0, 0, modelName, SIBPATH_FORMAT.format(modelName)]
-                    self.msbio.models_data.append(modelRow)
+                    self.msbio.models.rows.append(modelRow)
 
                 self.msbio.save(self.MAPCOPY + j[1] + '.msb', False)
                 self.msbio.clean()
@@ -761,7 +761,7 @@ class Randomizer:
         else:
             return self.GetNormalEnemy(diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID)
 
-    #the bakf and oldf variable names make no fucking sense...
+    #the bakf and oldf variable names make no sense...
 
     def revertToNormal(self, revertEffectFiles = True):
         for j in enumerate(self.inputFiles):                                    #load backup msb/luabnd
@@ -1134,9 +1134,9 @@ class Randomizer:
                                     for idx in range(int(self.validNew[newChar][NewCol.SIZE.value]), 6):
                                         self.uniqueNormals[idx].append(newChar)
                             
-                            oldNPCParam = self.msbio.parts_data[2][rowIndex][PARAM_DATA_COL]
-                            oldNPCAI = self.msbio.parts_data[2][rowIndex][NPCAI_DATA_COL]
-                            oldModel = self.msbio.parts_data[2][rowIndex][MODEL_DATA_COL]
+                            oldNPCParam = self.msbio.parts[2].rows[rowIndex][PARAM_DATA_COL]
+                            oldNPCAI = self.msbio.parts[2].rows[rowIndex][NPCAI_DATA_COL]
+                            oldModel = self.msbio.parts[2].rows[rowIndex][MODEL_DATA_COL]
                             
                             newAI = ""
                             newParam = ""
@@ -1149,12 +1149,12 @@ class Randomizer:
                                 newParam = self.validNew[newChar][NewCol.PARAM.value][newAiParamIndex]
 
 
-                            self.msbio.parts_data[2][rowIndex][PARAM_DATA_COL] = int(newParam)
+                            self.msbio.parts[2].rows[rowIndex][PARAM_DATA_COL] = int(newParam)
                             aiStr = "  ai = <original>; param = " + newParam
                             if(not self.validTargets[self.validIndex(creatureId)][2] == "2"):    # lets not mod npc ai for now
-                                self.msbio.parts_data[2][rowIndex][NPCAI_DATA_COL] = int(newAI)
+                                self.msbio.parts[2].rows[rowIndex][NPCAI_DATA_COL] = int(newAI)
                                 aiStr = " ai = " + newAI + "; param = " + newParam
-                            self.msbio.parts_data[2][rowIndex][MODEL_DATA_COL] = self.startIndices[i] + newChar
+                            self.msbio.parts[2].rows[rowIndex][MODEL_DATA_COL] = self.startIndices[i] + newChar
 
                             aiEntry = self.aic.GetEntryByAI(newAI)
 
@@ -1167,10 +1167,10 @@ class Randomizer:
                             animLine = ""
                             if (tposeCity == 1):
                                 if (creatureType != "2"):
-                                    currentAnim = self.msbio.parts_data[2][rowIndex][ANIMID_DATA_COL]
+                                    currentAnim = self.msbio.parts[2].rows[rowIndex][ANIMID_DATA_COL]
                                     if (currentAnim != -1):
                                         newAnim = self.getRandomFromList(self.validNew[newChar][NewCol.ANIMIDS.value])
-                                        self.msbio.parts_data[2][rowIndex][ANIMID_DATA_COL] = int(newAnim)
+                                        self.msbio.parts[2].rows[rowIndex][ANIMID_DATA_COL] = int(newAnim)
                                         animLine = " >> changing idle anim from " + str(currentAnim) + " to " + newAnim + ";"
 
                             if ("c5350_0001" in creatureId and "c5350" in self.validNew[newChar][NewCol.ID.value]):    # restore original event script for 10_01 if gargoyle#2 is replaced by gargoyle, so that jumping down and stuff works properly
@@ -1180,13 +1180,13 @@ class Randomizer:
                             posLine = ""
                             if (changePos):
                                 posLine = " changed position"
-                                self.msbio.parts_data[2][rowIndex][POS_DATA_COL] = newPos[0]
-                                self.msbio.parts_data[2][rowIndex][POS_DATA_COL + 1] = newPos[1]
-                                self.msbio.parts_data[2][rowIndex][POS_DATA_COL + 2] = newPos[2]
+                                self.msbio.parts[2].rows[rowIndex][POS_DATA_COL] = newPos[0]
+                                self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 1] = newPos[1]
+                                self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 2] = newPos[2]
 
-                                self.msbio.parts_data[2][rowIndex][POS_DATA_COL + 3] = newRot[0]
-                                self.msbio.parts_data[2][rowIndex][POS_DATA_COL + 4] = newRot[1]
-                                self.msbio.parts_data[2][rowIndex][POS_DATA_COL + 5] = newRot[2]
+                                self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 3] = newRot[0]
+                                self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 4] = newRot[1]
+                                self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 5] = newRot[2]
 
                             #if (removeEventEntityID):
                             #    self.msbio.parts_data[2][rowIndex][EVENTENTITYID_COL] = -1

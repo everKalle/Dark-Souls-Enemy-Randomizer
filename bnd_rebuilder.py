@@ -114,9 +114,9 @@ def repack_bnd(content_list):
     
     HEADER = b'BND307D7R6\x00\x00' + struct.pack("<IIIII", 0x74, num_of_records, filename_end_offset, 0, 0)
     
-    packed_records = b''
-    packed_filenames = b''
-    packed_filedata = b''
+    packed_records = bytearray()
+    packed_filenames = bytearray()
+    packed_filedata = bytearray()
     
     for (file_id, filepath, filedata) in content_list:
         # Pad each filedata to the nearest multiple of 16, to match the
@@ -131,4 +131,4 @@ def repack_bnd(content_list):
         filename_offset += len(filepath) + 1
         packed_filedata += filedata
         filedata_offset += len(filedata)
-    return HEADER + packed_records + packed_filenames + packed_filedata
+    return HEADER + bytes(packed_records) + bytes(packed_filenames) + bytes(packed_filedata)

@@ -211,11 +211,15 @@ class MainWindow():
 
         self.configString = ""
 
+        self.root.columnconfigure(4, weight=1)
+        self.root.columnconfigure(3, weight=1)
+        self.root.columnconfigure(2, weight=1)
+
         self.seedLabel = Label(self.root, text="Seed (leave blank for random): ")
         self.seedLabel.grid(row = 1, column = 2, sticky="E", padx=2)
 
         self.seedEntry = Entry(self.root, textvariable=self.seedValue)
-        self.seedEntry.grid(row = 1, column = 3, columnspan=2, sticky="NEWS", padx=8, pady=4)
+        self.seedEntry.grid(row = 1, column = 3, columnspan=1, sticky="NEWS", padx=8, pady=4)
 
         # Settings
 
@@ -380,7 +384,8 @@ class MainWindow():
         self.BindTags(self.strictBtn3, 8, 2)
 
         self.tpose_frame = LabelFrame(self.root, text="T-Posing enemies:")
-        self.tpose_frame.grid(row=2, column=5, sticky='NWES', padx=2)
+        #self.tpose_frame.grid(row=2, column=5, sticky='NWES', padx=2)
+        self.tpose_frame.grid(row=6, column=2, sticky='NWES', padx=2)
         
         self.tposeBtn1 = Radiobutton(self.tpose_frame, text="Enabled", variable=self.tposeCity, value=0, command=self.UpdateMessageArea)
         self.tposeBtn1.pack(anchor=W)
@@ -413,7 +418,7 @@ class MainWindow():
         self.BindTags(self.smallEnBtn2, 11, 1)"""
 
         self.openConfTopLevel = Button(self.root, text="Open config input", command=self.OpenTextConfigTopLevel)
-        self.openConfTopLevel.grid(row=1, column=5, sticky='NEWS', padx=4, pady=4)
+        self.openConfTopLevel.grid(row=1, column=4, sticky='NEWS', padx=4, pady=4)
 
         self.textConfigTopLevel = None
 
@@ -421,7 +426,7 @@ class MainWindow():
         self.BuildCustomEnemyConfigList()
 
         self.enemy_config_frame = LabelFrame(self.root, text="Enemy Config:")
-        self.enemy_config_frame.grid(row=5, column=5, sticky='NWES', padx=2)
+        self.enemy_config_frame.grid(row=6, column=4, sticky='NWES', padx=2)
 
         #Label(self.enemy_config_frame, text="Current Config:").grid(row=0, column=0, sticky='NSW')
 
