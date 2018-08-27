@@ -3,9 +3,11 @@ import mmap
 import os.path
 from byteread import *
 
-# https://gist.github.com/rji/b38c7238128edf53a181
 
 def sha256_checksum(filename, block_size=65536):
+    """
+    https://gist.github.com/rji/b38c7238128edf53a181
+    """
     sha256 = hashlib.sha256()
     with open(filename, 'rb') as f:
         for block in iter(lambda: f.read(block_size), b''):
@@ -13,6 +15,9 @@ def sha256_checksum(filename, block_size=65536):
     return sha256.hexdigest()
 
 def check_exe_checksum():
+    """
+    Check the checksum of DARKSOULS.exe and return the version as a string.
+    """
 
     CHECKSUM_UNPACKED = "903a946273bfe123fe5c85740c3613374e2cf538564bb661db371c6cb5a421ff"
     CHECKSUM_DEBUG_UNPACKED = "473de70f0dd03048ca5dea545508f6776206424494334a9da091fb27c8e5a23f"
@@ -47,6 +52,10 @@ def check_exe_checksum():
             return "Not Found"
 
 def patch_exe():
+    """
+    Modify the exe to allow the game to use more memory so that the game wouldn't crash immediately when all visual effects are loaded at once.
+    Thanks to metal-crow for the fix.
+    """
     status = check_exe_checksum()
     bakName = 'DARKSOULS.prerandomizer.exe'
     if (status == "Unpacked Debug"):
@@ -70,21 +79,17 @@ def patch_exe():
             fc.seek(next_pos)
             fc.write(newMemAmt)
             count += 1
-            #print("found " + str(next_pos))
-            #fc.seek(next_pos + 4)
             next_pos = fc.find(memAmt)
         
-        #print(count)
-
-        #cx = fc[0x620000:0x620000 + 4]
-        #print(cx)
-        #print(int.from_bytes(cx, byteorder='little', signed=False))
         print("Exe Patched")
 
         fc.flush()
         fc.close()
 
 def restore_exe():
+    """
+    Restore the unmodified DARKSOULS.exe
+    """
     status = check_exe_checksum()
     bakName = ""
     if (status == 'Patched'):
@@ -104,10 +109,3 @@ def restore_exe():
                 newf.write(bakf.read())
 
         print("Exe Reverted")
-    
-    
-
-#patch_exe()
-#restore_exe()
-
-#patch_exe_remaster()

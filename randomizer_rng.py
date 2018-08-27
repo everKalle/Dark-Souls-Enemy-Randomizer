@@ -25,6 +25,9 @@ def printLog(s, f, console = True):
         print(s)
 
 class NewCol(Enum):
+    """
+    Columns in valid_new.txt
+    """
     ID = 0
     NAME = 1
     TYPE = 2
@@ -54,7 +57,7 @@ class Randomizer:
     names = ["Depths", "Undead Burg/Parish", "Firelink Shrine", "Painted World", "Darkroot Garden", "DLC", "DarkRoot Garden #2", "Catacombs", "Tomb of the Giants", "Great Hollow & Ash Lake", "Blighttown", "Demon Ruins & Lost Izalith", "Sen's Fortress", "Anor Londo", "New Londo Ruins", "Duke's Archives & Crystal Cave", "Kiln of the First Flame", "Northern Undead Asylum"]
     mimicId = "c2780"
 
-    #asylum easy mode is hardcoded for now
+    # Asylum easy mode is hardcoded for now
     HARDCODED_ASYLUM_NORMAL = [1, 4, 12, 16, 23, 24, 28, 29, 30, 62]
     HARDCODED_ASYLUM_BOSSES = [8, 9, 118]
 
@@ -91,6 +94,8 @@ class Randomizer:
         self.validDiffNew = [[], [], [], [], [], [], [], []]
         self.validDiffNormal = [[], [], [], [], [], [], [], []]
         self.validDiffBosses = [[], [], [], [], [], [], [], []]
+
+        # Look at this mess >.<
         self.validDiffSizeNew = [[[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []]]
         self.validDiffSizeNormal = [[[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []]]
         self.validDiffSizeBosses = [[[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []], [[], [], [], [], [], []]]
@@ -153,6 +158,9 @@ class Randomizer:
 
 
     def createBackup(self, filename):
+        """
+        Creates a backup of file @filename if it doesn't exist.
+        """
         if (not os.path.isfile(filename + '.bak')) and os.path.isfile(filename):
             with open(filename + '.bak', 'wb') as bakf:
                 with open(filename, 'rb') as oldf:
@@ -160,6 +168,9 @@ class Randomizer:
                     print(filename + " backed up")
 
     def restoreBackup(self, filename):
+        """
+        Restores the backup of @filename.
+        """
         if (os.path.isfile(filename + '.bak')):
             with open(filename, 'wb') as oldf:
                 with open(filename + '.bak', 'rb') as bakf:
@@ -170,9 +181,10 @@ class Randomizer:
                 print("Failed to restore " + filename + ", " + filename + ".bak not found.")
 
         
-    # checks if necessary files exist and exe is in proper status
-
     def checkIfRightPlace(self):
+        """
+        Check if Randomizer is placed into the correct location and all the necessary files exist.
+        """
         print("Checking location")
 
         notFoundMSB = 0
@@ -207,8 +219,10 @@ class Randomizer:
 
         return (notFoundMSB, notFoundLUABND, notFoundFFXBND, exeStatus)
 
-    # check if all necessary files exist in enemyRandomizerData
     def checkProperUnpack(self):
+        """
+        Check if the randomizer was properly unpacked (all files in enemyRandomizerData folder exist)
+        """
         print("Checking Randomizer files")
 
         self.folderStatus = False
@@ -238,6 +252,9 @@ class Randomizer:
                     self.originalRefMissing += 1
         
     def checkCopiedFiles(self):
+        """
+        Check if copied files exist and appear to be valid.
+        """
         self.missingAiCopies = 0
         self.invalidAiCopies = 0
         self.invalidMapCopies = 0
@@ -266,15 +283,6 @@ class Randomizer:
                         with open(self.AICOPY + iFile + '.luabnd', 'rb') as testFile:
                             if (len(testFile.read()) < 10):
                                 self.invalidAiCopies += 1
-        
-        """for iFile in self.inputFFXFiles:
-            if (iFile != "NONE"):
-                if not (os.path.isfile(self.FFX_COPY_DIR.format(iFile))):
-                    self.missingSfxCopies += 1
-                else:
-                    with open(self.FFX_COPY_DIR.format(iFile), 'rb') as testFile:
-                        if (len(testFile.read()) < 10):
-                            self.invalidSfxCopies += 1"""
 
         if (self.missingAiCopies > 0 or self.invalidAiCopies > 0 or self.missingMapCopies > 0 or self.invalidMapCopies > 0 or self.missingSfxCopies > 0 or self.invalidSfxCopies > 0):
             return False
@@ -282,6 +290,9 @@ class Randomizer:
             return True
 
     def retryFileCopy(self):
+        """
+        Try copying files a few times if something goes wrong.
+        """
         self.areCopiesValid = self.checkCopiedFiles()
         copyRetryCount = 5
         while(copyRetryCount > 1 and not self.areCopiesValid):
@@ -309,7 +320,7 @@ class Randomizer:
         except:
             return False
 
-        # Because apparently for _some_ reason it doesn throw an error sometimes(?) so we confirm if the file was actually modified
+        # Because apparently for _some_ reason it doesn't throw an error sometimes(?) so we confirm if the file was actually modified
 
         newBytes = b''
         with open(testFileName, 'rb') as oldf:
@@ -329,6 +340,9 @@ class Randomizer:
         return True
 
     def firstTimeSetup(self):
+        """
+        Perform first time setup if necessary.
+        """
         print("Checking Files, Please Wait")
         if not (os.path.isdir("enemyRandomizerData/mapAiCopies")):     #create map ai copy directory
             os.makedirs("enemyRandomizerData/mapAiCopies")
@@ -336,10 +350,6 @@ class Randomizer:
         if not (os.path.isdir("enemyRandomizerData/mapStudioCopies")):     #create map studio copy directory
             os.makedirs("enemyRandomizerData/mapStudioCopies")
 
-        #if not (os.path.isdir("enemyRandomizerData/sfxCopies")):     #create sfx copy directory
-        #    os.makedirs("enemyRandomizerData/sfxCopies")
-
-        # yay for hardcoded stuff >.>
         modelsToAdd = ["c1200", "c1201", "c1202", "c1203", "c2060", "c2230", "c2231", "c2232", "c2240", "c2250", "c2260", "c2270", "c2280", "c2300", "c2310", "c2320", "c2330", "c2360", "c2370", "c2380", "c2390", "c2400", "c2410", "c2430", "c2500", "c2510", "c2520", "c2530", "c2540", "c2550", "c2560", "c2570", "c2640", "c2650", "c2660", "c2670", "c2680", "c2690", "c2700", "c2710", "c2711", "c2730", "c2780", "c2790", "c2791", "c2792", "c2793", "c2800", "c2810", "c2811", "c2830", "c2840", "c2860", "c2870", "c2900", "c2910", "c2920", "c2930", "c2940", "c2950", "c2960", "c3090", "c3200", "c3210", "c3220", "c3230", "c3240", "c3250", "c3270", "c3300", "c3320", "c3330", "c3340", "c3341", "c3350", "c3370", "c3380", "c3390", "c3400", "c3410", "c3420", "c3421", "c3430", "c3460", "c3461", "c3471", "c3480", "c3490", "c3491", "c3500", "c3520", "c3530", "c4100", "c4110", "c4120", "c4130", "c4150", "c4160", "c4170", "c4171", "c4172", "c4180", "c4190", "c4500", "c4510", "c5200", "c5201", "c5202", "c5210", "c5220", "c5240", "c5250", "c5260", "c5270", "c5271", "c5280", "c5290", "c5320", "c5350", "c5351", "c5360", "c5370", "c5390"]
 
         MODEL_TYPE_OFFSET = 1
@@ -359,15 +369,9 @@ class Randomizer:
                     #print(len(testData))
                     if (len(testData) < 10):
                         passed2 = True
-            #print(passed1)
-            #print(passed2)
             if (passed1 or passed2):
-                """with open(self.MAPCOPY + j[1] + '.msb', 'wb') as bakf:
-                    with open(self.MAPSTUDIO + j[1] + '.msb', 'rb') as oldf:
-                        bakf.write(oldf.read())"""
                 
                 self.msbio.open(self.MAPSTUDIO + j[1] + '.msb')
-
 
                 lastModelIndex = 0
                 for model in self.msbio.models.rows:
@@ -466,7 +470,7 @@ class Randomizer:
                 passedCheck = False
 
             aiFileName = j[1]
-            if j[1] == "m12_00_00_01":        #because darkrooot is weird, has a 2 msb files: m12_00_00_00 and m12_00_00_01 that are _nearly_ identical but only the latter seems to be actually used
+            if j[1] == "m12_00_00_01":
                 aiFileName = "m12_00_00_00"
             if (self.useDCX):
                 if not (os.path.isfile(self.AISCRIPTS + aiFileName + '.luabnd.dcx')):
@@ -486,7 +490,10 @@ class Randomizer:
             printLog(j[1] + " - " + self.names[j[0]] + " - offset: " + str(self.startIndices[j[0]]) + s + s2 + s3 + s4, logFile)
         return passedCheck
 
-    def isValid(self, s):                   #is enemy a valid target?
+    def isValid(self, s):
+        """
+        Is enemy a valid replacement target.
+        """
         for valid in self.validTargets:
             if (valid[0] in s):
                 return True
@@ -504,7 +511,10 @@ class Randomizer:
                 return i
         return -1
 
-    def loadFiles(self, enemyConfigName):                                    # load enemy data
+    def loadFiles(self, enemyConfigName):
+        """
+        Load enemy data.
+        """
         self.validNew.clear()
         self.validTargets.clear()
         self.validNewNormalIndices.clear()
@@ -573,7 +583,7 @@ class Randomizer:
                     elif (parts[NewCol.IGNORED.value] == "2" and self.useDCX):
                         notIgnored = True
                         print("[Remaster] Loading Artorias")
-                    elif (parts[NewCol.IGNORED.value] == "3" and self.loadSmallEnemies):
+                    elif (parts[NewCol.IGNORED.value] == "3" and self.loadSmallEnemies):        # Useless
                         notIgnored = True
                         print("<Chaos Bug/Vile Maggot> loading enabled")
 
@@ -622,7 +632,10 @@ class Randomizer:
         if (enemyConfigName != 'Default'):
             printLog(configStringForLog, logFile)
 
-    def getRandomFromList(self, l):         #returns a random element from @l
+    def getRandomFromList(self, l):
+        """
+        Returns a random element from list @l.
+        """
         if (len(l) == 0):
             return -1
         return l[randint(0, len(l) - 1)]
@@ -679,6 +692,10 @@ class Randomizer:
             return self.validDiffSizeNormal[desiredDifficulty][maxSize]
 
     def GetEnemyFromListWithRetry(self, enemyList, originalEnemyID):
+        """
+        Try getting a new enemy repeatedly until a valid replacement is found.
+        I could avoid invalid replacements in a better way, but oh well for now.
+        """
         retryCount = 10
         newEnemyID = ''
         returnChar = -1
@@ -761,8 +778,6 @@ class Randomizer:
         else:
             return self.GetNormalEnemy(diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID)
 
-    #the bakf and oldf variable names make no sense...
-
     def revertToNormal(self, revertEffectFiles = True):
         for j in enumerate(self.inputFiles):                                    #load backup msb/luabnd
             print("[Unrandomize] Reverting msb and luabnd files " + str(j[0]) + "/" + str(len(self.inputFiles)))
@@ -800,6 +815,9 @@ class Randomizer:
             self.restoreBackup('event/m17_00_00_00.emevd')
 
     def applyEmevd(self, emevdName):
+        """
+        Replaces an emevd file with a custom one.
+        """
         emevdFileName = emevdName + '.emevd'
         emevdPathName = 'PTDE/'
         if (self.useDCX):
@@ -814,8 +832,11 @@ class Randomizer:
                     oldf.write(modf.read())
                     print('copied new ' + emevdFileName)
 
-    def isCombinationInvalid(self, oldID, newID):       # Is a specific replacement invalid
-        if ('c5320' in oldID):          # Gwyndolin
+    def isCombinationInvalid(self, oldID, newID):
+        """
+        Returns True if an enemy with @oldID is not allowed to be replaced with an enemy with @newID
+        """
+        if ('c5320' in oldID):          # Gwyndolin (To avoid the bosses clipping out of the world and dying, which causes the player to get teleported to the arena)
             if ('c5290' in newID):      # Seath
                 return True
             elif ('c5260' in newID):    # Gaping
@@ -823,7 +844,7 @@ class Randomizer:
             elif ('c4510' in newID):    # Kalameet
                 return True
 
-        if ('c2240' in oldID):          # Capra Demon
+        if ('c2240' in oldID):          # Capra Demon (These replacements can get stuck floating above the arena)
             if ('c5290' in newID):      # Seath
                 return True
             elif ('c5260' in newID):    # Gaping
@@ -831,7 +852,7 @@ class Randomizer:
             elif ('c4510' in newID):    # Kalameet
                 return True
 
-        if ('c3320_0000' in oldID):     # Pinwheeeeeeeee
+        if ('c3320_0000' in oldID):     # Pinwheeeeeeeee (Can clip above the arena, being unkillable)
             if ('c5290' in newID):      # Seath
                 return True
             elif ('c5260' in newID):    # Gaping
@@ -839,7 +860,7 @@ class Randomizer:
             elif ('c4510' in newID):    # Kalameetc2320
                 return True
 
-        if ('c2320' in oldID):          # Iron Golem
+        if ('c2320' in oldID):          # Iron Golem (Can get stuck floating)
             if ('c5290' in newID):      # Seath
                 return True
             elif ('c5260' in newID):    # Gaping
@@ -847,7 +868,7 @@ class Randomizer:
             elif ('c4510' in newID):    # Kalameet
                 return True
 
-        if ('c3350' in newID):          # Tree
+        if ('c3350' in newID):          # Tree (they are so tall that they can block a walkway above them)
             if ('c2800' in oldID):      # Undead Crystal Soldiers
                 return True
             elif ('c2370' in oldID):    # Channeler
@@ -858,14 +879,18 @@ class Randomizer:
         return False
 
     def randomize(self, settings, msgArea):
+        """
+        Perform the randomization
+        """
         global logFile
         currentTime = datetime.datetime.now()
         timeString = f"{currentTime:%Y-%m-%d-%H-%M-%S}"
-        logFile = open('enemyRandomizerData/logs/rlog' + timeString + '.txt', 'w')      #create logfile
+        logFile = open('enemyRandomizerData/logs/rlog' + timeString + '.txt', 'w')      # Create logfile
 
         self.firstTimeSetup()
 
         if (self.check()):
+            # Get settings
             progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, skeletonMode, gargoyleMode, diffStrictness, tposeCity, hellkiteEn, smallOneEn, seed, textConfig, enemyConfigName = settings
 
             if (hellkiteEn == 0):
@@ -878,6 +903,7 @@ class Randomizer:
             else:
                 self.loadSmallEnemies = False
 
+            # Generate a seed if none is provided.
             if (seed == ""):
                 random.seed(datetime.datetime.now())
                 seed = str(random.randrange(sys.maxsize))
@@ -885,18 +911,20 @@ class Randomizer:
             random.seed(seed)
 
             self.exeStatus = check_exe.check_exe_checksum()
+
+            #Patch the exe if necessary
             if (self.exeStatus == "Unpacked" or self.exeStatus == "Unpacked Debug"):
                 check_exe.patch_exe()
 
             self.ffxdata.AddEverythingToCommon(self.useDCX)
 
-
-            self.applyEmevd('m10_01_00_00')
-            self.applyEmevd('m12_00_00_00')
-            self.applyEmevd('m13_00_00_00')
-            self.applyEmevd('m14_01_00_00')
-            self.applyEmevd('m15_01_00_00')
-            self.applyEmevd('m17_00_00_00')
+            # Replace original event scripts with custom ones.
+            self.applyEmevd('m10_01_00_00') # Gargoyle#2 warping removed
+            self.applyEmevd('m12_00_00_00') # MLB forced animation removed
+            self.applyEmevd('m13_00_00_00') # Skeleton immortality removed
+            self.applyEmevd('m14_01_00_00') # Remove BoC parts AI activation, remove immortality of actual boss immediately, remove immortality of branches
+            self.applyEmevd('m15_01_00_00') # Make the statue disappear if Gwyndolin dies
+            self.applyEmevd('m17_00_00_00') # Remove Seath's immortality immediately when the crystal is broken instad of waiting for a flag from the animation.
 
             #msbio = MsbIO()
             luagnl = LuaGnl()
@@ -942,8 +970,8 @@ class Randomizer:
                 self.msbio.open(self.MAPCOPY + inFile + ".msb")
 
                 aiFileName = inFile
-                if inFile == "m12_00_00_01":        #because darkrooot is weird, has a 2 msb files: m12_00_00_00 and m12_00_00_01 but only the latter seems to change the enemies
-                    aiFileName = "m12_00_00_00"     #but the ai is in m12_00_00_00.luabnd file
+                if inFile == "m12_00_00_01":
+                    aiFileName = "m12_00_00_00"
 
                 gnlBytes, infoBytes = luabnd.open(self.AICOPY + aiFileName + ".luabnd", self.useDCX)
                 luagnl.open_bytes(gnlBytes)
@@ -1029,7 +1057,7 @@ class Randomizer:
                         newRot = (0.00, 53.00, 0.00)
                     elif ("c5290_0000" in creatureId):                                       #Seath (Scripted death) - needs to be able to kill you in the forced death room 
                         specialCase = True
-                    elif (inFile == "m17_00_00_00" and "c2690_0000" in creatureId):     #Key Serpent - need the key (unless you duke skip of course), new enemy either doesnt drop it or drops it inside the wall or something
+                    elif (inFile == "m17_00_00_00" and "c2690_0000" in creatureId):     #Key Serpent - need the key (unless you dukeskip of course), new enemy either doesnt drop it
                         specialCase = True
                     elif ("c5310_0000" in creatureId):                                  #Gwynevere - Can die the moment you enter anor londo and that breaks the game: can't get the lordvessel (the cutscene after gwynevere death doesnt trigger even if you go in the room) and enemies are missing like it's dark anor londo
                         specialCase = True
@@ -1037,12 +1065,12 @@ class Randomizer:
                         specialCase = True
                     elif ("c2780_0000" in creatureId and inFile == "m12_01_00_00"):     #Crest key mimic
                         specialCase = True
-                    elif ("c4510_0000" in creatureId or "c4510_0002" in creatureId):    #Kalameet flying around versions
+                    elif ("c4510_0000" in creatureId or "c4510_0002" in creatureId):    #Kalameet flying versions
                         specialCase = True
                     elif ("c3300" in creatureId and inFile == "m13_02_00_00"):          #Crystal Lizards in Great Hollow, for whatever reason they make the Great Hollow super unstable
                         specialCase = True
 
-                    # SkeletonMode things
+                    # SkeletonMode things (TODO: REMOVE THIS)
 
                     removeEventEntityID = False
 
@@ -1050,7 +1078,7 @@ class Randomizer:
                     #    removeEventEntityID = True
                     if ("c2900" in creatureId and inFile == "m13_01_00_00"):   # don't replace small skeletons in ToG (Ravelord Nito fight)
                         specialCase = True
-                    if (("c2910_0019" in creatureId or "c2910_0020" in creatureId or "c2910_0021" in creatureId) and inFile == "m13_01_00_00"):    # don't replace lg.skeletons in Ravelord Nito fight
+                    if (("c2910_0019" in creatureId or "c2910_0020" in creatureId or "c2910_0021" in creatureId) and inFile == "m13_01_00_00"):    # don't replace large skeletons in Ravelord Nito fight
                         specialCase = True
 
                     if (self.isValid(creatureId) and not specialCase):
@@ -1066,15 +1094,15 @@ class Randomizer:
 
                                 creatureType = self.validTargets[self.validIndex(creatureId)][2]
 
-                                if ("c3320_0000" in creatureId and inFile == "m13_00_00_00"):     #only consider the actual bossfight main pinwheel (the one that actually takes damage) a boss (and not the clones and the ones in ToG)
+                                if ("c3320_0000" in creatureId and inFile == "m13_00_00_00"):       # Only consider the actual bossfight main pinwheel (the one that actually takes damage) a boss (and not the clones and the ones in ToG)
                                     creatureType = "1"
-                                elif (inFile == "m10_01_00_00" and "c2250" in creatureId):          #consider taurus boss a boss
+                                elif (inFile == "m10_01_00_00" and "c2250" in creatureId):          # Consider taurus boss a boss
                                     creatureType = "1"
-                                elif (inFile == "m14_01_00_00" and "c2240" in creatureId):          #consider capras in D.Ruins normal  enemies
+                                elif (inFile == "m14_01_00_00" and "c2240" in creatureId):          # Consider capras in Demon Ruins normal enemies
                                     creatureType = "0"
-                                elif (inFile == "m15_01_00_00" and "c2860_0000" in creatureId):     #consider blacksmith giant a npc
+                                elif (inFile == "m15_01_00_00" and "c2860_0000" in creatureId):     # Consider blacksmith giant a npc
                                     creatureType = "2"
-                                elif (inFile == "m14_00_00_00" and "c3210_0000" in creatureId):     #eingyi
+                                elif (inFile == "m14_00_00_00" and "c3210_0000" in creatureId):     # Eingyi
                                     creatureType = "2"
 
                                 maxCreatureSize = 5
@@ -1134,10 +1162,6 @@ class Randomizer:
                                     for idx in range(int(self.validNew[newChar][NewCol.SIZE.value]), 6):
                                         self.uniqueNormals[idx].append(newChar)
                             
-                            oldNPCParam = self.msbio.parts[2].rows[rowIndex][PARAM_DATA_COL]
-                            oldNPCAI = self.msbio.parts[2].rows[rowIndex][NPCAI_DATA_COL]
-                            oldModel = self.msbio.parts[2].rows[rowIndex][MODEL_DATA_COL]
-                            
                             newAI = ""
                             newParam = ""
                             if (len(self.validNew[newChar][NewCol.AI.value]) == 1):
@@ -1164,6 +1188,7 @@ class Randomizer:
                                 luabnd.addAuto(aiEntry.battle_script)
                                 luabnd.addAuto(aiEntry.logic_script)
 
+                            # Change assigned animation if T-Posing is off.
                             animLine = ""
                             if (tposeCity == 1):
                                 if (creatureType != "2"):
@@ -1176,7 +1201,7 @@ class Randomizer:
                             if ("c5350_0001" in creatureId and "c5350" in self.validNew[newChar][NewCol.ID.value]):    # restore original event script for 10_01 if gargoyle#2 is replaced by gargoyle, so that jumping down and stuff works properly
                                 self.restoreBackup('event/m10_01_00_00.emevd')
 
-                            # update position if necessary:
+                            # Update position if necessary:
                             posLine = ""
                             if (changePos):
                                 posLine = " changed position"
@@ -1187,10 +1212,6 @@ class Randomizer:
                                 self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 3] = newRot[0]
                                 self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 4] = newRot[1]
                                 self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 5] = newRot[2]
-
-                            #if (removeEventEntityID):
-                            #    self.msbio.parts_data[2][rowIndex][EVENTENTITYID_COL] = -1
-
                             
                             
                             printLog("Replacing (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " with (" + self.validNew[newChar][NewCol.ID.value] + ") " + self.validNew[newChar][NewCol.NAME.value] + "[" + str(newChar) + "]" + aiStr + posLine + animLine, logFile, False)

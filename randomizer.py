@@ -23,7 +23,11 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-class dataFetchThread (threading.Thread):           # separate thread for randomizing (don't ask about the name, just copied it from one of my other projects LUL)
+class dataFetchThread (threading.Thread):
+    """
+    Separate thread for randomizing, so that the UI can be updated.
+    (Don't ask about the name, just copied it from one of my other projects LUL)
+    """
     def __init__(self, threadID, name, counter, randomizer, rsettings, msgArea, mainw, timeString):
         threading.Thread.__init__(self)
         self.threadID = threadID
@@ -394,6 +398,8 @@ class MainWindow():
 
         self.BindTags(self.tposeBtn1, 9, 0)
         self.BindTags(self.tposeBtn2, 9, 1)
+
+        # TODO: Remove HK/etc stuff (here and also the info box entries + variables + passed values to rng)
 
         """self.hellkite_frame = LabelFrame(self.root, text="Hellkite Drake:")
         self.hellkite_frame.grid(row=3, column=5, sticky='NWES', padx=2)

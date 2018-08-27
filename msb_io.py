@@ -46,10 +46,16 @@ class MsbIO:
         self.parts = [self.mapPieces0, self.objects1, self.creatures2, self.creatures4, self.collision5, self.navimesh8, self.objects9, self.creatures10, self.collision11]
 
     def open(self, filename):
+        """
+            Opens msb file @filename
+        """
         with open(filename, 'rb') as f:
             self.open_bytes(f.read())
 
     def open_bytes(self, mBytes):
+        """
+            Opens a msb file from bytes @mBytes.
+        """
         self.clean()
 
         modelPointer = 0
@@ -95,6 +101,9 @@ class MsbIO:
 
 
     def save(self, filename, createBackup = True):
+        """
+            Saves the msb file as @filename.
+        """
         if (createBackup):
             with open(filename, 'rb') as origFile:
                 with open(filename + '.bak', 'wb') as bakFile:
@@ -103,8 +112,13 @@ class MsbIO:
             f.write(self.save_bytes())
     
     def save_bytes(self):
+        """
+            Write the msb data as bytes and return it.
+        """
         offset = 0
         msbBytes = bytearray()
+
+        # Models
 
         modelCount = len(self.models.rows) + 1
         modelParamStOffset = 0xC + modelCount * 0x4
@@ -136,6 +150,8 @@ class MsbIO:
 
             offset = curroffset + nameOffset + padding
 
+        # Events
+
         eventPointer = (len(msbBytes) & -0x4) + 0x4
         offset = 0xC + (modelCount - 1) * 0x4
         offset = self.WriteBytesAt(msbBytes, offset, struct.pack("<I", eventPointer))
@@ -157,6 +173,8 @@ class MsbIO:
                 offset = self.save_row(msbBytes, offset, eventPointer, eventLayout, eventRow, eventIndex)
                 eventIndex += 1
 
+        # Points
+
         pointPointer = len(msbBytes)
         offset = eventPointer + 0xC + (eventCount - 1) * 0x4
         offset = self.WriteBytesAt(msbBytes, offset, struct.pack("<I", pointPointer))
@@ -172,7 +190,6 @@ class MsbIO:
         offset = self.WriteBytesAt(msbBytes, offset, EncodeString("POINT_PARAM_ST"))
         offset = (len(msbBytes) & -0x4) + 0x4
 
-        # Game wants the points to be in order by id so sort them
 
         allPoints = []
         for layoutIndex, pointLayout in enumerate(self.points):
@@ -183,6 +200,8 @@ class MsbIO:
         
         for pointIndex, pointEntry in enumerate(sortedPoints):
             offset = self.save_row(msbBytes, offset, pointPointer, self.points[pointEntry[2]], pointEntry[1], pointIndex)
+
+        # Parts
         
         partsPointer = len(msbBytes)
         offset = pointPointer + 0xC + (pointCount - 1) * 0x4
@@ -211,6 +230,9 @@ class MsbIO:
 
 
     def read_row(self, mBytes, pointer: int, msbData: Msbdata):
+        """
+            Read a row of data with layout @msbData from offset @pointer from bytes @mBytes
+        """
         offset = pointer
         row = []
 
@@ -254,6 +276,9 @@ class MsbIO:
         msbData.rows.append(row)
 
     def save_row(self, msbBytes: bytearray, pos, pointer, layout: Msbdata, row, idx):
+        """
+            Saves a row of data (@row) with layout @layout to @msbBytes
+        """
         offset = pointer + 0xC + idx * 0x4
         offset = self.WriteBytesAt(msbBytes, offset, struct.pack("<I", pos))
         offset = pos
@@ -285,10 +310,11 @@ class MsbIO:
         return offset
 
 
-    """
-        @return newOffset
-    """
     def WriteBytesAt(self, byteStream: bytearray, pos: int, data: bytes):
+        """
+            Write bytes @data into bytearray @byteStream at position @pos.
+            Extends the bytearray with \x00 if @pos is larger than the length of the bytearray.
+        """
         if (pos > len(byteStream)):
             for i in range(pos - len(byteStream)):
                 byteStream.append(0)
@@ -299,6 +325,9 @@ class MsbIO:
         return pos + len(data)
 
     def clean(self):
+        """
+            Clears all the row data.
+        """
         self.models.rows.clear()
         for event in self.events:
             event.rows.clear()

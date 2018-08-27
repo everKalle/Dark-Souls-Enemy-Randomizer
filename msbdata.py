@@ -50,6 +50,9 @@ class Msbdata:
         self.create(self.name)
 
     def add(self, fieldName, fieldType):
+        """
+            Add a field with name @fieldName and type @fieldType
+        """
         if (len(fieldType) == 1):
             self.fieldNames.append(fieldName)
             if (self.nameIndex == -1):
