@@ -20,6 +20,9 @@ from enum import Enum
 logFile = -1
 
 def printLog(s, f, console = True):
+    """
+    Write line @s to file @f, also print it in the console if @console is True
+    """
     f.write(s + "\n")
     if (console):
         print(s)
@@ -84,9 +87,6 @@ class Randomizer:
         self.validSizeNew = [[], [], [], [], [], []]    #6 size classes
         self.validSizeNormal = [[], [], [], [], [], []]
         self.validSizeBosses = [[], [], [], [], [], []]
-        self.locationIndices = dict()
-        self.locationNormalIndices = dict()
-        self.locationBossIndices = dict()
         self.aic = None
         self.uniqueIndices = []
         self.uniqueBosses = [[], [], [], [], [], []]
@@ -102,9 +102,6 @@ class Randomizer:
         self.MAX_UNIQUE = 30
         self.msbio = MsbIO()
         self.ffxdata = FFXData()
-
-        self.loadHellkite = True
-        self.loadSmallEnemies = True
 
         self.missingMSB = 0
         self.missingLUABND = 0
@@ -312,7 +309,7 @@ class Randomizer:
         with open(testFileName, 'rb') as oldf:
             oldBytes = oldf.read()
 
-        # Try writing stuff to the file
+        # Try writing something to the file
 
         try:
             with open(testFileName, 'wb') as outf:
@@ -519,7 +516,7 @@ class Randomizer:
         self.validTargets.clear()
         self.validNewNormalIndices.clear()
         self.validNewBossIndices.clear()
-        for i in range(0, 6):          #clear size lists
+        for i in range(0, 6):
             self.validSizeNew[i].clear()
             self.validSizeNormal[i].clear()
             self.validSizeBosses[i].clear()
@@ -533,14 +530,7 @@ class Randomizer:
             self.validDiffNormal[i].clear()
             self.validDiffBosses[i].clear()
 
-        for location in self.inputFiles:
-            emList = []
-            self.locationIndices[location] = emList
-            bsList = []
-            self.locationBossIndices[location] = bsList
-            nrList = []
-            self.locationNormalIndices[location] = nrList
-
+        # Load valid replacement targets
         printLog("Loading valid targets", logFile)
         f = open('enemyRandomizerData/replacement_ref/valid_replacements.txt', 'r')
         firstLine = True
@@ -583,9 +573,6 @@ class Randomizer:
                     elif (parts[NewCol.IGNORED.value] == "2" and self.useDCX):
                         notIgnored = True
                         print("[Remaster] Loading Artorias")
-                    elif (parts[NewCol.IGNORED.value] == "3" and self.loadSmallEnemies):        # Useless
-                        notIgnored = True
-                        print("<Chaos Bug/Vile Maggot> loading enabled")
 
                     configStringForLog += parts[NewCol.IGNORED.value]
                     
@@ -597,7 +584,7 @@ class Randomizer:
 
                         nwSize = int(parts[NewCol.SIZE.value])
                         nwDiff = int(parts[NewCol.DIFFICULTY.value])
-                        for i in range(nwSize, 6):          #populate size lists
+                        for i in range(nwSize, 6):          # Populate size lists
                             self.validSizeNew[i].append(len(self.validNew) - 1)
                             self.validDiffSizeNew[nwDiff][i].append(len(self.validNew) - 1)
                             if (parts[NewCol.TYPE.value] == "0"):
@@ -607,21 +594,12 @@ class Randomizer:
                                 self.validSizeBosses[i].append(len(self.validNew) - 1)
                                 self.validDiffSizeBosses[nwDiff][i].append(len(self.validNew) - 1)
                         
-                        #useless
+                        # 
                         self.validDiffNew[nwDiff].append(len(self.validNew) - 1)
                         if (parts[2] == "0"):
                             self.validDiffNormal[nwDiff].append(len(self.validNew) - 1)
                         elif (parts[2] == "1"):
                             self.validDiffBosses[nwDiff].append(len(self.validNew) - 1)
-                    
-                    for location in self.inputFiles:        # _should_ be obsolete
-                        if (parts[NewCol.IGNORED.value] == "0"):
-                            if (location in parts[NewCol.LOCATIONS.value]):
-                                self.locationIndices[location].append(len(self.validNew) - 1)
-                                if (parts[NewCol.TYPE.value] == "0"):
-                                    self.locationNormalIndices[location].append(len(self.validNew) - 1)
-                                elif (parts[NewCol.TYPE.value] == "1"):
-                                    self.locationBossIndices[location].append(len(self.validNew) - 1)
 
                 else:
                     printLog("AI AND PARAM DONT MATCH ON " + line, logFile)      # valid_new.txt is messed up
@@ -680,7 +658,6 @@ class Randomizer:
                     returnDefault = True
         
         if not returnDefault:
-            #print("Returning class " + str(returnClass) + " for desired difficulty of " + str(desiredDifficulty))
             if (isBoss):
                 return self.validDiffSizeBosses[returnClass][maxSize]
             else:
@@ -709,77 +686,99 @@ class Randomizer:
 
         return returnChar
 
-    def GetNormalEnemy(self, diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID):                           # returns a normal enemy
-        if (diffmode == 0):
-            return (self.getRandomFromList(self.locationNormalIndices[mapname]), True)
-        else:
-            newC = -1
-            if (not careAboutLimit or len(self.uniqueIndices) < self.MAX_UNIQUE):
-                #newC = self.getRandomFromList(self.validNewNormalIndices)
-                if (diffmode == 1):
-                    diffList = self.getDifficultyList(desiredDifficulty, diffStrictness, False, maxSize)
-                    if (len(diffList) > 0):
-                        newC = self.GetEnemyFromListWithRetry(diffList, originalEnemyID)
-                    else:
-                        newC = -6
-                    #print("Getting difficulty scaled normal")
+    def GetNormalEnemy(self, diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID):
+        """
+        @diffmode           selected difficulty mode
+        @mapname            the map we are currently randomizing
+        @careAboutLimit     whether or not we should comply with the unique enemy limit
+        @maxSize            maximum size of the enemy
+        @desiredDifficulty  the difficulty class we should aim for
+        @diffStrictness     how strictly the difficulty curve should be followed
+        @originalEnemyID    the enemy we are replacing
+
+        Returns the index a normal enemy.
+        """
+        newC = -1
+        if (not careAboutLimit or len(self.uniqueIndices) < self.MAX_UNIQUE):
+            if (diffmode == 1):
+                diffList = self.getDifficultyList(desiredDifficulty, diffStrictness, False, maxSize)
+                if (len(diffList) > 0):
+                    newC = self.GetEnemyFromListWithRetry(diffList, originalEnemyID)
                 else:
-                    newC = self.GetEnemyFromListWithRetry(self.validSizeNormal[maxSize], originalEnemyID)
+                    newC = -6
             else:
-                newC = self.GetEnemyFromListWithRetry(self.uniqueNormals[maxSize], originalEnemyID)
-
-            if (diffmode == 3 and mapname == "m18_01_00_00"):
-                newC = self.getRandomFromList(self.HARDCODED_ASYLUM_NORMAL)
-
-            #useless
-            modAI = False
-            if (mapname in self.validNew[newC][NewCol.LOCATIONS.value]):
-                modAI = True
-            return (newC, modAI)
-
-    def GetBossEnemy(self, diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID, canBeNormal):               # returns a boss enemy
-        if (diffmode == 0):
-            return (self.getRandomFromList(self.locationBossIndices[mapname]), True)
+                newC = self.GetEnemyFromListWithRetry(self.validSizeNormal[maxSize], originalEnemyID)
         else:
-            newC = -1
-            if (not careAboutLimit or len(self.uniqueIndices) < self.MAX_UNIQUE):
-                if (diffmode == 1):
-                    diffList = self.getDifficultyList(desiredDifficulty, diffStrictness, True, maxSize)
-                    if (len(diffList) > 0):
-                        newC = self.GetEnemyFromListWithRetry(diffList, originalEnemyID)
-                    else:
-                        if (canBeNormal):
-                            #print("Normal:Boss/Normal and failed to find difficulty scaled boss, returning a normal enemy.")
-                            return self.GetNormalEnemy(diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID)
-                        else:
-                            newC = -6
-                    #print("Getting difficulty scaled boss")
+            newC = self.GetEnemyFromListWithRetry(self.uniqueNormals[maxSize], originalEnemyID)
+
+        if (diffmode == 3 and mapname == "m18_01_00_00"):
+            newC = self.getRandomFromList(self.HARDCODED_ASYLUM_NORMAL)
+
+        return newC
+
+    def GetBossEnemy(self, diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID, canBeNormal):
+        """
+        @diffmode           selected difficulty mode
+        @mapname            the map we are currently randomizing
+        @careAboutLimit     whether or not we should comply with the unique enemy limit
+        @maxSize            maximum size of the enemy
+        @desiredDifficulty  the difficulty class we should aim for
+        @diffStrictness     how strictly the difficulty curve should be followed
+        @originalEnemyID    the enemy we are replacing
+        @canBeNormal        can we also return a normal enemy in case we fail to find an appropriate boss enemy
+
+        Returns the index a boss enemy.
+        """
+        newC = -1
+        if (not careAboutLimit or len(self.uniqueIndices) < self.MAX_UNIQUE):
+            if (diffmode == 1):
+                diffList = self.getDifficultyList(desiredDifficulty, diffStrictness, True, maxSize)
+                if (len(diffList) > 0):
+                    newC = self.GetEnemyFromListWithRetry(diffList, originalEnemyID)
                 else:
-                    newC = self.GetEnemyFromListWithRetry(self.validSizeBosses[maxSize], originalEnemyID)
-            else:
-                if (len(self.uniqueBosses) == 0):
                     if (canBeNormal):
                         return self.GetNormalEnemy(diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID)
-                else:
-                    newC = self.GetEnemyFromListWithRetry(self.uniqueBosses[maxSize], originalEnemyID)
+                    else:
+                        newC = -6
+            else:
+                newC = self.GetEnemyFromListWithRetry(self.validSizeBosses[maxSize], originalEnemyID)
+        else:
+            if (len(self.uniqueBosses) == 0):
+                if (canBeNormal):
+                    return self.GetNormalEnemy(diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID)
+            else:
+                newC = self.GetEnemyFromListWithRetry(self.uniqueBosses[maxSize], originalEnemyID)
 
-            if (diffmode == 3 and mapname == "m18_01_00_00"):
-                newC = self.getRandomFromList(self.HARDCODED_ASYLUM_BOSSES)
-            
-            #useless
-            modAI = False
-            if (mapname in self.validNew[newC][NewCol.LOCATIONS.value]):
-                modAI = True
-            return (newC, modAI)
+        if (diffmode == 3 and mapname == "m18_01_00_00"):
+            newC = self.getRandomFromList(self.HARDCODED_ASYLUM_BOSSES)
+
+        return newC
 
     def GetNormalOrBossEnemy(self, diffmode, mapname, bosschance, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID):
+        """
+        @diffmode           selected difficulty mode
+        @mapname            the map we are currently randomizing
+        @bosschance         the chance of this enemy being a boss instead of a normal enemy
+        @careAboutLimit     whether or not we should comply with the unique enemy limit
+        @maxSize            maximum size of the enemy
+        @desiredDifficulty  the difficulty class we should aim for
+        @diffStrictness     how strictly the difficulty curve should be followed
+        @originalEnemyID    the enemy we are replacing
+        @canBeNormal        can we also return a normal enemy in case we fail to find an appropriate boss enemy
+
+        Returns the index a normal or a boss enemy.
+        """
         if (randint(1, 100) <= bosschance):
             return self.GetBossEnemy(diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID, True)
         else:
             return self.GetNormalEnemy(diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID)
 
     def revertToNormal(self, revertEffectFiles = True):
-        for j in enumerate(self.inputFiles):                                    #load backup msb/luabnd
+        """
+        Restore the backups of all modified files.
+        """
+        for j in enumerate(self.inputFiles):
+            # Load the backups of msb/luabnd files
             print("[Unrandomize] Reverting msb and luabnd files " + str(j[0]) + "/" + str(len(self.inputFiles)))
             self.restoreBackup(self.MAPSTUDIO + j[1] + '.msb')
             
@@ -891,17 +890,7 @@ class Randomizer:
 
         if (self.check()):
             # Get settings
-            progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, skeletonMode, gargoyleMode, diffStrictness, tposeCity, hellkiteEn, smallOneEn, seed, textConfig, enemyConfigName = settings
-
-            if (hellkiteEn == 0):
-                self.loadHellkite = True
-            else:
-                self.loadHellkite = False
-
-            if (smallOneEn == 0):
-                self.loadSmallEnemies = True
-            else:
-                self.loadSmallEnemies = False
+            progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, gargoyleMode, diffStrictness, tposeCity, seed, textConfig, enemyConfigName = settings
 
             # Generate a seed if none is provided.
             if (seed == ""):
@@ -946,11 +935,11 @@ class Randomizer:
             self.loadFiles(enemyConfigName)
             msgArea.config(state = "normal")
 
-            #log settings
+            # Log settings to the log file
             printLog("----\n Starting Randomization \n----", logFile)
             printLog("bossMode=" + str(bossMode) + "; enemyMode=" + str(enemyMode) + "; npcMode=" + str(npcMode) + "; mimicMode=" + str(mimicMode), logFile)
             printLog("fitMode=" + str(fitMode) + "; diffMode=" + str(diffMode) + "; diffStrictness=" + str(diffStrictness) + "; replaceChance=" + str(replaceChance) + "; bossChance(Normal)=" + str(bossChance) + "; bossChance(Boss)=" + str(bossChanceBosses) + "; gargoyleMode=" + str(gargoyleMode), logFile)
-            printLog("tpose=" + str(tposeCity) + "; hellkiteIgnored=" + str(hellkiteEn) + "; smallEnIgnored=" + str(smallOneEn), logFile)
+            printLog("tpose=" + str(tposeCity), logFile)
             printLog("seed='" + seed + "'", logFile)
             printLog("max_unique=" + str(self.MAX_UNIQUE), logFile)
             printLog("----", logFile)
@@ -1026,8 +1015,7 @@ class Randomizer:
                             changePos = True
                             newPos = (10.69, 48.92, 124.35)
                             newRot = (0.00, 1.84, 0.00)
-                    elif ((inFile == "m12_00_00_00" or inFile == "m12_00_00_01") and "c3230_0000" in creatureId):     # Moonlight Butterfly boss 
-                        #specialCase = True
+                    elif ((inFile == "m12_00_00_00" or inFile == "m12_00_00_01") and "c3230_0000" in creatureId):     # Moonlight Butterfly boss
                         changePos = True
                         newPos = (196.12, 8.09, 62.25)
                         newRot = (0.00, 27.37, 0.00)
@@ -1070,12 +1058,6 @@ class Randomizer:
                     elif ("c3300" in creatureId and inFile == "m13_02_00_00"):          #Crystal Lizards in Great Hollow, for whatever reason they make the Great Hollow super unstable
                         specialCase = True
 
-                    # SkeletonMode things (TODO: REMOVE THIS)
-
-                    removeEventEntityID = False
-
-                    #if ("c2900" in creatureId and inFile == "m13_00_00_00"):          #If skeletonMode is 0, don't replace skeletons in catacombs
-                    #    removeEventEntityID = True
                     if ("c2900" in creatureId and inFile == "m13_01_00_00"):   # don't replace small skeletons in ToG (Ravelord Nito fight)
                         specialCase = True
                     if (("c2910_0019" in creatureId or "c2910_0020" in creatureId or "c2910_0021" in creatureId) and inFile == "m13_01_00_00"):    # don't replace large skeletons in Ravelord Nito fight
@@ -1083,7 +1065,6 @@ class Randomizer:
 
                     if (self.isValid(creatureId) and not specialCase):
                         newChar = -1
-                        modifyAI = False
 
                         creatureTypeId = creatureId.split('_')[0]
 
@@ -1116,31 +1097,31 @@ class Randomizer:
 
                                     if (not isMimic or mimicMode == 1):                                 #mimic replace mode
                                         if (enemyMode == 1):     #replace with bosses only
-                                            newChar, modifyAI = self.GetBossEnemy(diffMode, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
+                                            newChar = self.GetBossEnemy(diffMode, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
                                         elif (enemyMode == 2):   #replace with normals only
-                                            newChar, modifyAI = self.GetNormalEnemy(diffMode, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+                                            newChar = self.GetNormalEnemy(diffMode, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
                                         elif (enemyMode == 3):   #replace with both
-                                            newChar, modifyAI = self.GetNormalOrBossEnemy(diffMode, inFile, bossChance, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+                                            newChar = self.GetNormalOrBossEnemy(diffMode, inFile, bossChance, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
                                     else:
                                         newChar = -3
 
                                 elif (creatureType == "1" and bossMode != 0):     #replacing boss (dont care about enemy limit so bosses _can_ be unique)
                                     if (bossMode == 1):     #replace with bosses only
-                                        newChar, modifyAI = self.GetBossEnemy(diffMode, inFile, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
+                                        newChar = self.GetBossEnemy(diffMode, inFile, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
                                     elif (bossMode == 2):   #replace with normals only
-                                        newChar, modifyAI = self.GetNormalEnemy(diffMode, inFile, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+                                        newChar = self.GetNormalEnemy(diffMode, inFile, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
                                     elif (bossMode == 3):   #replace with both
-                                        newChar, modifyAI = self.GetNormalOrBossEnemy(diffMode, inFile, bossChanceBosses, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+                                        newChar = self.GetNormalOrBossEnemy(diffMode, inFile, bossChanceBosses, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
 
                                 elif (creatureType == "2" and npcMode != 0):     #replacing NPC
                                     if (fitMode == 2):
                                         maxCreatureSize = int(creatureSize)
                                     if (npcMode == 1):     #replace with bosses only
-                                        newChar, modifyAI = self.GetBossEnemy(2, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
+                                        newChar = self.GetBossEnemy(2, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
                                     elif (npcMode == 2):   #replace with normals only
-                                        newChar, modifyAI = self.GetNormalEnemy(2, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+                                        newChar = self.GetNormalEnemy(2, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
                                     elif (npcMode == 3):   #replace with both
-                                        newChar, modifyAI = self.GetNormalOrBossEnemy(2, inFile, bossChance, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+                                        newChar = self.GetNormalOrBossEnemy(2, inFile, bossChance, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
 
                                     if ("c2640" in creatureId):                 # Special Andre -> Gwyndolin Replacement
                                         if (npcMode == 1 or npcMode == 3):
@@ -1240,8 +1221,7 @@ class Randomizer:
                 progressBar.step()
                 progressLabel.config(text="Randomizing " + self.names[i] + " - saving .msb")
                 self.msbio.save(self.MAPSTUDIO + inFile + ".msb")
-                """if (self.inputFFXFiles[inputIndex] != "NONE"):
-                    self.ffxdata.Save(self.FFX_DIR.format(self.inputFFXFiles[inputIndex]))"""
+
                 printLog("---------------------", logFile)
                 i += 1
 

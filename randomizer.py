@@ -23,10 +23,9 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-class dataFetchThread (threading.Thread):
+class randomizationThread (threading.Thread):
     """
     Separate thread for randomizing, so that the UI can be updated.
-    (Don't ask about the name, just copied it from one of my other projects LUL)
     """
     def __init__(self, threadID, name, counter, randomizer, rsettings, msgArea, mainw, timeString):
         threading.Thread.__init__(self)
@@ -112,19 +111,19 @@ class MainWindow():
     messages = [["* Bosses will not be replaced", "* Bosses will be replaced with bosses", "* Bosses will be replaced with normal enemies", "* Bosses will be replaced both with bosses and normal enemies"],
         ["* Normal will not be replaced", "* Normal will be replaced with bosses\n  Would recommend you to set Replacement Chance to < 15%\n  otherwise it can become pretty difficult to beat the game", "* Normal enemies will be replaced with normal enemies", "* Normal enemies will be replaced both with bosses and normal enemies"],
         ["* Enemies will only be placed where they fit", "* Enemies can be placed anywhere, regardless of their size\n  May cause some NPC-s to become too big to be able to talk to them if\n  NPC replacement is enabled.", "* Enemies can be placed anywhere, regardless of their size\n  Except when replacing NPC-s (so size limit is enforced on them)"],
-        ["* Mode: Enemies will only be replaced with enemies from the same area\n  (eg. burg enemies can only be replaced with other enemies from burg)\n  This mode works the best (enemies behave as they should)", "* Mode: Enemies will be replaced with enemies from other areas\n  while still trying to maintain some sort of a difficulty curve\n  NOTICE: not really compatible with 'Replace normals only with bosses' and\n  'Replace bosses only with normals', you'll be seeing lots of unmodified\n  enemies in those modes.", "* Mode: Any enemy/boss can be placed ANYWHERE in the world\n  So yes, you could find things like Manus or Nito in the Asylum", "* Mode: Any enemy/boss can be placed ANYWHERE in the world\n  with asylum being the only exception.\n  Keeps asylum easy so you don't have to fight someone like\n  Manus with starting stats and equipment."],
+        ["* Removed mode.", "* Mode: Enemies will be replaced with enemies from other areas\n  while still trying to maintain some sort of a difficulty curve\n  NOTICE: not really compatible with 'Replace normals only with bosses' and\n  'Replace bosses only with normals', you'll be seeing lots of unmodified\n  enemies in those modes.", "* Mode: Any enemy/boss can be placed ANYWHERE in the world\n  So yes, you could find things like Manus or Nito in the Asylum", "* Mode: Any enemy/boss can be placed ANYWHERE in the world\n  with asylum being the only exception.\n  Keeps asylum easy so you don't have to fight someone like\n  Manus with starting stats and equipment."],
         ["* Mimics are not replaced", "* Mimics ARE replaced, and the items they have will probably be lost\n  If you are using HotPocketRemix's Item Randomizer\n  definitely turn this off, or DON'T randomize key items."],
         ["* NPC-s will not be replaced", "* Certain NPC-s will be replaced with bosses\n  Has no impact on talking with them", "* Certain NPC-s will be replaced with normal enemies\n  Has no impact on talking with them", "* Certain NPC-s can be replaced both with bosses and normal enemies\n  Has no impact on talking with them"],
-        ["* Reassembling skeletons will not be replaced", "* Reassembling skeletons in Catacombs will be replaced\n  Be wary: enemies replacing those skeletons will NOT DIE \n  (even w/ divine weapons) until you kill their Necromancer", "* Reassembling skeletons in Catacombs and Nito fight will be replaced\n  Be wary: enemies replacing those skeletons will NOT DIE\n  (even w/ divine weapons) until you kill their Necromancer\n  .\n  In Nito fight they will also be unkillable (which as you can\n  guess can make the fight near-impossible to do legit) until you kill Nito"],
+        ["* -", "* -", "* -"],
         ["* The second gargoyle in the boss fight is not replaced", "* The second gargoyle in the boss fight IS replaced\n  Can potentially make the fight extremely difficult\n  eg. if you get Kalameet+Manus there"],
         ["* Difficulty curve is followed quite strictly: Harder enemies can still appear\n  in early-game but it's somewhat rare.\n  Least variety, but most consistent difficulty\n  (Only has effect if mode is set to 'Random with difficulty curve')", "* Following the difficulty curve is a bit looser: a bit higher chance to get\n  harder enemies in early game.\n  A bit more variety, while maintaining relatively reasonable difficulty.\n  (Only has effect if mode is set to 'Random with difficulty curve')", "* Difficulty curve following is rather loose: Enemy difficulty can vary much\n  more and harder enemies in early game are more common.\n  It's possible to, in rare cases, to even see Manus in Asylum in this mode.\n  (Only has effect if mode is set to 'Random with difficulty curve')"],
         ["* T-Posing Enabled: Enemies replacing enemies with special idle state retain\n  the original enemys idle animation resulting in T-Posing most of the time.", "* T-Posing Disabled: Enemies replacing enemies with special idle state (like\n  hollows in New Londo) have a proper animation assigned to them.\n  Do note that most of these enemies will now be immediately hostile.\n  NPC-s are still in T-Pose mode for that reason."],
-        ["* Hellkite Drake can spawn. (It's considered a boss)", "* Hellkite Drake is not allowed to spawn.\n  This option is here, because hellkite is designed to work on the bridge and\n  therefore does not result in a particularily interesting fight elsewhere."],
-        ["* Chaos Bugs and Vile Maggots can spawn.", "* Chaos Bugs and Vile Maggots are not allowed to spawn.\n  This option is mainly intended for PTDE, where due to limitations these\n  enemies can spawn quite often, especially on fully random modes."]]
+        ["* -", "* -"],
+        ["* -", "* -"]]
 
     def __init__(self):
         self.root = Tk()
-        self.randomizerVersion = "v0.3.1"
+        self.randomizerVersion = "v0.3.2"
         self.root.title("Dark Souls - Enemy randomizer " + self.randomizerVersion + " by rycheNhavalys")
 
         self.root.iconbitmap(default=resource_path('favicon.ico'))
@@ -146,12 +145,13 @@ class MainWindow():
         self.msg_area = Text(self.root, width=80, height=38, state="disabled", background="gray84", relief=GROOVE, wrap="word")
         self.msg_area.grid(row=2, column=0, columnspan=2, rowspan=7, padx=2, pady=2)
 
-        self.msg_area.tag_config("uf", foreground="gray50")
-        self.msg_area.tag_config("f", foreground="gray10", background="gray88")
-        self.msg_area.tag_config("c", foreground="DeepPink3", background="gray88")     # RoyalBlue4
+        self.msg_area.tag_config("uf", foreground="gray50")                         # hovering over a different setting
+        self.msg_area.tag_config("f", foreground="gray10", background="gray88")     # hovering over the selected value of a setting
+        self.msg_area.tag_config("c", foreground="DeepPink3", background="gray88")  # hovering over a different value of a setting
+
         self.msg_area.tag_config("sellout_text", foreground="gray10")
-        self.msg_area.tag_config("sellout_link", foreground="DeepPink2", underline=1)
-        self.msg_area.tag_config("major_error", foreground="red")
+        self.msg_area.tag_config("sellout_link", foreground="DeepPink2", underline=1)   # link to streamlabs sellout page
+        self.msg_area.tag_config("major_error", foreground="red")                       # error messages
 
         self.msg_area.tag_bind("sellout_link", "<Enter>", lambda _: self.msg_area.config(cursor="hand2"))
         self.msg_area.tag_bind("sellout_link", "<Leave>", lambda _: self.msg_area.config(cursor=""))
@@ -162,14 +162,14 @@ class MainWindow():
 
         self.sellout_close_button = Button(self.root, text="Back", command=self.CloseSelloutPage, width=10)
         self.sellout_close_button.grid(row=1, column=0, sticky="NWS", padx=6, pady=4)
-        self.sellout_close_button.grid_remove()
+        self.sellout_close_button.grid_remove() # Hide the sellout page closing button by default
 
         self.tags=["f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
 
         self.hoverO = -1
         self.hoverL = -1
 
-        # Init randomization variables
+        # Init setting variables
 
         self.bossReplaceMode = IntVar()
         self.bossReplaceMode.set(1)
@@ -189,9 +189,6 @@ class MainWindow():
         self.npcMode = IntVar()
         self.npcMode.set(0)
 
-        self.skeletonMode = IntVar()
-        self.skeletonMode.set(0)
-
         self.gargoyleMode = IntVar()
         self.gargoyleMode.set(1)
 
@@ -200,12 +197,6 @@ class MainWindow():
 
         self.tposeCity = IntVar()
         self.tposeCity.set(0)
-
-        self.hellkiteEnabled = IntVar()
-        self.hellkiteEnabled.set(0)
-
-        self.smallOnesEnabled = IntVar()
-        self.smallOnesEnabled.set(0)
 
         self.seedValue = StringVar()
         self.seedValue.set("")
@@ -218,6 +209,8 @@ class MainWindow():
         self.root.columnconfigure(4, weight=1)
         self.root.columnconfigure(3, weight=1)
         self.root.columnconfigure(2, weight=1)
+
+        # Seed entry
 
         self.seedLabel = Label(self.root, text="Seed (leave blank for random): ")
         self.seedLabel.grid(row = 1, column = 2, sticky="E", padx=2)
@@ -277,16 +270,10 @@ class MainWindow():
         self.BindTags(self.fitBtn2, 2, 1)
         self.BindTags(self.fitBtn3, 2, 2)
 
-        #self.fitBtn1.config(state = "disabled")
-        #self.fitBtn2.config(state = "disabled")
-        #self.fitBtn3.config(state = "disabled")
-
 
         self.dif_frame = LabelFrame(self.root, text="Mode:")
         self.dif_frame.grid(row=2, column=3, sticky='NWES', padx=2)
 
-        #self.difBtn1 = Radiobutton(self.dif_frame, text="Area", variable=self.difficultyMode, value=0, command=self.UpdateMessageArea)
-        #self.difBtn1.pack(anchor=W)
         self.difBtn2 = Radiobutton(self.dif_frame, text="Random with difficulty curve", variable=self.difficultyMode, value=1, command=self.UpdateMessageArea)
         self.difBtn2.pack(anchor=W)
         self.difBtn4 = Radiobutton(self.dif_frame, text="Fully random with easy asylum", variable=self.difficultyMode, value=3, command=self.UpdateMessageArea)
@@ -294,12 +281,10 @@ class MainWindow():
         self.difBtn3 = Radiobutton(self.dif_frame, text="Fully random", variable=self.difficultyMode, value=2, command=self.UpdateMessageArea)
         self.difBtn3.pack(anchor=W)
         
-        #self.BindTags(self.difBtn1, 3, 0)
         self.BindTags(self.difBtn2, 3, 1)
         self.BindTags(self.difBtn3, 3, 2)
         self.BindTags(self.difBtn4, 3, 3)
 
-        #self.difBtn2.config(state = "disabled")
 
         self.mimics_frame = LabelFrame(self.root, text="Mimics:")
         self.mimics_frame.grid(row=3, column=4, sticky='NWES', padx=2)
@@ -330,6 +315,7 @@ class MainWindow():
         self.BindTags(self.npcBtn3, 5, 2)
         self.BindTags(self.npcBtn4, 5, 3)
 
+
         self.replace_chance_frame = LabelFrame(self.root, text="Replacement chance (%):")
         self.replace_chance_frame.grid(row=5, column=2, sticky='NWES', padx=2)
 
@@ -338,6 +324,7 @@ class MainWindow():
         self.replace_chance_slider.set(100)
 
         Label(self.replace_chance_frame, text="Chance that an enemy/boss\n will be replaced at all.").grid(row=2, column=0, sticky='NWES', padx=2, pady=2)
+
 
         self.boss_chance_frame = LabelFrame(self.root, text="Boss chance [Normal Enemies](%):")
         self.boss_chance_frame.grid(row=4, column=3, sticky='NWES', padx=2)
@@ -348,6 +335,7 @@ class MainWindow():
 
         Label(self.boss_chance_frame, text="Chance that a normal enemy or NPC will be replaced\nwith a boss instead of an normal enemy.\nOnly has effect when normal enemy or NPC\nmode is set to 'With bosses or normal enemies'.").grid(row=2, column=0, sticky='NWES', padx=2, pady=2)
 
+
         self.boss_chance_frame_bosses = LabelFrame(self.root, text="Boss chance [Bosses](%):")
         self.boss_chance_frame_bosses.grid(row=5, column=3, sticky='NWES', padx=2)
 
@@ -356,6 +344,7 @@ class MainWindow():
         self.boss_chance_slider_bosses.set(90)
 
         Label(self.boss_chance_frame_bosses, text="Chance that a boss will be replaced with a boss instead\nof an normal enemy.\nOnly has effect when boss mode\n is set to 'With bosses or normal enemies'").grid(row=1, column=0, sticky='NWES', padx=2, pady=2)
+
 
         self.gargoyle_frame = LabelFrame(self.root, text="Gargoyle #2:", width=256)
         self.gargoyle_frame.grid(row=4, column=4, sticky='NWES', padx=2)
@@ -368,13 +357,9 @@ class MainWindow():
         self.BindTags(self.gargBtn1, 7, 0)
         self.BindTags(self.gargBtn2, 7, 1)
 
+
         self.diff_strict_frame = LabelFrame(self.root, text="Difficulty strictness:")
         self.diff_strict_frame.grid(row=2, column=4, sticky='NWES', padx=2)
-
-        """self.diff_strict_slider = Scale(self.diff_strict_frame, from_=0, to=8, orient=HORIZONTAL)
-        self.diff_strict_slider.grid(row=0, column=0, sticky='NWES', padx=2)
-        self.diff_strict_slider.set(8)"""
-        
 
         self.strictBtn1 = Radiobutton(self.diff_strict_frame, text="Strict", variable=self.diffStrictness, value=0, command=self.UpdateMessageArea)
         self.strictBtn1.pack(anchor=W)
@@ -387,8 +372,8 @@ class MainWindow():
         self.BindTags(self.strictBtn2, 8, 1)
         self.BindTags(self.strictBtn3, 8, 2)
 
+
         self.tpose_frame = LabelFrame(self.root, text="T-Posing enemies:")
-        #self.tpose_frame.grid(row=2, column=5, sticky='NWES', padx=2)
         self.tpose_frame.grid(row=6, column=2, sticky='NWES', padx=2)
         
         self.tposeBtn1 = Radiobutton(self.tpose_frame, text="Enabled", variable=self.tposeCity, value=0, command=self.UpdateMessageArea)
@@ -399,42 +384,19 @@ class MainWindow():
         self.BindTags(self.tposeBtn1, 9, 0)
         self.BindTags(self.tposeBtn2, 9, 1)
 
-        # TODO: Remove HK/etc stuff (here and also the info box entries + variables + passed values to rng)
-
-        """self.hellkite_frame = LabelFrame(self.root, text="Hellkite Drake:")
-        self.hellkite_frame.grid(row=3, column=5, sticky='NWES', padx=2)
-        
-        self.hellkiteBtn1 = Radiobutton(self.hellkite_frame, text="Enabled", variable=self.hellkiteEnabled, value=0, command=self.UpdateMessageArea)
-        self.hellkiteBtn1.pack(anchor=W)
-        self.hellkiteBtn2 = Radiobutton(self.hellkite_frame, text="Disabled", variable=self.hellkiteEnabled, value=1, command=self.UpdateMessageArea)
-        self.hellkiteBtn2.pack(anchor=W)
-
-        self.BindTags(self.hellkiteBtn1, 10, 0)
-        self.BindTags(self.hellkiteBtn2, 10, 1)
-
-        self.small_en_frame = LabelFrame(self.root, text="Chaos Bugs/Vile Maggots:")
-        self.small_en_frame.grid(row=4, column=5, sticky='NWES', padx=2)
-        
-        self.smallEnBtn1 = Radiobutton(self.small_en_frame, text="Enabled", variable=self.smallOnesEnabled, value=0, command=self.UpdateMessageArea)
-        self.smallEnBtn1.pack(anchor=W)
-        self.smallEnBtn2 = Radiobutton(self.small_en_frame, text="Disabled", variable=self.smallOnesEnabled, value=1, command=self.UpdateMessageArea)
-        self.smallEnBtn2.pack(anchor=W)
-
-        self.BindTags(self.smallEnBtn1, 11, 0)
-        self.BindTags(self.smallEnBtn2, 11, 1)"""
 
         self.openConfTopLevel = Button(self.root, text="Open config input", command=self.OpenTextConfigTopLevel)
         self.openConfTopLevel.grid(row=1, column=4, sticky='NEWS', padx=4, pady=4)
 
         self.textConfigTopLevel = None
 
+        # Enemy Config
+
         self.customEnemyConfigs = ["Default"]
         self.BuildCustomEnemyConfigList()
 
         self.enemy_config_frame = LabelFrame(self.root, text="Enemy Config:")
         self.enemy_config_frame.grid(row=6, column=4, sticky='NWES', padx=2)
-
-        #Label(self.enemy_config_frame, text="Current Config:").grid(row=0, column=0, sticky='NSW')
 
         self.enemyConfigForRandomization = StringVar()
 
@@ -448,26 +410,11 @@ class MainWindow():
         self.open_enemy_config_button = Button(self.enemy_config_frame, text="Open Enemy Config Editor", width=24, command=self.TryOpenEnemyConfigTopLevel)
         self.open_enemy_config_button.grid(row=2, column=0, sticky='NWSE', padx=2, pady=4)
 
-        # TODO: remove all the skeletonmode things
-
-        """self.skeleton_frame = LabelFrame(self.root, text="Reassembling skeletons:")
-        self.skeleton_frame.grid(row=1, column=5, sticky='NWES', padx=2)
-
-        self.sklBtn1 = Radiobutton(self.skeleton_frame, text="Do not replace", variable=self.skeletonMode, value=0, command=self.UpdateMessageArea)
-        self.sklBtn1.pack(anchor=W)
-        self.sklBtn2 = Radiobutton(self.skeleton_frame, text="Replace in Catacombs", variable=self.skeletonMode, value=1, command=self.UpdateMessageArea)
-        self.sklBtn2.pack(anchor=W)
-        self.sklBtn3 = Radiobutton(self.skeleton_frame, text="Replace in Catacombs+Nito Fight", variable=self.skeletonMode, value=2, command=self.UpdateMessageArea)
-        self.sklBtn3.pack(anchor=W)
-
-        self.BindTags(self.sklBtn1, 6, 0)
-        self.BindTags(self.sklBtn2, 6, 1)
-        self.BindTags(self.sklBtn3, 6, 2)"""
-
         self.progressTopLevel = None
 
         if (self.randomizer.canRandomize):
             if (self.randomizer.exeStatus == "Unknown"):
+                # Show a warning if the .exe checksum is unknown.
                 tkinter.messagebox.showwarning("Unknown DARKSOULS.exe", "The checksum of DARKSOULS.exe is unknown, if you know what you're doing then proceed, otherwise it might be a unpacking issue maybe?")
             
             if not (self.randomizer.areCopiesValid):
@@ -485,6 +432,7 @@ class MainWindow():
             self.randomize_button.config(state = "disabled")
             self.unrandomize_button.config(state = "disabled")
 
+        # Update the title of the window depending on the game version used.
         if (self.randomizer.exeStatus == "Remaster"):
             self.root.title("Dark Souls - Enemy randomizer " + self.randomizerVersion + " by rycheNhavalys    [Current Mode: REMASTERED]")
         else:
@@ -514,12 +462,13 @@ class MainWindow():
         self.sellout_button.grid()
         self.UpdateMessageArea()
 
-    def UpdateMessageArea(self): #this method is such spaghetti
+    def UpdateMessageArea(self):
         """
         Handles the message area contents.
         """
 
         if (self.isSelloutActive):
+            # Sellout section
             self.msg_area.config(state = "normal")
             self.msg_area.delete(1.0, END)
             self.msg_area.insert(END,  "\n\n If you wish to support the mod author via a donation, you can do so here:\n\n ", "sellout_text")
@@ -528,22 +477,25 @@ class MainWindow():
             self.msg_area.insert(END,  " \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n \"That wasn't necessary of you, but you have my thanks\" - Eileen the Crow\n\n", "uf")
             self.msg_area.config(state = "disabled")
         else:
+            # Normal message area
             if (self.randomizer.canRandomize):
-                if (self.bossReplaceMode.get() == 3):
+                # If there are no errors to display show the descriptions of selected settings and toggle the enabled state of certain options depending on whether or not they have an effect or not.
+
+                if (self.bossReplaceMode.get() == 3):   # If boss mode is 'With normals and bosses' then enable the boss chance[bosses] slider, otherwise disable it.
                     self.boss_chance_slider_bosses.config(state = 'normal', fg='gray5')
                     self.boss_chance_frame_bosses.config(fg = 'gray5', text="Boss chance [Bosses](%):")
                 else:
                     self.boss_chance_slider_bosses.config(state = 'disabled', fg='gray50')
                     self.boss_chance_frame_bosses.config(fg = 'gray50', text="[No effect] Boss chance [Bosses](%):")
                 
-                if (self.enemyReplaceMode.get() == 3 or self.npcMode.get() == 3):
+                if (self.enemyReplaceMode.get() == 3 or self.npcMode.get() == 3):   # If normal enemy or npc mode is 'With normals and bosses' then enable the boss chance[normal enemies] slider, otherwise disable it.
                     self.boss_chance_slider.config(state = 'normal', fg='gray5')
                     self.boss_chance_frame.config(fg = 'gray5', text="Boss chance [Normal Enemies](%):")
                 else:
                     self.boss_chance_slider.config(state = 'disabled', fg='gray50')
                     self.boss_chance_frame.config(fg = 'gray50', text="[No effect] Boss chance [Normal Enemies](%):")
 
-                if (self.difficultyMode.get() == 1):
+                if (self.difficultyMode.get() == 1):    # If difficulty setting is 'Random with difficuly curve' then enable the difficulty strictness option, otherwise disable it.
                     self.strictBtn1.config(state = 'normal')
                     self.strictBtn2.config(state = 'normal')
                     self.strictBtn3.config(state = 'normal')
@@ -591,10 +543,7 @@ class MainWindow():
                                 else:
                                     self.tags[i] = "c"
                             elif (i == 6):
-                                if (self.skeletonMode.get() == self.hoverL):
-                                    self.tags[i] = "f"
-                                else:
-                                    self.tags[i] = "c"
+                                self.tags[i] = "f"
                             elif (i == 7):
                                 if (self.gargoyleMode.get() == self.hoverL):
                                     self.tags[i] = "f"
@@ -611,15 +560,9 @@ class MainWindow():
                                 else:
                                     self.tags[i] = "c"
                             elif (i == 10):
-                                if (self.hellkiteEnabled.get() == self.hoverL):
-                                    self.tags[i] = "f"
-                                else:
-                                    self.tags[i] = "c"
+                                self.tags[i] = "f"
                             elif (i == 11):
-                                if (self.smallOnesEnabled.get() == self.hoverL):
-                                    self.tags[i] = "f"
-                                else:
-                                    self.tags[i] = "c"
+                                self.tags[i] = "f"
                         else:
                             self.tags[i] = "uf"
 
@@ -671,19 +614,8 @@ class MainWindow():
                 else:
                     self.msg_area.insert(END,  self.messages[9][self.tposeCity.get()] + "\n\n", self.tags[9])
 
-                """if (self.hoverO == 10):
-                    self.msg_area.insert(END,  self.messages[10][self.hoverL] + "\n\n", self.tags[10])
-                else:
-                    self.msg_area.insert(END,  self.messages[10][self.hellkiteEnabled.get()] + "\n\n", self.tags[10])
-
-                if (self.hoverO == 11):
-                    self.msg_area.insert(END,  self.messages[11][self.hoverL] + "\n\n", self.tags[11])
-                else:
-                    self.msg_area.insert(END,  self.messages[11][self.smallOnesEnabled.get()] + "\n\n", self.tags[11])"""
 
                 self.msg_area.config(state = "disabled")
-
-                #self.BuildConfigString()
             
             else:   # Display errors:
                 self.msg_area.config(state = "normal")
@@ -731,7 +663,6 @@ class MainWindow():
                         gameFileString = "* " + str(self.randomizer.missingFFXBND) + "/" + str(len(self.randomizer.inputFFXFiles)) + " .ffxbnd.dcx files missing from DATA/sfx/\n\n"
                     else:
                         gameFileString = "* " + str(self.randomizer.missingFFXBND) + "/" + str(len(self.randomizer.inputFFXFiles)) + " .ffxbnd files missing from DATA/sfx/\n\n"
-                #print(self.randomizer.missingFFXBND)
                 
                 self.msg_area.insert(END, gameFileString, "f")
 
@@ -802,23 +733,16 @@ class MainWindow():
         Open the progress bar window and execute the randomization on a separate thread
         """
 
-        # TODO: Cleanup
-
         currentTime = datetime.datetime.now()
         timeString = f"{currentTime:%Y-%m-%d-%H-%M-%S}"
 
-        #self.msg_area.config(state = "normal")
-        #self.msg_area.delete(1.0, END)
         self.progressTopLevel = Toplevel(self.root)
         self.progressTopLevel.title("Randomizing, please wait")
-
-        #self.progressTopLevel.wm_geometry("256x64")
 
         progLen = 3 + len(self.randomizer.inputFiles) * 3
 
         self.progressBar = Progressbar(self.progressTopLevel, maximum=progLen, length=512)
         self.progressBar.grid(row = 0, column = 0, sticky="NEWS", padx=8, pady=4)
-        #self.progressBar.pack()
 
         self.progressLabel = Label(self.progressTopLevel, text="Checking and preparing effect files [can take a while]")
         self.progressLabel.grid(row = 1, column = 0, sticky = "NEWS")
@@ -828,11 +752,10 @@ class MainWindow():
 
         self.BuildConfigString()
         
-        randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.skeletonMode.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.hellkiteEnabled.get(), self.smallOnesEnabled.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
+        randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
 
-        self.randThread = dataFetchThread(1, "Random-Thread", 1, self.randomizer, randomSettings, self.msg_area, self, timeString)
+        self.randThread = randomizationThread(1, "Random-Thread", 1, self.randomizer, randomSettings, self.msg_area, self, timeString)
         self.randThread.start()
-        #self.randomizer.randomize(randomSettings, self.msg_area)
 
     def OpenTextConfigTopLevel(self):
         """
@@ -1259,7 +1182,7 @@ class MainWindow():
         Build the compact config string.
         """
 
-        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/" + str(self.hellkiteEnabled.get()) + "/-/" + str(self.smallOnesEnabled.get()) + "/-/'''" + self.seedValue.get() + "'''"
+        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/'''" + self.seedValue.get() + "'''"
         self.configValue.set(self.configString)
 
     def ApplyConfigString(self):
@@ -1282,10 +1205,8 @@ class MainWindow():
         inpGargMode = 0
         inpDiffStrict = 0
         inpTpose = 0
-        inpHellkite = 0
-        inpSmallOnes = 0
         inpSeed = ""
-        if (len(parts) == 15):
+        if (len(parts) == 13):
             try:
                 inpBossMode = int(parts[0])
                 if (inpBossMode < 0 or inpBossMode > 3):
@@ -1335,15 +1256,7 @@ class MainWindow():
                 if (inpTpose < 0 or inpTpose > 1):
                     isValidConfig = False
                 
-                inpHellkite = int(parts[12])
-                if (inpHellkite < 0 or inpHellkite > 1):
-                    isValidConfig = False
-                
-                inpSmallOnes = int(parts[13])
-                if (inpSmallOnes < 0 or inpSmallOnes > 1):
-                    isValidConfig = False
-                
-                inpSeed = parts[14].replace("'''", "")
+                inpSeed = parts[12].replace("'''", "")
             except:
                 isValidConfig = False
         else:
@@ -1373,8 +1286,6 @@ class MainWindow():
             self.gargoyleMode.set(inpGargMode)
             self.diffStrictness.set(inpDiffStrict)
             self.tposeCity.set(inpTpose)
-            self.hellkiteEnabled.set(inpHellkite)
-            self.smallOnesEnabled.set(inpSmallOnes)
             self.seedValue.set(inpSeed)
             self.UpdateMessageArea()
             tkinter.messagebox.showinfo("Config Applied", "The config has been applied successfully")
