@@ -1144,6 +1144,7 @@ class MainWindow():
         Try saving the config with the name @filename.
         @return: Success status (bool)
         """
+        
         try:
             lineIdx = 0
             firstLine = True
@@ -1263,7 +1264,7 @@ class MainWindow():
             isValidConfig = False
         
         if (isValidConfig):
-            # set state of anything that can be disabled to normal
+            # Set state of anything that can be disabled to normal
 
             self.strictBtn1.config(state = 'normal')
             self.strictBtn2.config(state = 'normal')
@@ -1272,7 +1273,7 @@ class MainWindow():
             self.boss_chance_slider_bosses.config(state = 'normal', fg='gray5')
             self.boss_chance_slider.config(state = 'normal', fg='gray5')
 
-            #apply values
+            # Apply values
 
             self.bossReplaceMode.set(inpBossMode)
             self.enemyReplaceMode.set(inpNormMode)

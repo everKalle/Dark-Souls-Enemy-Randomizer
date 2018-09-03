@@ -184,7 +184,6 @@ class FFXData():
         tempList = []
         self.ffx_files.clear()
         for iFile in inputFiles:
-            #print(iFile)
             openFileName = 'sfx\\FRPG_SfxBnd_' + iFile + '.ffxbnd'
             if (useDCX):
                 openFileName += '.dcx'
@@ -198,8 +197,6 @@ class FFXData():
                 for item in data:
                     strName = item[1].decode('shift_jis')
                     if not strName in tempList:
-                        #tempList.append(strName)
-                        #self.ffx_files.append(item)
                         if (useDCX):
                             enFXMatch = re.match(ENEMY_EFFECT_ID_PATTERN, strName)
                             if (enFXMatch != None):
@@ -207,7 +204,6 @@ class FFXData():
                                 if (fid < 20001):                   # prev = 60001 below as well in 2 locations
                                     tempList.append(strName)
                                     self.ffx_files.append(item)
-                                    #print(fid)
                             else:
                                 enMDLMatch = re.match(ENEMY_MODEL_ID_PATTERN, strName)
                                 if (enMDLMatch != None):
@@ -215,7 +211,6 @@ class FFXData():
                                     if (fid < 20001):
                                         tempList.append(strName)
                                         self.ffx_files.append(item)
-                                        #print(fid)
                                 else:
                                     enTPFMatch = re.match(ENEMY_TPF_ID_PATTERN, strName)
                                     if (enTPFMatch != None):
@@ -223,7 +218,6 @@ class FFXData():
                                         if (fid < 20001):
                                             tempList.append(strName)
                                             self.ffx_files.append(item)
-                                            #print(fid)
                         else:
                             tempList.append(strName)
                             self.ffx_files.append(item)
@@ -267,10 +261,7 @@ class FFXData():
                     f2.write(upcontent)
 
         
-
         oldLen = len(ffxEntries) + len(tpfEntries) + len(mdlEntries)
-
-
 
         lastIndex += 1
         lastIndexTpf += 1
@@ -292,14 +283,11 @@ class FFXData():
                     lastIndexMdl += 1
                     mdlEntries.append(newEntry)
 
-        #print(len(ffxEntries))
         newContent = []
         newContent += ffxEntries
         newContent += tpfEntries
         newContent += mdlEntries
         print("[FFX] Effect data gathered: " + str(len(newContent)))
-        #for c in newContent:
-        #    print(c[0])
 
         if not len(newContent) == oldLen:
             if (useDCX):
@@ -316,7 +304,6 @@ class FFXData():
 
         if not useDCX:
             for iFile in inputFiles:
-                #print(iFile)
                 data = []
                 with open('sfx\\FRPG_SfxBnd_' + iFile + '.ffxbnd', 'rb') as f:
                     content = f.read()
