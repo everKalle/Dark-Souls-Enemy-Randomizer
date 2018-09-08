@@ -5,6 +5,9 @@ import re
 from dcx_handler import DCXHandler
 
 class BndData():
+    """
+    Class to handle .luabnd files and adding the .lua files to them.
+    """
 
     def __init__(self):
         self.luabnd_content = []
@@ -15,6 +18,9 @@ class BndData():
         self.useDCXCompression = False
 
     def open(self, filename, dcx = True):
+        """
+        Opens .luabnd file with filename @filename.
+        """
         
         self.luabnd_content = []
         self.luabnd_maxIndex = 0
@@ -49,6 +55,9 @@ class BndData():
         return (luagnlBytes, luainfoBytes)
 
     def save(self, filename, luagnlBytes, luainfoBytes):
+        """
+        Save the luabnd file as @filename.
+        """
         if (not self.useDCX):
             if (not os.path.isfile(filename + '.bak')):
                 with open(filename + '.bak', 'wb') as bakf:
@@ -71,6 +80,9 @@ class BndData():
                 f.write(bnd_rebuilder.repack_bnd(new_content))
 
     def add(self, scriptName, newBytes):
+        """
+        Add a .lua file with the name @scriptName and contents @newBytes to the currently opened .luabnd file
+        """
         newPath = self.basePath + byteread.EncodeString(scriptName)
         if (self.useDCX):
             self.basePathRemaster + byteread.EncodeString(scriptName)
@@ -79,7 +91,9 @@ class BndData():
         self.luabnd_maxIndex += 1
 
     def addAuto(self, scriptName):
-        #print("luabnd autoadd")
+        """
+        Adds <scriptName>.lua to currently opened .luabnd file.
+        """
         if not (scriptName == ""):
             with open('enemyRandomizerData\\aiscripts\\' + scriptName, 'rb') as aif:
                 data = aif.read()
@@ -89,6 +103,9 @@ class BndData():
         del self.luabnd_content[index]
 
     def generateAiScripts(self, baseFolder, targetFolder, dcx = True):
+        """
+        Extract all unique .lua files from .laubnd files so they can be easily accessed.
+        """
         SN_RGX = r"[1-9][0-9][0-9][0-9][0-9][0-9]_(battle|logic).lua"
         inputFiles = ["m10_00_00_00", "m10_01_00_00", "m10_02_00_00", "m11_00_00_00", "m12_00_00_00", "m12_01_00_00", "m13_00_00_00",  "m13_01_00_00", "m13_02_00_00", "m14_00_00_00", "m14_01_00_00", "m15_00_00_00", "m15_01_00_00", "m16_00_00_00", "m17_00_00_00", "m18_00_00_00", "m18_01_00_00"]
         tempList = []

@@ -64,6 +64,9 @@ class Randomizer:
     HARDCODED_ASYLUM_NORMAL = [1, 4, 12, 16, 23, 24, 28, 29, 30, 62]
     HARDCODED_ASYLUM_BOSSES = [8, 9, 118]
 
+    # Targets for Easy Asylum
+    EASYASYLUM_TARGETS = ['c2232_0000', 'c2500_0000', 'c2500_0001', 'c2500_0002', 'c2500_0003', 'c2500_0005', 'c2500_0006', 'c2500_0007', 'c2500_0009', 'c2500_0010', 'c2500_0011', 'c2550_0000']
+
     #Following is for testing on few files only
 
     """Blighttown only"""
@@ -711,7 +714,7 @@ class Randomizer:
         else:
             newC = self.GetEnemyFromListWithRetry(self.uniqueNormals[maxSize], originalEnemyID)
 
-        if (diffmode == 3 and mapname == "m18_01_00_00"):
+        if (diffmode == 3 and mapname == "m18_01_00_00" and originalEnemyID in self.EASYASYLUM_TARGETS):
             newC = self.getRandomFromList(self.HARDCODED_ASYLUM_NORMAL)
 
         return newC
@@ -749,7 +752,7 @@ class Randomizer:
             else:
                 newC = self.GetEnemyFromListWithRetry(self.uniqueBosses[maxSize], originalEnemyID)
 
-        if (diffmode == 3 and mapname == "m18_01_00_00"):
+        if (diffmode == 3 and mapname == "m18_01_00_00" and originalEnemyID in self.EASYASYLUM_TARGETS):
             newC = self.getRandomFromList(self.HARDCODED_ASYLUM_BOSSES)
 
         return newC
@@ -925,8 +928,6 @@ class Randomizer:
             PARAM_DATA_COL = 39
 
             ANIMID_DATA_COL = 50
-
-            EVENTENTITYID_COL = 27
 
             POS_DATA_COL = 5    # X pos , Y + 1, Z + 2, ROTX + 3, ROTY + 4, ROTZ + 5;
             

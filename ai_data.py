@@ -23,14 +23,13 @@ class AiDataContainer():
             iEntriesList = []
 
             infoEntries = parts[6].split('|')
-            #print(infoEntries)
+            
             for ientry in infoEntries:
                 parts2 = ientry.split(';')
                 infoEntry = (int(parts2[0]), byteread.EncodeString(parts2[1]), byteread.EncodeString(parts2[2]), int(parts2[3]), int(parts2[4]), int(parts2[5]), int(parts2[6]))
                 iEntriesList.append(infoEntry)
             
             iEntriesList.reverse()
-            #print(iEntriesList)
 
             self.aidatas.append(AiData(nid, name1, name2, battle, logic, gnlScriptNames, iEntriesList))
 

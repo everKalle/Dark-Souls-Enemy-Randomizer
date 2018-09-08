@@ -296,7 +296,7 @@ class FFXData():
                 temp = dcxh.open_file('sfx\\FRPG_SfxBnd_CommonEffects.ffxbnd.dcx')
                 dcxh.save_dcx('sfx\\FRPG_SfxBnd_CommonEffects.ffxbnd.dcx', bnd_rebuilder.repack_bnd(newContent))
             else:
-                print("[FFX] Saving sfx\\FRPG_SfxBnd_CommonEffects.ffxbnd. This takes a while.")
+                print("[FFX] Saving sfx\\FRPG_SfxBnd_CommonEffects.ffxbnd.")
                 with open('sfx\\FRPG_SfxBnd_CommonEffects.ffxbnd', 'wb') as f:
                     f.write(bnd_rebuilder.repack_bnd(newContent))
         

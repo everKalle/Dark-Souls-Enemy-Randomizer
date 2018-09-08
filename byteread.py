@@ -1,10 +1,7 @@
-def ReadUInt32(byteArr, loc):
-    return int.from_bytes(byteArr[loc: loc+4], byteorder='little', signed=False)
-
-def WriteUInt32(val):
-    return (val).to_bytes(4, byteorder='little', signed=False)
-
 def StringFromBytes(byteArr, loca):
+    """
+    Read a string from bytes @byteArr at offset @loca.
+    """
     strLen = 0
     if (loca + strLen >= len(byteArr)):
         if (strLen <= 0):
