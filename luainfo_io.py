@@ -2,8 +2,6 @@ from byteread import StringFromBytes, AiFunction
 import struct
 import os.path
 
-# Make the new offsets depend on primaryRef/secondaryRef
-
 class LuaInfo:
 
     def __init__(self):
