@@ -1,5 +1,5 @@
 ----------------------------------
-Dark Souls Enemy Randomizer v0.3.1
+Dark Souls Enemy Randomizer v0.3.2
 ----------------------------------
 
 --Installation Instructions [PTDE]:
@@ -41,27 +41,13 @@ DuckyKoi - gifting me the remaster so I could port the randomizer to it.
 
 This is still an early version of the mod, and does still have some issues.
 
---v0.3.1 Changelog:
-* Added the possibility to configure what enemies will be placed in the world.
-* Custom enemy configurations are saved in enemyRandomizerData\customConfigs as text files.
-* EnemyConfig screen contains comments on several enemies, mostly explaining why certain ones are disabled.
-* Randomizer logs the custom config if one is used (in a compact, not really humanly readable format).
-* Artorias can be placed into the world by default on the Remastered version, as he doesn't seem to cause crashes there (like he does on PTDE) when spawned as a normal enemy.
-* Gaping Dragon and Kalameet can't replace Capra anymore, as they can potentially get stuck above the arena.
-* Seath, Gaping Dragon and Kalameet can't replace Boss Pinwheel, again can easyly phase themselves above the arena and can't be killed.
-* Seath, Gaping Dragon and Kalameet are not allowed to be Iron Golem, as they can get stuck floating above the ground, being no threat and only hittable with ranged attacks.
-* Fixed Gargoyle#2 dying when Gargoyle#2 mode is 'Do not replace'.
-* Moonlight Butterfly no longer sits on it's tower if it doesn't get replaced.
-* Quelaag should no longer appear in Asylum on the strictest difficulty mode.
-* Tweaked the strictest difficulty curve a bit, reduced the possibility of noticeably harder foes showing up instead of easier enemies (eg Super Ornstein as a Gargoyle).
-* Removed the Hellkite and ChaosBug/Vile Maggot options, because they're kinda pointless now that enemy config can be changed.
-* Hellkite spawning has been disabled by default (but can be re-enabled with the enemy config), since it's a boring enemy
-* Titanite demons are disabled by default (again), since their AI doesn't activate properly, but like hellkite, can be re-enabled if one wants them to spawn.
-* Huge rat can be placed into the world (honestly I have no idea why I had it disabled)
-* Removed a few effect files from being loaded on the Remaster (didn't seem to be enemy related), very slightly reduces the time it takes for the effect preparation step to complete.
-* Tweaked unique enemy limit on Remaster.
-* Should have a few less crashes on Remastered.
-* Added a message to the console for the effect preparation step to state that this part takes a while.
-* FFX Handler no longer reports that the CommonEffects.ffxbnd(.dcx) has been saved when it has been prepared previously and doesn't need saving again.
-* Randomizer sort of checks whether or not it has permission to modify files, complains if it can't. Avoids the situation where the randomizer seems to complete the randomization properly, but doesn't actually change the files.
-* Randomizer gives shows an error message should it run into an exception when randomizing instead of doing absolutely nothing and getting stuck.
+--v0.3.2 Changelog:
+* Completely rewrote the .msb file handling class; works way faster now (file saving time reduced by ~90%).
+* Changed the .bnd handler a bit, works significantly faster.
+* Randomization process time reduced from ~25 seconds to ~5 seconds.
+* First time setup time reduced from ~65 seconds to ~6 seconds on PTDE and form ~130 seconds to ~50 seconds on the Remaster.
+* Moved the T-Posing and Enemy config controls to be below other controls instead of to the right of them to reduce window width.
+* Window scales a bit better, no longer just cuts stuff off on the right but rather scales the controls. Avoids some controls being cut off at low resolutions/high display scaling.
+* Cleaned up the code in general, removing a lot of useless/obsolete stuff.
+* Made the source available on GitHub: https://github.com/everKalle/Dark-Souls-Enemy-Randomizer
+* Finally fixed Easy Asylum mode to only affect the first visit, enemies on the return visit are no longer chosen from the Easy Asylum list.
