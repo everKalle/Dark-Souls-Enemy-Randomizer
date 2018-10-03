@@ -153,8 +153,30 @@ class Randomizer:
             if (self.exeStatus == "Unpacked" or self.exeStatus == "Unpacked Debug"):
                 check_exe.patch_exe()
             self.firstTimeSetup()
+            self.cleanupV032backup()
 
             self.retryFileCopy()
+
+    def cleanupV032backup(self):
+        doCleanup = False
+        if (os.path.isfile(self.MAPSTUDIO + 'm10_00_00_00.msb.bak')):
+            self.msbio.open(self.MAPSTUDIO + 'm10_00_00_00.msb.bak')
+            if (len(self.msbio.models.rows) >= 373):
+                doCleanup = True
+                print(">")
+            else:
+                print("<")
+        else:
+            print("FUCKOFF")
+
+        if (doCleanup):
+            print("Detected invalid .msb file backups from v0.3.2, attempting to fix.")
+            for i, iFile in enumerate(self.inputFiles):
+                self.msbio.open(self.MAPCOPY + iFile + '.msb')
+                self.msbio.models.rows = self.msbio.models.rows[:self.startIndices[i]]
+                self.msbio.save(self.MAPSTUDIO + iFile + '.msb.bak', False)
+                print("Fixed " + self.MAPSTUDIO + iFile + '.msb.bak')
+
 
 
     def createBackup(self, filename):
@@ -957,6 +979,7 @@ class Randomizer:
                 progressBar.step()
                 progressLabel.config(text="Randomizing " + self.names[i])
 
+                self.createBackup(self.MAPSTUDIO + inFile + ".msb")
                 self.msbio.open(self.MAPCOPY + inFile + ".msb")
 
                 aiFileName = inFile

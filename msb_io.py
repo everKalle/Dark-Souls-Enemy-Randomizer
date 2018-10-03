@@ -1,6 +1,7 @@
 from byteread import *
 import struct
 from msbdata import Msbdata
+import os
 
 class MsbIO:
     
@@ -104,7 +105,7 @@ class MsbIO:
         """
             Saves the msb file as @filename.
         """
-        if (createBackup):
+        if (createBackup and not os.path.isfile(filename + '.bak')):
             with open(filename, 'rb') as origFile:
                 with open(filename + '.bak', 'wb') as bakFile:
                     bakFile.write(origFile.read())
