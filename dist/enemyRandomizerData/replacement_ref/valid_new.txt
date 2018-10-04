@@ -82,7 +82,7 @@ c3410	Frog-Ray	0	0	0	2	m12_00_00_00;m12_00_00_01;	341000	341000	-1
 c3420	Undead Dragon	1	1	5	5	m11_00_00_00;m16_00_00_00;	342000	342000	-1	AI does not activate properly
 c3421	Bounding Demon of Izalith	1	1	4	5	m11_00_00_00;m14_01_00_00;	342100	342101	-1	Honestly... I just hate these enemies
 c3430	Hellkite Drake	1	1	5	6	m10_01_00_00;	343000	343000	-1	Not particularly interesting to fight elsewhere since it's designed to be on the bridge
-c3460	Armored Tusk	0	0	3	3	m10_01_00_00;	346000	346000	-1	They want to go home when spawned elsewhere
+c3460	Armored Tusk	0	1	3	3	m10_01_00_00;	346000	346000	-1	They want to go home when spawned elsewhere
 c3461	Armored Tusk (Dukes)	0	0	3	5	m17_00_00_00;	346100	346100	-1	
 c3471	Sanctuary Guardian	1	0	3	6	m12_01_00_00;	347100	347100	-1	
 c3480	Chaos Bug	0	0	0	0	m12_01_00_00;	348000;348000	348000;348001	-1	
@@ -119,6 +119,6 @@ c5290	Seath the Scaleless	1	0	4	6	m17_00_00_00;	529000	529000	-1
 c5320	Gwyndolin	1	1	1	4	m15_01_00_00;	532000	532000	9000	AI does not activate properly
 c5350	Bell Gargoyles	1	0	2	3	m10_01_00_00;	535000	535000	7000	
 c5351	Lightning Gargoyles	1	0	2	4	m15_01_00_00;	535100	535100	-1	
-c5360	Great Feline	0	0	2	5	m12_00_00_00;m12_00_00_01;	536000	536000	9000	They want to go home when spawned elsewhere
+c5360	Great Feline	0	1	2	5	m12_00_00_00;m12_00_00_01;	536000	536000	9000	They want to go home when spawned elsewhere
 c5370	Gwyn	1	0	1	7	m18_00_00_00;	537000	537000	-1	
 c5390	Four Kings	1	0	2	6	m16_00_00_00;	539000	539001	-1	

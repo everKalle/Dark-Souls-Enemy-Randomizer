@@ -115,6 +115,7 @@ class Randomizer:
         self.gwynNerfMode = 2
         self.typeSub = False
         self.typeReplaceMap = dict()
+        self.disallowSameReplacement = False
 
         self.missingMSB = 0
         self.missingLUABND = 0
@@ -1025,8 +1026,12 @@ class Randomizer:
                 if (self.gwynNerfMode == 1):
                     rngThreshhold = 60
                 if (uniform(0, 100) < rngThreshhold):
-                    print("Nerfed gwyn " + str(rngThreshhold))
                     return True
+
+        if (self.disallowSameReplacement):
+            if (newID in oldID):
+                print("SAME")
+                return True
         
         if (newID == ''):
             return True
@@ -1045,9 +1050,10 @@ class Randomizer:
 
         if (self.check()):
             # Get settings
-            progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, gargoyleMode, diffStrictness, tposeCity, bossSoulDrops, chaosPinwheel, typeReplacement, gwynNerf, seed, textConfig, enemyConfigName = settings
+            progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, gargoyleMode, diffStrictness, tposeCity, bossSoulDrops, chaosPinwheel, typeReplacement, gwynNerf, preventSame, seed, textConfig, enemyConfigName = settings
 
             self.gwynNerfMode = gwynNerf
+            self.disallowSameReplacement = (preventSame == 0)
 
             # Generate a seed if none is provided.
             if (seed == ""):
@@ -1094,7 +1100,7 @@ class Randomizer:
             printLog("----\n Starting Randomization \n----", logFile)
             printLog("bossMode=" + str(bossMode) + "; enemyMode=" + str(enemyMode) + "; npcMode=" + str(npcMode) + "; mimicMode=" + str(mimicMode), logFile)
             printLog("fitMode=" + str(fitMode) + "; diffMode=" + str(diffMode) + "; diffStrictness=" + str(diffStrictness) + "; replaceChance=" + str(replaceChance) + "; bossChance(Normal)=" + str(bossChance) + "; bossChance(Boss)=" + str(bossChanceBosses) + "; gargoyleMode=" + str(gargoyleMode), logFile)
-            printLog("tpose=" + str(tposeCity) + "; bossSouls=" + str(bossSoulDrops) + "; chaosPinwheel=" + str(chaosPinwheel) + "; typeReplacement=" + str(typeReplacement) + "; gwynNerf=" + str(gwynNerf), logFile)
+            printLog("tpose=" + str(tposeCity) + "; bossSouls=" + str(bossSoulDrops) + "; chaosPinwheel=" + str(chaosPinwheel) + "; typeReplacement=" + str(typeReplacement) + "; gwynNerf=" + str(gwynNerf) + "; preventSame=" + str(preventSame), logFile)
             printLog("seed='" + seed + "'", logFile)
             printLog("max_unique=" + str(self.MAX_UNIQUE), logFile)
             printLog("----", logFile)
@@ -1202,6 +1208,10 @@ class Randomizer:
                         changePos = True
                         newPos = (548, -340.23, 416.95)
                         newRot = (0.00, 53.00, 0.00)
+                    elif ("c2232" in creatureId):
+                        changePos = True
+                        newPos = (3.41, 197.61, -23.10)
+                        newRot = (0.00, 180.0, 0.00)
                     elif ("c5290_0000" in creatureId):                                       #Seath (Scripted death) - needs to be able to kill you in the forced death room 
                         specialCase = True
                     elif (inFile == "m17_00_00_00" and "c2690_0000" in creatureId):     #Key Serpent - need the key (unless you dukeskip of course), new enemy either doesnt drop it
@@ -1355,6 +1365,9 @@ class Randomizer:
 
                             if ("c5350_0001" in creatureId and "c5350" in self.validNew[newChar][NewCol.ID.value]):    # restore original event script for 10_01 if gargoyle#2 is replaced by gargoyle, so that jumping down and stuff works properly
                                 self.restoreBackup('event/m10_01_00_00.emevd')
+
+                            if ("c2232" in creatureId and "c2232" in self.validNew[newChar][NewCol.ID.value]):
+                                changePos = False
 
                             # Update position if necessary:
                             posLine = ""

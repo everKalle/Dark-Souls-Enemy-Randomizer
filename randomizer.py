@@ -122,7 +122,8 @@ class MainWindow():
         ["* T-Posing Enabled: Enemies replacing enemies with special idle state retain\n  the original enemys idle animation resulting in T-Posing most of the time.", "* T-Posing Disabled: Enemies replacing enemies with special idle state (like\n  hollows in New Londo) have a proper animation assigned to them.\n  Do note that most of these enemies will now be immediately hostile.\n  NPC-s are still in T-Pose mode for that reason."],
         ["* Type replacement enabled: If within one area there were originally multiple\n  of the same enemy, then all of those enemies will be replaced with one type\n  of enemy. For example: all Silver Knights in Anor Londo would be replaced\n  with Darkwraiths, instead of individual Silver Knights being replaced by\n  different enemies.", "* Type replacement disabled, each enemy is randomized separately."],
         ["* The main Pinwheel in the boss is not replaced, but it's clones are.\n  Replaced clones have normal HP instead of being 1 hit kill.\n  (A quite ridiculous and unfair mode; also can cause the game to lag severely\n  during the boss fight with certain enemies)", "* Pinwheel Boss will be replaced as normal, a single enemy replacing the main\n  Pinwheel."],
-        ["* When an enemy is chosen to be replaced by Gwyn, there is a 85% chance that a\n  new enemy will be chosen instead.", "* When an enemy is chosen to be replaced by Gwyn, there is a 60% chance that a\n  new enemy will be chosen instead.", "* Gwyn spawn rate is not nerfed."]]
+        ["* When an enemy is chosen to be replaced by Gwyn, there is a 85% chance that a\n  new enemy will be chosen instead.", "* When an enemy is chosen to be replaced by Gwyn, there is a 60% chance that a\n  new enemy will be chosen instead.", "* Gwyn spawn rate is not nerfed."],
+        ["* Enemies are not allowed to be replaced with the same enemy (so a Hollow can't\n  be replaced with another Hollow). Can result in less boss variety with the\n  difficulty curve option in early game.", "* Enemies can be replaced with the same enemy. (eg. a Hollow can be replaced\n  with a Hollow)"]]
 
     def __init__(self):
         self.root = Tk()
@@ -178,7 +179,7 @@ class MainWindow():
         self.sellout_close_button.grid(row=1, column=0, sticky="NWS", padx=6, pady=4)
         self.sellout_close_button.grid_remove() # Hide the sellout page closing button by default
 
-        self.tags=["f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
+        self.tags=["f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
 
         self.hoverO = -1
         self.hoverL = -1
@@ -220,6 +221,9 @@ class MainWindow():
 
         self.gwynNerf = IntVar()
         self.gwynNerf.set(1)
+
+        self.preventSame = IntVar()
+        self.preventSame.set(1)
 
         self.seedValue = StringVar()
         self.seedValue.set("")
@@ -485,7 +489,7 @@ class MainWindow():
         self.gwynrate_frame = LabelFrame(self.settingsPage2, text="Gwyn Spawn-Rate Nerf:")
         self.gwynrate_frame.grid(row=5, column=3, sticky='NWES', padx=2)
         
-        self.gwynrateBtn1 = Radiobutton(self.gwynrate_frame, text="High", variable=self.gwynNerf, value=0, command=self.UpdateMessageArea)
+        self.gwynrateBtn1 = Radiobutton(self.gwynrate_frame, text="Strong", variable=self.gwynNerf, value=0, command=self.UpdateMessageArea)
         self.gwynrateBtn1.pack(anchor=W)
         self.gwynrateBtn2 = Radiobutton(self.gwynrate_frame, text="Medium", variable=self.gwynNerf, value=1, command=self.UpdateMessageArea)
         self.gwynrateBtn2.pack(anchor=W)
@@ -495,6 +499,19 @@ class MainWindow():
         self.BindTags(self.gwynrateBtn1, 12, 0)
         self.BindTags(self.gwynrateBtn2, 12, 1)
         self.BindTags(self.gwynrateBtn3, 12, 2)
+
+        # Same enemy replacement prevention
+
+        self.replace_same_frame = LabelFrame(self.settingsPage2, text="Prevent replacement with same enemy: ")
+        self.replace_same_frame.grid(row=6, column=2, sticky='NWES', padx=2)
+        
+        self.sameReplaceBtn1 = Radiobutton(self.replace_same_frame, text="Enabled", variable=self.preventSame, value=0, command=self.UpdateMessageArea)
+        self.sameReplaceBtn1.pack(anchor=W)
+        self.sameReplaceBtn2 = Radiobutton(self.replace_same_frame, text="Disabled", variable=self.preventSame, value=1, command=self.UpdateMessageArea)
+        self.sameReplaceBtn2.pack(anchor=W)
+
+        self.BindTags(self.sameReplaceBtn1, 13, 0)
+        self.BindTags(self.sameReplaceBtn2, 13, 1)
 
         if (self.randomizer.canRandomize):
             if (self.randomizer.exeStatus == "Unknown"):
@@ -591,7 +608,7 @@ class MainWindow():
                     self.diff_strict_frame.config(fg = 'gray50', text="[No Effect] Difficulty strictness:")
 
 
-                for i in range(0, 13):
+                for i in range(0, 14):
                     if (self.hoverO == -1):
                         self.tags[i] = "f"
                     else:
@@ -658,12 +675,19 @@ class MainWindow():
                                     self.tags[i] = "f"
                                 else:
                                     self.tags[i] = "c"
+                            elif (i == 13):
+                                if (self.preventSame.get() == self.hoverL):
+                                    self.tags[i] = "f"
+                                else:
+                                    self.tags[i] = "c"
                         else:
                             self.tags[i] = "uf"
 
                 self.msg_area.config(state = "normal")
 
                 self.msg_area.delete(1.0, END)
+
+                self.msg_area.insert(END,  "Only the descriptions for the settings on the currently selected tab are displayed here, to see other descriptions, select the other settings tab." + "\n\n", "uf")
 
                 currentPage = self.settingsTabs.index(self.settingsTabs.select())
                 if (currentPage == 0):
@@ -680,6 +704,7 @@ class MainWindow():
                     self.AddDescription(10, self.typeReplacement.get())
                     self.AddDescription(11, self.pinwheelChaos.get())
                     self.AddDescription(12, self.gwynNerf.get())
+                    self.AddDescription(13, self.preventSame.get())
 
 
                 self.msg_area.config(state = "disabled")
@@ -828,7 +853,7 @@ class MainWindow():
 
         self.BuildConfigString()
         
-        randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.boss_souls_slider.get(), self.pinwheelChaos.get(), self.typeReplacement.get(), self.gwynNerf.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
+        randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.boss_souls_slider.get(), self.pinwheelChaos.get(), self.typeReplacement.get(), self.gwynNerf.get(), self.preventSame.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
 
         self.randThread = randomizationThread(1, "Random-Thread", 1, self.randomizer, randomSettings, self.msg_area, self, timeString)
         self.randThread.start()
@@ -1259,7 +1284,7 @@ class MainWindow():
         Build the compact config string.
         """
 
-        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/" + str(self.boss_souls_slider.get()) + "/-/" + str(self.pinwheelChaos.get()) + "/-/" + str(self.typeReplacement.get()) + "/-/" + str(self.gwynNerf.get()) + "/-/'''" + self.seedValue.get() + "'''"
+        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/" + str(self.boss_souls_slider.get()) + "/-/" + str(self.pinwheelChaos.get()) + "/-/" + str(self.typeReplacement.get()) + "/-/" + str(self.gwynNerf.get()) + "/-/" + str(self.preventSame.get()) + "/-/'''" + self.seedValue.get() + "'''"
         self.configValue.set(self.configString)
 
     def ApplyConfigString(self):
@@ -1286,8 +1311,9 @@ class MainWindow():
         inpPinwheel = 0
         inpTypeReplacement = 0
         inpGwynRate = 0
+        inpPreventSame = 0
         inpSeed = ""
-        if (len(parts) == 17):
+        if (len(parts) == 18):
             try:
                 inpBossMode = int(parts[0])
                 if (inpBossMode < 0 or inpBossMode > 3):
@@ -1353,7 +1379,11 @@ class MainWindow():
                 if (inpGwynRate < 0 or inpGwynRate > 2):
                     isValidConfig = False
                 
-                inpSeed = parts[16].replace("'''", "")
+                inpPreventSame = int(parts[16])
+                if (inpPreventSame < 0 or inpPreventSame > 2):
+                    isValidConfig = False
+                
+                inpSeed = parts[17].replace("'''", "")
             except:
                 isValidConfig = False
         else:
@@ -1387,6 +1417,7 @@ class MainWindow():
             self.pinwheelChaos.set(inpPinwheel)
             self.typeReplacement.set(inpTypeReplacement)
             self.gwynNerf.set(inpGwynRate)
+            self.preventSame.set(inpPreventSame)
             self.seedValue.set(inpSeed)
             self.UpdateMessageArea()
             tkinter.messagebox.showinfo("Config Applied", "The config has been applied successfully")
