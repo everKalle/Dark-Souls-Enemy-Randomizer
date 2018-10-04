@@ -4,6 +4,8 @@ import os.path
 import os
 from tkinter import *
 from tkinter.ttk import Progressbar
+from tkinter.ttk import Notebook
+import tkinter.ttk as ttk
 import check_exe
 import tkinter.messagebox
 import datetime
@@ -118,19 +120,31 @@ class MainWindow():
         ["* The second gargoyle in the boss fight is not replaced", "* The second gargoyle in the boss fight IS replaced\n  Can potentially make the fight extremely difficult\n  eg. if you get Kalameet+Manus there"],
         ["* Difficulty curve is followed quite strictly: Harder enemies can still appear\n  in early-game but it's somewhat rare.\n  Least variety, but most consistent difficulty\n  (Only has effect if mode is set to 'Random with difficulty curve')", "* Following the difficulty curve is a bit looser: a bit higher chance to get\n  harder enemies in early game.\n  A bit more variety, while maintaining relatively reasonable difficulty.\n  (Only has effect if mode is set to 'Random with difficulty curve')", "* Difficulty curve following is rather loose: Enemy difficulty can vary much\n  more and harder enemies in early game are more common.\n  It's possible to, in rare cases, to even see Manus in Asylum in this mode.\n  (Only has effect if mode is set to 'Random with difficulty curve')"],
         ["* T-Posing Enabled: Enemies replacing enemies with special idle state retain\n  the original enemys idle animation resulting in T-Posing most of the time.", "* T-Posing Disabled: Enemies replacing enemies with special idle state (like\n  hollows in New Londo) have a proper animation assigned to them.\n  Do note that most of these enemies will now be immediately hostile.\n  NPC-s are still in T-Pose mode for that reason."],
-        ["* -", "* -"],
-        ["* -", "* -"]]
+        ["* Type replacement enabled: If within one area there were originally multiple\n  of the same enemy, then all of those enemies will be replaced with one type\n  of enemy. For example: all Silver Knights in Anor Londo would be replaced\n  with Darkwraiths, instead of individual Silver Knights being replaced by\n  different enemies.", "* Type replacement disabled, each enemy is randomized separately."],
+        ["* The main Pinwheel in the boss is not replaced, but it's clones are.\n  Replaced clones have normal HP instead of being 1 hit kill.\n  (A quite ridiculous and unfair mode; also can cause the game to lag severely\n  during the boss fight with certain enemies)", "* Pinwheel Boss will be replaced as normal, a single enemy replacing the main\n  Pinwheel."],
+        ["* When an enemy is chosen to be replaced by Gwyn, there is a 85% chance that a\n  new enemy will be chosen instead.", "* When an enemy is chosen to be replaced by Gwyn, there is a 60% chance that a\n  new enemy will be chosen instead.", "* Gwyn spawn rate is not nerfed."]]
 
     def __init__(self):
         self.root = Tk()
-        self.randomizerVersion = "v0.3.2"
+        self.randomizerVersion = "v0.4"
         self.root.title("Dark Souls - Enemy randomizer " + self.randomizerVersion + " by rycheNhavalys")
 
         self.root.iconbitmap(default=resource_path('favicon.ico'))
 
         self.randomizer = Randomizer()
+
+        self.settingsTabs = Notebook(self.root)
+        self.settingsTabs.grid(row=2, column=2, columnspan=2, rowspan=4, sticky='NEWS')
+        self.settingsTabs.bind('<<NotebookTabChanged>>', self.SettingsPageChanged)
+
+        self.settingsPage1 = ttk.Frame(self.settingsTabs)
+        self.settingsTabs.add(self.settingsPage1, text='Main Replacement Options')
+
+        self.settingsPage2 = ttk.Frame(self.settingsTabs)
+        self.settingsTabs.add(self.settingsPage2, text='Other Options')
+
         self.buttons_frame = LabelFrame(self.root, text="Randomization")
-        self.buttons_frame.grid(row=5, column=4, sticky='NWES', padx=2)
+        self.buttons_frame.grid(row=4, column=4, sticky='NWES', padx=2)
         self.buttons_frame.columnconfigure(0, weight=1)
         self.buttons_frame.rowconfigure(0, weight=1)
         self.buttons_frame.rowconfigure(1, weight=1)
@@ -164,7 +178,7 @@ class MainWindow():
         self.sellout_close_button.grid(row=1, column=0, sticky="NWS", padx=6, pady=4)
         self.sellout_close_button.grid_remove() # Hide the sellout page closing button by default
 
-        self.tags=["f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
+        self.tags=["f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
 
         self.hoverO = -1
         self.hoverL = -1
@@ -198,6 +212,15 @@ class MainWindow():
         self.tposeCity = IntVar()
         self.tposeCity.set(0)
 
+        self.typeReplacement = IntVar()
+        self.typeReplacement.set(1)
+
+        self.pinwheelChaos = IntVar()
+        self.pinwheelChaos.set(1)
+
+        self.gwynNerf = IntVar()
+        self.gwynNerf.set(1)
+
         self.seedValue = StringVar()
         self.seedValue.set("")
 
@@ -210,6 +233,14 @@ class MainWindow():
         self.root.columnconfigure(3, weight=1)
         self.root.columnconfigure(2, weight=1)
 
+        self.settingsPage1.columnconfigure(4, weight=1)
+        self.settingsPage1.columnconfigure(3, weight=1)
+        self.settingsPage1.columnconfigure(2, weight=1)
+
+        self.settingsPage2.columnconfigure(4, weight=1)
+        self.settingsPage2.columnconfigure(3, weight=1)
+        self.settingsPage2.columnconfigure(2, weight=1)
+
         # Seed entry
 
         self.seedLabel = Label(self.root, text="Seed (leave blank for random): ")
@@ -220,8 +251,8 @@ class MainWindow():
 
         # Settings
 
-        self.bosses_frame = LabelFrame(self.root, text="Replace Bosses:")
-        self.bosses_frame.grid(row=2, column=2, sticky='NWS', padx=2)
+        self.bosses_frame = LabelFrame(self.settingsPage1, text="Replace Bosses:")
+        self.bosses_frame.grid(row=2, column=2, sticky='NWES', padx=2)
 
         self.bossBtn1 = Radiobutton(self.bosses_frame, text="Don't replace", variable=self.bossReplaceMode, value=0, command=self.UpdateMessageArea)
         self.bossBtn1.pack(anchor=W)
@@ -238,8 +269,8 @@ class MainWindow():
         self.BindTags(self.bossBtn4, 0, 3)
 
 
-        self.normal_frame = LabelFrame(self.root, text="Replace Normal Enemies:")
-        self.normal_frame.grid(row=3, column=2, sticky='NWS', padx=2)
+        self.normal_frame = LabelFrame(self.settingsPage1, text="Replace Normal Enemies:")
+        self.normal_frame.grid(row=3, column=2, sticky='NWES', padx=2)
 
         self.normBtn1 = Radiobutton(self.normal_frame, text="Don't replace", variable=self.enemyReplaceMode, value=0, command=self.UpdateMessageArea)
         self.normBtn1.pack(anchor=W)
@@ -256,8 +287,8 @@ class MainWindow():
         self.BindTags(self.normBtn4, 1, 3)
 
 
-        self.fit_frame = LabelFrame(self.root, text="Enemy placement:")
-        self.fit_frame.grid(row=3, column=3, sticky='NWES', padx=2)
+        self.fit_frame = LabelFrame(self.settingsPage1, text="Enemy placement:")
+        self.fit_frame.grid(row=4, column=3, sticky='NWES', padx=2)
 
         self.fitBtn1 = Radiobutton(self.fit_frame, text="Only where they fit", variable=self.fitMode, value=0, command=self.UpdateMessageArea)
         self.fitBtn1.pack(anchor=W)
@@ -271,7 +302,7 @@ class MainWindow():
         self.BindTags(self.fitBtn3, 2, 2)
 
 
-        self.dif_frame = LabelFrame(self.root, text="Mode:")
+        self.dif_frame = LabelFrame(self.settingsPage1, text="Mode:")
         self.dif_frame.grid(row=2, column=3, sticky='NWES', padx=2)
 
         self.difBtn2 = Radiobutton(self.dif_frame, text="Random with difficulty curve", variable=self.difficultyMode, value=1, command=self.UpdateMessageArea)
@@ -286,8 +317,8 @@ class MainWindow():
         self.BindTags(self.difBtn4, 3, 3)
 
 
-        self.mimics_frame = LabelFrame(self.root, text="Mimics:")
-        self.mimics_frame.grid(row=3, column=4, sticky='NWES', padx=2)
+        self.mimics_frame = LabelFrame(self.settingsPage2, text="Mimics:")
+        self.mimics_frame.grid(row=3, column=2, sticky='NWES', padx=2)
 
         self.mimBtn1 = Radiobutton(self.mimics_frame, text="Do not replace", variable=self.mimicMode, value=0, command=self.UpdateMessageArea)
         self.mimBtn1.pack(anchor=W)
@@ -298,7 +329,7 @@ class MainWindow():
         self.BindTags(self.mimBtn2, 4, 1)
 
 
-        self.npc_frame = LabelFrame(self.root, text="Replace NPC-s:", width=256)
+        self.npc_frame = LabelFrame(self.settingsPage1, text="Replace NPC-s:", width=256)
         self.npc_frame.grid(row=4, column=2, sticky='NWES', padx=2)
 
         self.npcBtn1 = Radiobutton(self.npc_frame, text="Do not replace", variable=self.npcMode, value=0, command=self.UpdateMessageArea)
@@ -316,7 +347,7 @@ class MainWindow():
         self.BindTags(self.npcBtn4, 5, 3)
 
 
-        self.replace_chance_frame = LabelFrame(self.root, text="Replacement chance (%):")
+        self.replace_chance_frame = LabelFrame(self.settingsPage1, text="Replacement chance (%):")
         self.replace_chance_frame.grid(row=5, column=2, sticky='NWES', padx=2)
 
         self.replace_chance_slider = Scale(self.replace_chance_frame, from_=0, to=100, orient=HORIZONTAL)
@@ -326,8 +357,8 @@ class MainWindow():
         Label(self.replace_chance_frame, text="Chance that an enemy/boss\n will be replaced at all.").grid(row=2, column=0, sticky='NWES', padx=2, pady=2)
 
 
-        self.boss_chance_frame = LabelFrame(self.root, text="Boss chance [Normal Enemies](%):")
-        self.boss_chance_frame.grid(row=4, column=3, sticky='NWES', padx=2)
+        self.boss_chance_frame = LabelFrame(self.settingsPage1, text="Boss chance [Normal Enemies](%):")
+        self.boss_chance_frame.grid(row=5, column=3, sticky='NWES', padx=2)
 
         self.boss_chance_slider = Scale(self.boss_chance_frame, from_=0, to=100, orient=HORIZONTAL)
         self.boss_chance_slider.grid(row=0, column=0, sticky='NWES', padx=2)
@@ -336,8 +367,8 @@ class MainWindow():
         Label(self.boss_chance_frame, text="Chance that a normal enemy or NPC will be replaced\nwith a boss instead of an normal enemy.\nOnly has effect when normal enemy or NPC\nmode is set to 'With bosses or normal enemies'.").grid(row=2, column=0, sticky='NWES', padx=2, pady=2)
 
 
-        self.boss_chance_frame_bosses = LabelFrame(self.root, text="Boss chance [Bosses](%):")
-        self.boss_chance_frame_bosses.grid(row=5, column=3, sticky='NWES', padx=2)
+        self.boss_chance_frame_bosses = LabelFrame(self.settingsPage1, text="Boss chance [Bosses](%):")
+        self.boss_chance_frame_bosses.grid(row=6, column=3, sticky='NWES', padx=2)
 
         self.boss_chance_slider_bosses = Scale(self.boss_chance_frame_bosses, from_=0, to=100, orient=HORIZONTAL)
         self.boss_chance_slider_bosses.grid(row=0, column=0, sticky='NWES', padx=2)
@@ -346,8 +377,8 @@ class MainWindow():
         Label(self.boss_chance_frame_bosses, text="Chance that a boss will be replaced with a boss instead\nof an normal enemy.\nOnly has effect when boss mode\n is set to 'With bosses or normal enemies'").grid(row=1, column=0, sticky='NWES', padx=2, pady=2)
 
 
-        self.gargoyle_frame = LabelFrame(self.root, text="Gargoyle #2:", width=256)
-        self.gargoyle_frame.grid(row=4, column=4, sticky='NWES', padx=2)
+        self.gargoyle_frame = LabelFrame(self.settingsPage2, text="Gargoyle #2:", width=256)
+        self.gargoyle_frame.grid(row=4, column=2, sticky='NWES', padx=2)
 
         self.gargBtn1 = Radiobutton(self.gargoyle_frame, text="Do not replace         ", variable=self.gargoyleMode, value=0, command=self.UpdateMessageArea)
         self.gargBtn1.pack(anchor=W)
@@ -358,8 +389,8 @@ class MainWindow():
         self.BindTags(self.gargBtn2, 7, 1)
 
 
-        self.diff_strict_frame = LabelFrame(self.root, text="Difficulty strictness:")
-        self.diff_strict_frame.grid(row=2, column=4, sticky='NWES', padx=2)
+        self.diff_strict_frame = LabelFrame(self.settingsPage1, text="Difficulty strictness:")
+        self.diff_strict_frame.grid(row=3, column=3, sticky='NWES', padx=2)
 
         self.strictBtn1 = Radiobutton(self.diff_strict_frame, text="Strict", variable=self.diffStrictness, value=0, command=self.UpdateMessageArea)
         self.strictBtn1.pack(anchor=W)
@@ -373,8 +404,8 @@ class MainWindow():
         self.BindTags(self.strictBtn3, 8, 2)
 
 
-        self.tpose_frame = LabelFrame(self.root, text="T-Posing enemies:")
-        self.tpose_frame.grid(row=6, column=2, sticky='NWES', padx=2)
+        self.tpose_frame = LabelFrame(self.settingsPage2, text="T-Posing enemies:")
+        self.tpose_frame.grid(row=5, column=2, sticky='NWES', padx=2)
         
         self.tposeBtn1 = Radiobutton(self.tpose_frame, text="Enabled", variable=self.tposeCity, value=0, command=self.UpdateMessageArea)
         self.tposeBtn1.pack(anchor=W)
@@ -396,7 +427,7 @@ class MainWindow():
         self.BuildCustomEnemyConfigList()
 
         self.enemy_config_frame = LabelFrame(self.root, text="Enemy Config:")
-        self.enemy_config_frame.grid(row=6, column=4, sticky='NWES', padx=2)
+        self.enemy_config_frame.grid(row=5, column=4, sticky='NWES', padx=2)
 
         self.enemyConfigForRandomization = StringVar()
 
@@ -411,6 +442,59 @@ class MainWindow():
         self.open_enemy_config_button.grid(row=2, column=0, sticky='NWSE', padx=2, pady=4)
 
         self.progressTopLevel = None
+
+        # Boss Souls
+
+        self.boss_souls_frame = LabelFrame(self.settingsPage2, text="Roaming boss soul drops (%):")
+        self.boss_souls_frame.grid(row=6, column=3, sticky='NWES', padx=2)
+
+        self.boss_souls_slider = Scale(self.boss_souls_frame, from_=0, to=100, orient=HORIZONTAL)
+        self.boss_souls_slider.grid(row=0, column=0, sticky='NWES', padx=2)
+        self.boss_souls_slider.set(50)
+
+        Label(self.boss_souls_frame, text="Controls the amount of souls bosses that\nreplace normal enemies drop.").grid(row=2, column=0, sticky='NWES', padx=2, pady=2)
+
+        # Type replacement
+
+        self.type_replace_frame = LabelFrame(self.settingsPage2, text="Type Replacement:")
+        self.type_replace_frame.grid(row=3, column=3, sticky='NWES', padx=2)
+        
+        self.typeReplaceBtn1 = Radiobutton(self.type_replace_frame, text="Enabled", variable=self.typeReplacement, value=0, command=self.UpdateMessageArea)
+        self.typeReplaceBtn1.pack(anchor=W)
+        self.typeReplaceBtn2 = Radiobutton(self.type_replace_frame, text="Disabled", variable=self.typeReplacement, value=1, command=self.UpdateMessageArea)
+        self.typeReplaceBtn2.pack(anchor=W)
+
+        self.BindTags(self.typeReplaceBtn1, 10, 0)
+        self.BindTags(self.typeReplaceBtn2, 10, 1)
+
+        # Pinwheel Chaos
+
+        self.pinwheel_frame = LabelFrame(self.settingsPage2, text="Pinwheel Chaos:")
+        self.pinwheel_frame.grid(row=4, column=3, sticky='NWES', padx=2)
+        
+        self.pinwheelBtn1 = Radiobutton(self.pinwheel_frame, text="Enabled", variable=self.pinwheelChaos, value=0, command=self.UpdateMessageArea)
+        self.pinwheelBtn1.pack(anchor=W)
+        self.pinwheelBtn2 = Radiobutton(self.pinwheel_frame, text="Disabled", variable=self.pinwheelChaos, value=1, command=self.UpdateMessageArea)
+        self.pinwheelBtn2.pack(anchor=W)
+
+        self.BindTags(self.pinwheelBtn1, 11, 0)
+        self.BindTags(self.pinwheelBtn2, 11, 1)
+
+        # Gwyn Nerf
+
+        self.gwynrate_frame = LabelFrame(self.settingsPage2, text="Gwyn Spawn-Rate Nerf:")
+        self.gwynrate_frame.grid(row=5, column=3, sticky='NWES', padx=2)
+        
+        self.gwynrateBtn1 = Radiobutton(self.gwynrate_frame, text="High", variable=self.gwynNerf, value=0, command=self.UpdateMessageArea)
+        self.gwynrateBtn1.pack(anchor=W)
+        self.gwynrateBtn2 = Radiobutton(self.gwynrate_frame, text="Medium", variable=self.gwynNerf, value=1, command=self.UpdateMessageArea)
+        self.gwynrateBtn2.pack(anchor=W)
+        self.gwynrateBtn3 = Radiobutton(self.gwynrate_frame, text="None", variable=self.gwynNerf, value=2, command=self.UpdateMessageArea)
+        self.gwynrateBtn3.pack(anchor=W)
+
+        self.BindTags(self.gwynrateBtn1, 12, 0)
+        self.BindTags(self.gwynrateBtn2, 12, 1)
+        self.BindTags(self.gwynrateBtn3, 12, 2)
 
         if (self.randomizer.canRandomize):
             if (self.randomizer.exeStatus == "Unknown"):
@@ -507,7 +591,7 @@ class MainWindow():
                     self.diff_strict_frame.config(fg = 'gray50', text="[No Effect] Difficulty strictness:")
 
 
-                for i in range(0, 12):
+                for i in range(0, 13):
                     if (self.hoverO == -1):
                         self.tags[i] = "f"
                     else:
@@ -560,59 +644,42 @@ class MainWindow():
                                 else:
                                     self.tags[i] = "c"
                             elif (i == 10):
-                                self.tags[i] = "f"
+                                if (self.typeReplacement.get() == self.hoverL):
+                                    self.tags[i] = "f"
+                                else:
+                                    self.tags[i] = "c"
                             elif (i == 11):
-                                self.tags[i] = "f"
+                                if (self.pinwheelChaos.get() == self.hoverL):
+                                    self.tags[i] = "f"
+                                else:
+                                    self.tags[i] = "c"
+                            elif (i == 12):
+                                if (self.gwynNerf.get() == self.hoverL):
+                                    self.tags[i] = "f"
+                                else:
+                                    self.tags[i] = "c"
                         else:
                             self.tags[i] = "uf"
 
                 self.msg_area.config(state = "normal")
 
                 self.msg_area.delete(1.0, END)
-                if (self.hoverO == 0):
-                    self.msg_area.insert(END,  self.messages[0][self.hoverL] + "\n\n", self.tags[0])
-                else:
-                    self.msg_area.insert(END,  self.messages[0][self.bossReplaceMode.get()] + "\n\n", self.tags[0])
 
-                if (self.hoverO == 1):
-                    self.msg_area.insert(END,  self.messages[1][self.hoverL] + "\n\n", self.tags[1])
-                else:
-                    self.msg_area.insert(END,  self.messages[1][self.enemyReplaceMode.get()] + "\n\n", self.tags[1])
-
-                if (self.hoverO == 5):
-                    self.msg_area.insert(END,  self.messages[5][self.hoverL] + "\n\n", self.tags[5])
-                else:
-                    self.msg_area.insert(END,  self.messages[5][self.npcMode.get()] + "\n\n", self.tags[5])
-
-                if (self.hoverO == 3):
-                    self.msg_area.insert(END,  self.messages[3][self.hoverL] + "\n\n", self.tags[3])
-                else:
-                    self.msg_area.insert(END,  self.messages[3][self.difficultyMode.get()] + "\n\n", self.tags[3])
-
-                if (self.hoverO == 8):
-                    self.msg_area.insert(END,  self.messages[8][self.hoverL] + "\n\n", self.tags[8])
-                else:
-                    self.msg_area.insert(END,  self.messages[8][self.diffStrictness.get()] + "\n\n", self.tags[8])
-                
-                if (self.hoverO == 2):
-                    self.msg_area.insert(END,  self.messages[2][self.hoverL] + "\n\n", self.tags[2])
-                else:
-                    self.msg_area.insert(END,  self.messages[2][self.fitMode.get()] + "\n\n", self.tags[2])
-
-                if (self.hoverO == 4):
-                    self.msg_area.insert(END,  self.messages[4][self.hoverL] + "\n\n", self.tags[4])
-                else:
-                    self.msg_area.insert(END,  self.messages[4][self.mimicMode.get()] + "\n\n", self.tags[4])
-
-                if (self.hoverO == 7):
-                    self.msg_area.insert(END,  self.messages[7][self.hoverL] + "\n\n", self.tags[7])
-                else:
-                    self.msg_area.insert(END,  self.messages[7][self.gargoyleMode.get()] + "\n\n", self.tags[7])
-
-                if (self.hoverO == 9):
-                    self.msg_area.insert(END,  self.messages[9][self.hoverL] + "\n\n", self.tags[9])
-                else:
-                    self.msg_area.insert(END,  self.messages[9][self.tposeCity.get()] + "\n\n", self.tags[9])
+                currentPage = self.settingsTabs.index(self.settingsTabs.select())
+                if (currentPage == 0):
+                    self.AddDescription(0, self.bossReplaceMode.get())
+                    self.AddDescription(1, self.enemyReplaceMode.get())
+                    self.AddDescription(5, self.npcMode.get())
+                    self.AddDescription(3, self.difficultyMode.get())
+                    self.AddDescription(8, self.diffStrictness.get())
+                    self.AddDescription(2, self.fitMode.get())
+                elif (currentPage == 1):
+                    self.AddDescription(4, self.mimicMode.get())
+                    self.AddDescription(7, self.gargoyleMode.get())
+                    self.AddDescription(9, self.tposeCity.get())
+                    self.AddDescription(10, self.typeReplacement.get())
+                    self.AddDescription(11, self.pinwheelChaos.get())
+                    self.AddDescription(12, self.gwynNerf.get())
 
 
                 self.msg_area.config(state = "disabled")
@@ -728,6 +795,15 @@ class MainWindow():
         btn.bind("<Enter>", lambda _: self.UpdateTags(_,oIndex,lIndex))
         btn.bind("<Leave>", lambda _: self.UpdateTags(_,-1,-1))
 
+    def SettingsPageChanged(self, e):
+        self.UpdateMessageArea()
+
+    def AddDescription(self, messageIndex, variableVal):
+        if (self.hoverO == messageIndex):
+            self.msg_area.insert(END,  self.messages[messageIndex][self.hoverL] + "\n\n", self.tags[messageIndex])
+        else:
+            self.msg_area.insert(END,  self.messages[messageIndex][variableVal] + "\n\n", self.tags[messageIndex])
+
     def RandomizeEnemies(self):
         """
         Open the progress bar window and execute the randomization on a separate thread
@@ -752,7 +828,7 @@ class MainWindow():
 
         self.BuildConfigString()
         
-        randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
+        randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.boss_souls_slider.get(), self.pinwheelChaos.get(), self.typeReplacement.get(), self.gwynNerf.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
 
         self.randThread = randomizationThread(1, "Random-Thread", 1, self.randomizer, randomSettings, self.msg_area, self, timeString)
         self.randThread.start()
@@ -1183,7 +1259,7 @@ class MainWindow():
         Build the compact config string.
         """
 
-        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/'''" + self.seedValue.get() + "'''"
+        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/" + str(self.boss_souls_slider.get()) + "/-/" + str(self.pinwheelChaos.get()) + "/-/" + str(self.typeReplacement.get()) + "/-/" + str(self.gwynNerf.get()) + "/-/'''" + self.seedValue.get() + "'''"
         self.configValue.set(self.configString)
 
     def ApplyConfigString(self):
@@ -1206,8 +1282,12 @@ class MainWindow():
         inpGargMode = 0
         inpDiffStrict = 0
         inpTpose = 0
+        inpSoulDrop = 0
+        inpPinwheel = 0
+        inpTypeReplacement = 0
+        inpGwynRate = 0
         inpSeed = ""
-        if (len(parts) == 13):
+        if (len(parts) == 17):
             try:
                 inpBossMode = int(parts[0])
                 if (inpBossMode < 0 or inpBossMode > 3):
@@ -1257,7 +1337,23 @@ class MainWindow():
                 if (inpTpose < 0 or inpTpose > 1):
                     isValidConfig = False
                 
-                inpSeed = parts[12].replace("'''", "")
+                inpSoulDrop = int(parts[12])
+                if (inpSoulDrop < 0 or inpSoulDrop > 100):
+                    isValidConfig = False
+                
+                inpPinwheel = int(parts[13])
+                if (inpPinwheel < 0 or inpPinwheel > 1):
+                    isValidConfig = False
+                
+                inpTypeReplacement = int(parts[14])
+                if (inpTypeReplacement < 0 or inpTypeReplacement > 1):
+                    isValidConfig = False
+                
+                inpGwynRate = int(parts[15])
+                if (inpGwynRate < 0 or inpGwynRate > 2):
+                    isValidConfig = False
+                
+                inpSeed = parts[16].replace("'''", "")
             except:
                 isValidConfig = False
         else:
@@ -1287,6 +1383,10 @@ class MainWindow():
             self.gargoyleMode.set(inpGargMode)
             self.diffStrictness.set(inpDiffStrict)
             self.tposeCity.set(inpTpose)
+            self.boss_souls_slider.set(inpSoulDrop)
+            self.pinwheelChaos.set(inpPinwheel)
+            self.typeReplacement.set(inpTypeReplacement)
+            self.gwynNerf.set(inpGwynRate)
             self.seedValue.set(inpSeed)
             self.UpdateMessageArea()
             tkinter.messagebox.showinfo("Config Applied", "The config has been applied successfully")

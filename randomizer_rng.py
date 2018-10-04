@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, uniform
 import random
 import os.path
 import os
@@ -15,6 +15,8 @@ import check_exe
 import tkinter.messagebox
 import datetime
 from enum import Enum
+from NpcParam import NpcParam
+from dcx_handler import DCXHandler
 
 #logFile = open('log.txt', 'w')
 logFile = -1
@@ -53,6 +55,10 @@ class Randomizer:
     FFX_DIR = "sfx/FRPG_SfxBnd_{0}.ffxbnd"
     FFX_DIR_REMASTERED = "sfx/FRPG_SfxBnd_{0}.ffxbnd.dcx"
     FFX_COPY_DIR = "enemyRandomizerData/sfxCopies/FRPG_SfxBnd_{0}.ffxbnd"
+
+    GAMEPARAM_PATH = "param/GameParam/GameParam.parambnd"
+    GAMEPARAM_PATH_REMASTERED = "param/GameParam/GameParam.parambnd.dcx"
+    NPCPARAM_INDEX = 12
 
     inputFiles = ["m10_00_00_00", "m10_01_00_00", "m10_02_00_00", "m11_00_00_00", "m12_00_00_00", "m12_01_00_00", "m12_00_00_01", "m13_00_00_00",  "m13_01_00_00", "m13_02_00_00", "m14_00_00_00", "m14_01_00_00", "m15_00_00_00", "m15_01_00_00", "m16_00_00_00", "m17_00_00_00", "m18_00_00_00", "m18_01_00_00"]
     inputFFXFiles = ['CommonEffects', 'm10', 'm10_00', 'm10_01', 'm10_02', 'm11', 'm12', 'm12_00', 'm12_01', 'm13', 'm13_00', 'm13_01', 'm13_02', 'm14', 'm14_00', 'm14_01', 'm15', 'm15_00', 'm15_01', 'm16', 'm17', 'm18', 'm18_00', 'm18_01']
@@ -106,12 +112,17 @@ class Randomizer:
         self.msbio = MsbIO()
         self.ffxdata = FFXData()
 
+        self.gwynNerfMode = 2
+        self.typeSub = False
+        self.typeReplaceMap = dict()
+
         self.missingMSB = 0
         self.missingLUABND = 0
         self.missingFFXBND = 0
         self.exeStatus = "None"
+        self.hasGameParam = True
 
-        self.missingMSB, self.missingLUABND, self.missingFFXBND, self.exeStatus = self.checkIfRightPlace()
+        self.missingMSB, self.missingLUABND, self.missingFFXBND, self.exeStatus, self.hasGameParam = self.checkIfRightPlace()
 
         self.folderStatus = False
         self.aiRefStatus = False
@@ -135,7 +146,7 @@ class Randomizer:
         self.canRandomize = False
         self.useDCX = False
 
-        self.writingPermssion = False
+        self.writingPermssion = True
         if (self.missingMSB == 0):
             self.writingPermssion = self.checkIfAllowedToModify()
 
@@ -158,24 +169,25 @@ class Randomizer:
             self.retryFileCopy()
 
     def cleanupV032backup(self):
+        """
+        Fix the invalid backups created by v0.3.2
+        """
         doCleanup = False
         if (os.path.isfile(self.MAPSTUDIO + 'm10_00_00_00.msb.bak')):
             self.msbio.open(self.MAPSTUDIO + 'm10_00_00_00.msb.bak')
             if (len(self.msbio.models.rows) >= 373):
                 doCleanup = True
-                print(">")
-            else:
-                print("<")
-        else:
-            print("FUCKOFF")
 
         if (doCleanup):
             print("Detected invalid .msb file backups from v0.3.2, attempting to fix.")
-            for i, iFile in enumerate(self.inputFiles):
-                self.msbio.open(self.MAPCOPY + iFile + '.msb')
-                self.msbio.models.rows = self.msbio.models.rows[:self.startIndices[i]]
-                self.msbio.save(self.MAPSTUDIO + iFile + '.msb.bak', False)
-                print("Fixed " + self.MAPSTUDIO + iFile + '.msb.bak')
+            try:
+                for i, iFile in enumerate(self.inputFiles):
+                    self.msbio.open(self.MAPCOPY + iFile + '.msb')
+                    self.msbio.models.rows = self.msbio.models.rows[:self.startIndices[i]]
+                    self.msbio.save(self.MAPSTUDIO + iFile + '.msb.bak', False)
+                    print("Fixed " + self.MAPSTUDIO + iFile + '.msb.bak')
+            except:
+                print("[ERROR] Failed to fix the backups.")
 
 
 
@@ -212,6 +224,7 @@ class Randomizer:
         notFoundMSB = 0
         notFoundLUABND = 0
         notFoundFFXBND = 0
+        gameParamExists = False
 
         exeStatus = check_exe.check_exe_checksum()
         check_for_dcx = False
@@ -239,7 +252,12 @@ class Randomizer:
                     if not (os.path.isfile(self.FFX_DIR.format(iFile))):
                         notFoundFFXBND += 1
 
-        return (notFoundMSB, notFoundLUABND, notFoundFFXBND, exeStatus)
+        if (check_for_dcx):
+            gameParamExists = os.path.isfile(self.GAMEPARAM_PATH_REMASTERED)
+        else:
+            gameParamExists = os.path.isfile(self.GAMEPARAM_PATH)
+
+        return (notFoundMSB, notFoundLUABND, notFoundFFXBND, exeStatus, gameParamExists)
 
     def checkProperUnpack(self):
         """
@@ -259,9 +277,6 @@ class Randomizer:
 
             if (os.path.isfile("enemyRandomizerData/airef.csv")):
                 self.aiRefStatus = True
-
-            """if (os.path.isfile("enemyRandomizerData/ffx-ref.txt")):
-                self.ffxRefStatus = True"""
 
             if (os.path.isfile("enemyRandomizerData/replacement_ref/valid_new.txt")):
                 self.validNewStatus = True
@@ -459,6 +474,22 @@ class Randomizer:
         if not (os.path.isdir("enemyRandomizerData/logs")):     #create log directory
             print("[Check/Preparation] Created log directory")
             os.makedirs("enemyRandomizerData/logs")
+
+        if not (os.path.isdir("enemyRandomizerData/param")):
+            print("[Check/Preparation] Created param directory")
+            os.makedirs("enemyRandomizerData/param")
+
+        paramPath = 'param/GameParam/GameParam.parambnd'
+        copyParamPath = 'enemyRandomizerData/param/GameParam.parambnd'
+        if (self.useDCX):
+            paramPath += '.dcx'
+            copyParamPath += '.dcx'
+
+        if (not os.path.isfile(copyParamPath)):
+            with open(paramPath, 'rb') as origf:
+                with open(copyParamPath, 'wb') as bakf:
+                    bakf.write(origf.read())
+                    print("[Check/Preparation] Backed up GameParam.param")
 
         print("[Check/Preparation] Preparing effect files (Takes a while)")
         self.ffxdata.AddEverythingToCommon(self.useDCX)
@@ -695,18 +726,26 @@ class Randomizer:
 
     def GetEnemyFromListWithRetry(self, enemyList, originalEnemyID):
         """
-        Try getting a new enemy repeatedly until a valid replacement is found.
-        I could avoid invalid replacements in a better way, but oh well for now.
+        Try getting a new enemy from list @enemyList until a valid replacement is found.
         """
-        retryCount = 10
+
+        l = enemyList
         newEnemyID = ''
         returnChar = -1
-        while (retryCount > 0 and self.isCombinationInvalid(originalEnemyID, newEnemyID)):
-            returnChar = self.getRandomFromList(enemyList)
-            retryCount -= 1
-            newEnemyID = self.validNew[returnChar][NewCol.ID.value]
+        idx = -1
+        foundValid = False
 
-        if (retryCount <= 0):
+        while(len(l) > 0):
+            idx = randint(0, len(l) - 1)
+            returnChar = l[idx]
+            newEnemyID = newEnemyID = self.validNew[returnChar][NewCol.ID.value]
+            if (not self.isCombinationInvalid(originalEnemyID, newEnemyID)):
+                foundValid = True
+                break
+            else:
+                l = l[:idx] + l[idx + 1:]
+
+        if (not foundValid):
             return -4
 
         return returnChar
@@ -838,6 +877,8 @@ class Randomizer:
             self.restoreBackup('event/m15_01_00_00.emevd')
             self.restoreBackup('event/m17_00_00_00.emevd')
 
+        self.revertParam()
+
     def applyEmevd(self, emevdName):
         """
         Replaces an emevd file with a custom one.
@@ -855,6 +896,79 @@ class Randomizer:
                 with open('enemyRandomizerData/emevd/' + emevdPathName + emevdFileName, 'rb') as modf:
                     oldf.write(modf.read())
                     print('copied new ' + emevdFileName)
+    
+    def applyBossSouls(self, soulPercentage:int):
+        """
+        Adds new NpcParam entries for bosses, so there's a separate version that drops souls when killed (@soulPercentage % of the souls dropped from the original boss fight).
+        """
+        paramPath = self.GAMEPARAM_PATH
+
+        if (self.useDCX):
+            paramPath = self.GAMEPARAM_PATH_REMASTERED
+
+        paramData = []
+        content = b''
+        dcxh = DCXHandler()
+
+        with open(paramPath, 'rb') as f:
+            content = f.read()
+        
+        if (self.useDCX):
+            content = dcxh.open_dcx(content)
+        
+        paramData = bndr.unpack_bnd(content)
+
+        np = NpcParam()
+        np.read(paramData[self.NPCPARAM_INDEX][2])
+        np.ApplyBossSoulCount(soulPercentage)
+
+        paramData[self.NPCPARAM_INDEX] = (paramData[self.NPCPARAM_INDEX][0], paramData[self.NPCPARAM_INDEX][1], np.write())
+
+        content = bndr.repack_bnd(paramData)
+        if (self.useDCX):
+            dcxh.save_dcx(paramPath, content)
+        else:
+            with open(paramPath, 'wb') as f:
+                f.write(content)
+
+    def revertParam(self):
+        """
+        Revert NpcParam.param in param/GameParam/GameParam.parambnd
+        """
+        paramPath = self.GAMEPARAM_PATH
+        copyPath = 'enemyRandomizerData/param/GameParam.parambnd'
+
+        if (self.useDCX):
+            paramPath = self.GAMEPARAM_PATH_REMASTERED
+            copyPath += '.bak'
+
+        paramDataBak = []
+        content = b''
+        dcxh = DCXHandler()
+        with open(copyPath, 'rb') as f:
+            content = f.read()
+        
+        if (self.useDCX):
+            content = dcxh.open_dcx(content)
+
+        paramDataBak = bndr.unpack_bnd(content)
+        paramData = []
+        
+        with open(paramPath, 'rb') as f:
+            content = f.read()
+        
+        if (self.useDCX):
+            content = dcxh.open_dcx(content)
+
+        paramData = bndr.unpack_bnd(content)
+        paramData[self.NPCPARAM_INDEX] = paramDataBak[self.NPCPARAM_INDEX]
+
+        if (self.useDCX):
+            dcxh.save_dcx(paramPath, bndr.repack_bnd(paramData))
+        else:
+            with open(paramPath, 'wb') as f:
+                f.write(bndr.repack_bnd(paramData))
+    
 
     def isCombinationInvalid(self, oldID, newID):
         """
@@ -897,6 +1011,22 @@ class Randomizer:
                 return True
             elif ('c2370' in oldID):    # Channeler
                 return True
+
+        # When type replacement is enabled, avoid replacing multiple enemy types in one area with the same enemy
+        if (self.typeSub):
+            for key in self.typeReplaceMap:
+                tVal = self.typeReplaceMap[key]
+                if (self.validNew[tVal][NewCol.ID.value] in newID):
+                    return True
+
+        if (self.gwynNerfMode < 2):
+            if ('c5370' in newID):
+                rngThreshhold = 85
+                if (self.gwynNerfMode == 1):
+                    rngThreshhold = 60
+                if (uniform(0, 100) < rngThreshhold):
+                    print("Nerfed gwyn " + str(rngThreshhold))
+                    return True
         
         if (newID == ''):
             return True
@@ -915,7 +1045,9 @@ class Randomizer:
 
         if (self.check()):
             # Get settings
-            progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, gargoyleMode, diffStrictness, tposeCity, seed, textConfig, enemyConfigName = settings
+            progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, gargoyleMode, diffStrictness, tposeCity, bossSoulDrops, chaosPinwheel, typeReplacement, gwynNerf, seed, textConfig, enemyConfigName = settings
+
+            self.gwynNerfMode = gwynNerf
 
             # Generate a seed if none is provided.
             if (seed == ""):
@@ -962,7 +1094,7 @@ class Randomizer:
             printLog("----\n Starting Randomization \n----", logFile)
             printLog("bossMode=" + str(bossMode) + "; enemyMode=" + str(enemyMode) + "; npcMode=" + str(npcMode) + "; mimicMode=" + str(mimicMode), logFile)
             printLog("fitMode=" + str(fitMode) + "; diffMode=" + str(diffMode) + "; diffStrictness=" + str(diffStrictness) + "; replaceChance=" + str(replaceChance) + "; bossChance(Normal)=" + str(bossChance) + "; bossChance(Boss)=" + str(bossChanceBosses) + "; gargoyleMode=" + str(gargoyleMode), logFile)
-            printLog("tpose=" + str(tposeCity), logFile)
+            printLog("tpose=" + str(tposeCity) + "; bossSouls=" + str(bossSoulDrops) + "; chaosPinwheel=" + str(chaosPinwheel) + "; typeReplacement=" + str(typeReplacement) + "; gwynNerf=" + str(gwynNerf), logFile)
             printLog("seed='" + seed + "'", logFile)
             printLog("max_unique=" + str(self.MAX_UNIQUE), logFile)
             printLog("----", logFile)
@@ -970,6 +1102,9 @@ class Randomizer:
             textConfig = textConfig.replace("''''''", "'''" + seed + "'''")
             printLog(textConfig, logFile)
             printLog("----", logFile)
+
+            printLog("Applying " + str(bossSoulDrops) + "% roaming boss soul drops.", logFile)
+            self.applyBossSouls(bossSoulDrops)
 
             i = 0
             for inputIndex, inFile in enumerate(self.inputFiles):
@@ -1010,8 +1145,8 @@ class Randomizer:
 
                 rowIndex = 0
 
-                typeMap = dict()
-                typeSub = False
+                self.typeReplaceMap = dict()
+                self.typeSub = typeReplacement == 0
 
                 for line in f:
                     parts = line.split("\t")
@@ -1073,8 +1208,13 @@ class Randomizer:
                         specialCase = True
                     elif ("c5310_0000" in creatureId):                                  #Gwynevere - Can die the moment you enter anor londo and that breaks the game: can't get the lordvessel (the cutscene after gwynevere death doesnt trigger even if you go in the room) and enemies are missing like it's dark anor londo
                         specialCase = True
-                    elif ("c3320" in creatureId and inFile == "m13_00_00_00" and not "c3320_0000" in creatureId):          #Pinwheel's clones in the boss fight
-                        specialCase = True
+                    elif ("c3320" in creatureId and inFile == "m13_00_00_00"):          #Pinwheel boss fight
+                        if (chaosPinwheel == 1):
+                            if (not "c3320_0000" in creatureId):
+                                specialCase = True
+                        else:
+                            if ("c3320_0000" in creatureId):
+                                specialCase = True
                     elif ("c2780_0000" in creatureId and inFile == "m12_01_00_00"):     #Crest key mimic
                         specialCase = True
                     elif ("c4510_0000" in creatureId or "c4510_0002" in creatureId):    #Kalameet flying versions
@@ -1092,15 +1232,22 @@ class Randomizer:
 
                         creatureTypeId = creatureId.split('_')[0]
 
-                        if (typeSub and creatureTypeId in typeMap):
-                            newChar = typeMap[creatureTypeId]
+                        if (self.typeSub and creatureTypeId in self.typeReplaceMap):
+                            newChar = self.typeReplaceMap[creatureTypeId]
                         else:
                             if (randint(1, 100) <= replaceChance):
 
                                 creatureType = self.validTargets[self.validIndex(creatureId)][2]
 
-                                if ("c3320_0000" in creatureId and inFile == "m13_00_00_00"):       # Only consider the actual bossfight main pinwheel (the one that actually takes damage) a boss (and not the clones and the ones in ToG)
-                                    creatureType = "1"
+                                if (inFile == "m13_00_00_00"):       # Only consider the actual bossfight main pinwheel (the one that actually takes damage) a boss (and not the clones and the ones in ToG)
+                                    if (chaosPinwheel == 0):
+                                        if ("c3320_0000" in creatureId):
+                                            creatureType = "0"
+                                        elif ("c3320" in creatureId):
+                                            creatureType = "1"
+                                    else:
+                                        if ("c3320_0000" in creatureId):
+                                            creatureType = "1"
                                 elif (inFile == "m10_01_00_00" and "c2250" in creatureId):          # Consider taurus boss a boss
                                     creatureType = "1"
                                 elif (inFile == "m14_01_00_00" and "c2240" in creatureId):          # Consider capras in Demon Ruins normal enemies
@@ -1155,7 +1302,7 @@ class Randomizer:
                             else:
                                 newChar = -2
 
-                            typeMap[creatureTypeId] = newChar
+                            self.typeReplaceMap[creatureTypeId] = newChar
 
                         if (newChar >= 0):
                             if (not newChar in self.uniqueIndices and not creatureType == "1"):
@@ -1177,12 +1324,15 @@ class Randomizer:
                                 newAI = self.validNew[newChar][NewCol.AI.value][newAiParamIndex]
                                 newParam = self.validNew[newChar][NewCol.PARAM.value][newAiParamIndex]
 
+                            paramValue = int(newParam)
+                            if (creatureType == "0" and newChar in self.validNewBossIndices):
+                                paramValue += 50
 
-                            self.msbio.parts[2].rows[rowIndex][PARAM_DATA_COL] = int(newParam)
+                            self.msbio.parts[2].rows[rowIndex][PARAM_DATA_COL] = paramValue
                             aiStr = "  ai = <original>; param = " + newParam
                             if(not self.validTargets[self.validIndex(creatureId)][2] == "2"):    # lets not mod npc ai for now
                                 self.msbio.parts[2].rows[rowIndex][NPCAI_DATA_COL] = int(newAI)
-                                aiStr = " ai = " + newAI + "; param = " + newParam
+                                aiStr = " ai = " + newAI + "; param = " + str(paramValue)
                             self.msbio.parts[2].rows[rowIndex][MODEL_DATA_COL] = self.startIndices[i] + newChar
 
                             aiEntry = self.aic.GetEntryByAI(newAI)
