@@ -156,7 +156,7 @@ class Randomizer:
             if (self.exeStatus == "Remaster"):
                 self.useDCX = True
                 self.startIndices = [250, 495, 171, 259, 280, 464, 282, 254, 242, 181, 342, 382, 210, 251, 197, 307, 84, 154]
-                self.MAX_UNIQUE = 70        #can use a much higher unique limit for remaster
+                self.MAX_UNIQUE = 60        #can use a much higher unique limit for remaster
 
                 """Firelink shrine only"""
                 #self.startIndices = [171]
@@ -183,10 +183,13 @@ class Randomizer:
             print("Detected invalid .msb file backups from v0.3.2, attempting to fix.")
             try:
                 for i, iFile in enumerate(self.inputFiles):
-                    self.msbio.open(self.MAPCOPY + iFile + '.msb')
-                    self.msbio.models.rows = self.msbio.models.rows[:self.startIndices[i]]
-                    self.msbio.save(self.MAPSTUDIO + iFile + '.msb.bak', False)
-                    print("Fixed " + self.MAPSTUDIO + iFile + '.msb.bak')
+                    if (os.path.isfile(self.MAPCOPY + iFile + '.msb')):
+                        self.msbio.open(self.MAPCOPY + iFile + '.msb')
+                        self.msbio.models.rows = self.msbio.models.rows[:self.startIndices[i]]
+                        self.msbio.save(self.MAPSTUDIO + iFile + '.msb.bak', False)
+                        print("Fixed " + self.MAPSTUDIO + iFile + '.msb.bak')
+                    else:
+                        print("Failed to fix backup: " + self.MAPSTUDIO + iFile + '.msb.bak, ' + self.MAPCOPY + iFile + '.msb from previous use of the randomizer does not exist.')
             except:
                 print("[ERROR] Failed to fix the backups.")
 
@@ -1096,6 +1099,8 @@ class Randomizer:
             ANIMID_DATA_COL = 50
 
             POS_DATA_COL = 5    # X pos , Y + 1, Z + 2, ROTX + 3, ROTY + 4, ROTZ + 5;
+
+            originalUniqueLimit = self.MAX_UNIQUE
             
             progressBar.step()
             progressLabel.config(text="Loading Files")
@@ -1117,10 +1122,19 @@ class Randomizer:
 
             printLog("Applying " + str(bossSoulDrops) + "% roaming boss soul drops.", logFile)
             self.applyBossSouls(bossSoulDrops)
+            printLog("----", logFile)
 
             i = 0
             for inputIndex, inFile in enumerate(self.inputFiles):
-                printLog("Randomizing " + inFile + " - " + self.names[i], logFile)
+                if (inFile == "m14_00_00_00"):
+                    if (self.useDCX):
+                        self.MAX_UNIQUE = 50
+                    else:
+                        self.MAX_UNIQUE = 24
+                else:
+                    self.MAX_UNIQUE = originalUniqueLimit
+
+                printLog("Randomizing " + inFile + " - " + self.names[i] + "(" + str(self.MAX_UNIQUE) + ")", logFile)
                 msgArea.insert(END,  "Randomizing " + inFile + " - " + self.names[i] + "\n")
 
                 progressBar.step()
