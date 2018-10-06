@@ -941,7 +941,7 @@ class Randomizer:
 
         if (self.useDCX):
             paramPath = self.GAMEPARAM_PATH_REMASTERED
-            copyPath += '.bak'
+            copyPath += '.dcx'
 
         paramDataBak = []
         content = b''
@@ -996,7 +996,7 @@ class Randomizer:
                 return True
             elif ('c5260' in newID):    # Gaping
                 return True
-            elif ('c4510' in newID):    # Kalameetc2320
+            elif ('c4510' in newID):    # Kalameet
                 return True
 
         if ('c2320' in oldID):          # Iron Golem (Can get stuck floating)
@@ -1020,6 +1020,7 @@ class Randomizer:
                 if (self.validNew[tVal][NewCol.ID.value] in newID):
                     return True
 
+        # Nerfing gwyn spawn rate.
         if (self.gwynNerfMode < 2):
             if ('c5370' in newID):
                 rngThreshhold = 85
@@ -1028,9 +1029,9 @@ class Randomizer:
                 if (uniform(0, 100) < rngThreshhold):
                     return True
 
+        # Replacement with the same enemy
         if (self.disallowSameReplacement):
             if (newID in oldID):
-                print("SAME")
                 return True
         
         if (newID == ''):

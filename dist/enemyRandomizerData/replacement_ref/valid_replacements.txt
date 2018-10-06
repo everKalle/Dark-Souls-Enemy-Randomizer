@@ -112,7 +112,7 @@ c5250	Ceaseless Discharge	1	5
 c5260	Gaping Dragon	1	4
 c5270	Ornstein	1	4
 c5271	Super Ornstein	1	5
-c5280	Quelaag	1	3
+c5280	Quelaag	1	4
 c5290	Seath the Scaleless	1	6
 c5310	Gwynevere	1	0
 c5320	Gwyndolin	1	4
