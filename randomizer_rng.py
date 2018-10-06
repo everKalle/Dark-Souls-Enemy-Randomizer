@@ -921,6 +921,11 @@ class Randomizer:
 
         np = NpcParam()
         np.read(paramData[self.NPCPARAM_INDEX][2])
+        np.AddNewBossParams()
+
+        nData = np.write()
+        np = NpcParam()
+        np.read(nData)
         np.ApplyBossSoulCount(soulPercentage)
 
         paramData[self.NPCPARAM_INDEX] = (paramData[self.NPCPARAM_INDEX][0], paramData[self.NPCPARAM_INDEX][1], np.write())

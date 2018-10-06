@@ -198,7 +198,6 @@ class NpcParam(ParamClass):
     ]
 
     def ApplyBossSoulCount(self, soulPercentage:int):
-        self.AddNewBossParams()
         entryCount = len(self.data)
         expectedIndex = 0;
         for i in range(entryCount):
@@ -224,7 +223,6 @@ class NpcParam(ParamClass):
                 if (expectedIndex < len(self.BossSouls)):
                     if (self.param.Rows[i].id == self.BossSouls[expectedIndex][0]):
                         entry = self.data[i]
-                        entry['normal']['getSoul'] = self.BossSouls[expectedIndex][1]
                         toAddList.append((self.param.Rows[i].id, entry, self.BossSouls[expectedIndex][2]))
                         expectedIndex += 1;
                 else:
