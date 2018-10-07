@@ -869,15 +869,19 @@ class Randomizer:
         if (self.useDCX):
             self.restoreBackup('event/m10_01_00_00.emevd.dcx')
             self.restoreBackup('event/m12_00_00_00.emevd.dcx')
+            self.restoreBackup('event/m12_01_00_00.emevd.dcx')
             self.restoreBackup('event/m13_00_00_00.emevd.dcx')
             self.restoreBackup('event/m14_01_00_00.emevd.dcx')
+            self.restoreBackup('event/m15_00_00_00.emevd.dcx')
             self.restoreBackup('event/m15_01_00_00.emevd.dcx')
             self.restoreBackup('event/m17_00_00_00.emevd.dcx')
         else:
             self.restoreBackup('event/m10_01_00_00.emevd')
             self.restoreBackup('event/m12_00_00_00.emevd')
+            self.restoreBackup('event/m12_01_00_00.emevd')
             self.restoreBackup('event/m13_00_00_00.emevd')
             self.restoreBackup('event/m14_01_00_00.emevd')
+            self.restoreBackup('event/m15_00_00_00.emevd')
             self.restoreBackup('event/m15_01_00_00.emevd')
             self.restoreBackup('event/m17_00_00_00.emevd')
 
@@ -930,6 +934,7 @@ class Randomizer:
         np = NpcParam()
         np.read(nData)
         np.ApplyBossSoulCount(soulPercentage)
+        np.RemoveItemLots()
 
         paramData[self.NPCPARAM_INDEX] = (paramData[self.NPCPARAM_INDEX][0], paramData[self.NPCPARAM_INDEX][1], np.write())
 
@@ -1082,10 +1087,12 @@ class Randomizer:
             # Replace original event scripts with custom ones.
             self.applyEmevd('m10_01_00_00') # Gargoyle#2 warping removed
             self.applyEmevd('m12_00_00_00') # MLB forced animation removed
+            self.applyEmevd('m12_01_00_00') # Mimic drops
             self.applyEmevd('m13_00_00_00') # Skeleton immortality removed
             self.applyEmevd('m14_01_00_00') # Remove BoC parts AI activation, remove immortality of actual boss immediately, remove immortality of branches
-            self.applyEmevd('m15_01_00_00') # Make the statue disappear if Gwyndolin dies
-            self.applyEmevd('m17_00_00_00') # Remove Seath's immortality immediately when the crystal is broken instad of waiting for a flag from the animation.
+            self.applyEmevd('m15_00_00_00') # Mimic drops
+            self.applyEmevd('m15_01_00_00') # Make the statue disappear if Gwyndolin dies, mimic drops
+            self.applyEmevd('m17_00_00_00') # Remove Seath's immortality immediately when the crystal is broken instad of waiting for a flag from the animation. Mimic drops, passive Pisaca drops
 
             #msbio = MsbIO()
             luagnl = LuaGnl()
@@ -1134,7 +1141,7 @@ class Randomizer:
                 else:
                     self.MAX_UNIQUE = originalUniqueLimit
 
-                printLog("Randomizing " + inFile + " - " + self.names[i] + "(" + str(self.MAX_UNIQUE) + ")", logFile)
+                printLog("Randomizing " + inFile + " - " + self.names[i] + " (" + str(self.MAX_UNIQUE) + ")", logFile)
                 msgArea.insert(END,  "Randomizing " + inFile + " - " + self.names[i] + "\n")
 
                 progressBar.step()
@@ -1245,8 +1252,6 @@ class Randomizer:
                         else:
                             if ("c3320_0000" in creatureId):
                                 specialCase = True
-                    elif ("c2780_0000" in creatureId and inFile == "m12_01_00_00"):     #Crest key mimic
-                        specialCase = True
                     elif ("c4510_0000" in creatureId or "c4510_0002" in creatureId):    #Kalameet flying versions
                         specialCase = True
                     elif ("c3300" in creatureId and inFile == "m13_02_00_00"):          #Crystal Lizards in Great Hollow, for whatever reason they make the Great Hollow super unstable
@@ -1262,30 +1267,30 @@ class Randomizer:
 
                         creatureTypeId = creatureId.split('_')[0]
 
-                        if (self.typeSub and creatureTypeId in self.typeReplaceMap):
+                        creatureType = self.validTargets[self.validIndex(creatureId)][2]
+
+                        if (inFile == "m13_00_00_00"):       # Only consider the actual bossfight main pinwheel (the one that actually takes damage) a boss (and not the clones and the ones in ToG)
+                            if (chaosPinwheel == 0):
+                                if ("c3320_0000" in creatureId):
+                                    creatureType = "0"
+                                elif ("c3320" in creatureId):
+                                    creatureType = "1"
+                            else:
+                                if ("c3320_0000" in creatureId):
+                                    creatureType = "1"
+                        elif (inFile == "m10_01_00_00" and "c2250" in creatureId):          # Consider taurus boss a boss
+                            creatureType = "1"
+                        elif (inFile == "m14_01_00_00" and "c2240" in creatureId):          # Consider capras in Demon Ruins normal enemies
+                            creatureType = "0"
+                        elif (inFile == "m15_01_00_00" and "c2860_0000" in creatureId):     # Consider blacksmith giant a npc
+                            creatureType = "2"
+                        elif (inFile == "m14_00_00_00" and "c3210_0000" in creatureId):     # Eingyi
+                            creatureType = "2"
+
+                        if (self.typeSub and creatureTypeId in self.typeReplaceMap and creatureType != "1"):
                             newChar = self.typeReplaceMap[creatureTypeId]
                         else:
                             if (randint(1, 100) <= replaceChance):
-
-                                creatureType = self.validTargets[self.validIndex(creatureId)][2]
-
-                                if (inFile == "m13_00_00_00"):       # Only consider the actual bossfight main pinwheel (the one that actually takes damage) a boss (and not the clones and the ones in ToG)
-                                    if (chaosPinwheel == 0):
-                                        if ("c3320_0000" in creatureId):
-                                            creatureType = "0"
-                                        elif ("c3320" in creatureId):
-                                            creatureType = "1"
-                                    else:
-                                        if ("c3320_0000" in creatureId):
-                                            creatureType = "1"
-                                elif (inFile == "m10_01_00_00" and "c2250" in creatureId):          # Consider taurus boss a boss
-                                    creatureType = "1"
-                                elif (inFile == "m14_01_00_00" and "c2240" in creatureId):          # Consider capras in Demon Ruins normal enemies
-                                    creatureType = "0"
-                                elif (inFile == "m15_01_00_00" and "c2860_0000" in creatureId):     # Consider blacksmith giant a npc
-                                    creatureType = "2"
-                                elif (inFile == "m14_00_00_00" and "c3210_0000" in creatureId):     # Eingyi
-                                    creatureType = "2"
 
                                 maxCreatureSize = 5
                                 if (fitMode == 0):

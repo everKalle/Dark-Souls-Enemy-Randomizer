@@ -197,9 +197,23 @@ class NpcParam(ParamClass):
         (539001, 60000, "Four Kings")
     ]
 
+    ToRemoveItemLots = [
+        278000,
+        278010,
+        278011,
+        278012,
+        278013,
+        278020,
+        278021,
+        278030,
+        278031,
+        333001,
+        333002
+    ]
+
     def ApplyBossSoulCount(self, soulPercentage:int):
         entryCount = len(self.data)
-        expectedIndex = 0;
+        expectedIndex = 0
         for i in range(entryCount):
             if (expectedIndex < len(self.BossSouls)):
                 if (self.param.Rows[i].id == self.BossSouls[expectedIndex][0] + 50):
@@ -229,4 +243,11 @@ class NpcParam(ParamClass):
                     break
             for rowIdx, rowData, bossName in toAddList:
                 self.addEntry(rowIdx + 50, bossName + " with souls", rowData)
+
+    def RemoveItemLots(self):
+        entryCount = len(self.data)
+        for i in range(entryCount):
+            if (self.param.Rows[i].id in self.ToRemoveItemLots):
+                self.data[i]['normal']['itemLotId_1'] = -1
+                print("[NpcParam] Set ItemLotId_1 to -1 for id: " + str(self.param.Rows[i].id))
 
