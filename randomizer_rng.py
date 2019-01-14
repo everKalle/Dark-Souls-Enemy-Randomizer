@@ -116,6 +116,8 @@ class Randomizer:
         self.typeSub = False
         self.typeReplaceMap = dict()
         self.disallowSameReplacement = False
+        self.attemptUniqueBosses = False
+        self.currentBosses = []
 
         self.missingMSB = 0
         self.missingLUABND = 0
@@ -728,7 +730,7 @@ class Randomizer:
         else:
             return self.validDiffSizeNormal[desiredDifficulty][maxSize]
 
-    def GetEnemyFromListWithRetry(self, enemyList, originalEnemyID):
+    def GetEnemyFromListWithRetry(self, enemyList, originalEnemyID, isBoss = False):
         """
         Try getting a new enemy from list @enemyList until a valid replacement is found.
         """
@@ -742,10 +744,23 @@ class Randomizer:
         while(len(l) > 0):
             idx = randint(0, len(l) - 1)
             returnChar = l[idx]
-            newEnemyID = newEnemyID = self.validNew[returnChar][NewCol.ID.value]
+            newEnemyID = self.validNew[returnChar][NewCol.ID.value]
             if (not self.isCombinationInvalid(originalEnemyID, newEnemyID)):
-                foundValid = True
-                break
+                if (isBoss):
+                    if (self.attemptUniqueBosses):
+                        if (not returnChar in self.currentBosses or len(self.currentBosses) == 22 or len(l) == 1):
+                            if (len(self.currentBosses) == 22):
+                                self.currentBosses.clear()
+                            foundValid = True
+                        else:
+                            l = l[:idx] + l[idx + 1:]
+                    else:
+                        foundValid = True
+                else:
+                    foundValid = True
+
+                if (foundValid):
+                    break
             else:
                 l = l[:idx] + l[idx + 1:]
 
@@ -784,7 +799,7 @@ class Randomizer:
 
         return newC
 
-    def GetBossEnemy(self, diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID, canBeNormal):
+    def GetBossEnemy(self, diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID, canBeNormal, replacingBoss = False):
         """
         @diffmode           selected difficulty mode
         @mapname            the map we are currently randomizing
@@ -802,14 +817,14 @@ class Randomizer:
             if (diffmode == 1):
                 diffList = self.getDifficultyList(desiredDifficulty, diffStrictness, True, maxSize)
                 if (len(diffList) > 0):
-                    newC = self.GetEnemyFromListWithRetry(diffList, originalEnemyID)
+                    newC = self.GetEnemyFromListWithRetry(diffList, originalEnemyID, replacingBoss)
                 else:
                     if (canBeNormal):
                         return self.GetNormalEnemy(diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID)
                     else:
                         newC = -6
             else:
-                newC = self.GetEnemyFromListWithRetry(self.validSizeBosses[maxSize], originalEnemyID)
+                newC = self.GetEnemyFromListWithRetry(self.validSizeBosses[maxSize], originalEnemyID, replacingBoss)
         else:
             if (len(self.uniqueBosses) == 0):
                 if (canBeNormal):
@@ -822,7 +837,7 @@ class Randomizer:
 
         return newC
 
-    def GetNormalOrBossEnemy(self, diffmode, mapname, bosschance, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID):
+    def GetNormalOrBossEnemy(self, diffmode, mapname, bosschance, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID, replacingBoss = False):
         """
         @diffmode           selected difficulty mode
         @mapname            the map we are currently randomizing
@@ -837,7 +852,7 @@ class Randomizer:
         Returns the index a normal or a boss enemy.
         """
         if (randint(1, 100) <= bosschance):
-            return self.GetBossEnemy(diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID, True)
+            return self.GetBossEnemy(diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID, True, replacingBoss)
         else:
             return self.GetNormalEnemy(diffmode, mapname, careAboutLimit, maxSize, desiredDifficulty, diffStrictness, originalEnemyID)
 
@@ -1064,10 +1079,11 @@ class Randomizer:
 
         if (self.check()):
             # Get settings
-            progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, gargoyleMode, diffStrictness, tposeCity, bossSoulDrops, chaosPinwheel, typeReplacement, gwynNerf, preventSame, seed, textConfig, enemyConfigName = settings
+            progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, gargoyleMode, diffStrictness, tposeCity, bossSoulDrops, chaosPinwheel, typeReplacement, gwynNerf, preventSame, uniqueBosses, seed, textConfig, enemyConfigName = settings
 
             self.gwynNerfMode = gwynNerf
             self.disallowSameReplacement = (preventSame == 0)
+            self.attemptUniqueBosses = (uniqueBosses == 1)
 
             # Generate a seed if none is provided.
             if (seed == ""):
@@ -1121,7 +1137,7 @@ class Randomizer:
             printLog("Fit Mode: {0}; Difficulty Mode: {1}; Difficulty Strictness: {2}".format(fitMode, diffMode, diffStrictness), logFile)
             printLog("T-Pose: {0}; Type Replacement: {1}; Same Enemy Prevention: {2}".format(tposeCity, typeReplacement, preventSame), logFile)
             printLog("Mimic Replacement: {0}; Gargoyle #2 Replacement: {1}; Pinwheel Chaos: {2}".format(mimicMode, gargoyleMode, chaosPinwheel), logFile)
-            printLog("Roaming Boss Soul Drops: {0}%; Gwyn Spawn Rate Nerf: {1}".format(bossSoulDrops, gwynNerf), logFile)
+            printLog("Roaming Boss Soul Drops: {0}%; Gwyn Spawn Rate Nerf: {1}; Attempt Unique Bosses: {2}".format(bossSoulDrops, gwynNerf, uniqueBosses), logFile)
             printLog("Seed: '{0}'".format(seed), logFile)
             printLog("Max Unique: {0}".format(self.MAX_UNIQUE), logFile)
 
@@ -1316,11 +1332,18 @@ class Randomizer:
 
                             elif (creatureType == "1" and bossMode != 0):     #replacing boss (dont care about enemy limit so bosses _can_ be unique)
                                 if (bossMode == 1):     #replace with bosses only
-                                    newChar = self.GetBossEnemy(diffMode, inFile, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
+                                    newChar = self.GetBossEnemy(diffMode, inFile, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False, True)
+
+                                    if (not newChar in self.currentBosses):
+                                        self.currentBosses.append(newChar)
+
                                 elif (bossMode == 2):   #replace with normals only
                                     newChar = self.GetNormalEnemy(diffMode, inFile, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
                                 elif (bossMode == 3):   #replace with both
-                                    newChar = self.GetNormalOrBossEnemy(diffMode, inFile, bossChanceBosses, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+                                    newChar = self.GetNormalOrBossEnemy(diffMode, inFile, bossChanceBosses, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, True)
+
+                                    if (self.validNew[newChar][NewCol.TYPE.value] == "1" and not newChar in self.currentBosses):
+                                        self.currentBosses.append(newChar)
 
                             elif (creatureType == "2" and npcMode != 0):     #replacing NPC
                                 if (fitMode == 2):

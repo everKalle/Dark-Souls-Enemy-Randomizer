@@ -220,6 +220,16 @@ class NpcParam(ParamClass):
                     newSouls = (int)(self.BossSouls[expectedIndex][1] * (soulPercentage / 100.0))
                     self.data[i]['normal']['getSoul'] = newSouls
                     expectedIndex += 1
+
+    def SetRespawnFlags(self, disableRespawn: bool, disableInitializeDead: bool):
+        entryCount = len(self.data)
+        expectedIndex = 0
+        for i in range(entryCount):
+            if (expectedIndex < len(self.BossSouls)):
+                if (self.param.Rows[i].id == self.BossSouls[expectedIndex][0] + 50):
+                    self.data[i]['end']['disableRespawn'] = disableRespawn
+                    self.data[i]['end']['disableInitializeDead'] = disableInitializeDead
+                    expectedIndex += 1
         
     def AddNewBossParams(self):
         entryCount = len(self.data)
@@ -249,5 +259,4 @@ class NpcParam(ParamClass):
         for i in range(entryCount):
             if (self.param.Rows[i].id in self.ToRemoveItemLots):
                 self.data[i]['normal']['itemLotId_1'] = -1
-                print("[NpcParam] Set ItemLotId_1 to -1 for id: " + str(self.param.Rows[i].id))
 

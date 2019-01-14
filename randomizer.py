@@ -123,11 +123,12 @@ class MainWindow():
         ["* Type replacement enabled: If within one area there were originally multiple\n  of the same enemy, then all of those enemies will be replaced with one type\n  of enemy. For example: all Silver Knights in Anor Londo would be replaced\n  with Darkwraiths, instead of individual Silver Knights being replaced by\n  different enemies.", "* Type replacement disabled, each enemy is randomized separately.", "* Placeholder"],
         ["* The main Pinwheel in the boss is not replaced, but it's clones are.\n  Replaced clones have normal HP instead of being 1 hit kill.\n  (A quite ridiculous and unfair mode; also can cause the game to lag severely\n  during the boss fight with certain enemies)", "* Pinwheel Boss will be replaced as normal, a single enemy replacing the main\n  Pinwheel."],
         ["* When an enemy is chosen to be replaced by Gwyn, there is a 85% chance that a\n  new enemy will be chosen instead.", "* When an enemy is chosen to be replaced by Gwyn, there is a 60% chance that a\n  new enemy will be chosen instead.", "* Gwyn spawn rate is not nerfed."],
-        ["* Enemies are not allowed to be replaced with the same enemy (so a Hollow can't\n  be replaced with another Hollow). Can result in less boss variety with the\n  difficulty curve option in early game.", "* Enemies can be replaced with the same enemy. (eg. a Hollow can be replaced\n  with a Hollow)"]]
+        ["* Enemies are not allowed to be replaced with the same enemy (so a Hollow can't\n  be replaced with another Hollow). Can result in less boss variety with the\n  difficulty curve option in early game.", "* Enemies can be replaced with the same enemy. (eg. a Hollow can be replaced\n  with a Hollow)"],
+        ["* When a boss is being replaced by a boss, the replacement is entirely random.", "* When a boss is being replaced by a boss, the randomizer tries to spawn bosses\n  that have not yet been used (whenever it's possible). Some boss repetition\n  still happens."]]
 
     def __init__(self):
         self.root = Tk()
-        self.randomizerVersion = "v0.4"
+        self.randomizerVersion = "v0.4.1"
         self.root.title("Dark Souls - Enemy randomizer " + self.randomizerVersion + " by rycheNhavalys")
 
         self.root.iconbitmap(default=resource_path('favicon.ico'))
@@ -172,14 +173,14 @@ class MainWindow():
         self.msg_area.tag_bind("sellout_link", "<Leave>", lambda _: self.msg_area.config(cursor=""))
         self.msg_area.tag_bind("sellout_link", "<Button-1>", lambda _: webbrowser.open_new_tab("https://streamlabs.com/rychenhavalys"))
 
-        self.sellout_button = Button(self.root, text="$", foreground="DeepPink3", command=self.OpenSelloutPage)
+        self.sellout_button = Button(self.root, text="$$", foreground="DeepPink3", command=self.OpenSelloutPage)
         self.sellout_button.grid(row=1, column=0, sticky="NWS", padx=6, pady=4)
 
         self.sellout_close_button = Button(self.root, text="Back", command=self.CloseSelloutPage, width=10)
         self.sellout_close_button.grid(row=1, column=0, sticky="NWS", padx=6, pady=4)
         self.sellout_close_button.grid_remove() # Hide the sellout page closing button by default
 
-        self.tags=["f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
+        self.tags=["f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
 
         self.hoverO = -1
         self.hoverL = -1
@@ -224,6 +225,9 @@ class MainWindow():
 
         self.preventSame = IntVar()
         self.preventSame.set(1)
+
+        self.uniqueBosses = IntVar()
+        self.uniqueBosses.set(0)
 
         self.seedValue = StringVar()
         self.seedValue.set("")
@@ -516,6 +520,19 @@ class MainWindow():
         self.BindTags(self.sameReplaceBtn1, 13, 0)
         self.BindTags(self.sameReplaceBtn2, 13, 1)
 
+        # Same enemy replacement prevention
+
+        self.unique_bosses_frame = LabelFrame(self.settingsPage2, text="Try for unique bosses: ")
+        self.unique_bosses_frame.grid(row=7, column=2, sticky='NWES', padx=2)
+        
+        self.uniqueBossBtn1 = Radiobutton(self.unique_bosses_frame, text="Enabled", variable=self.uniqueBosses, value=1, command=self.UpdateMessageArea)
+        self.uniqueBossBtn1.pack(anchor=W)
+        self.uniqueBossBtn2 = Radiobutton(self.unique_bosses_frame, text="Disabled", variable=self.uniqueBosses, value=0, command=self.UpdateMessageArea)
+        self.uniqueBossBtn2.pack(anchor=W)
+
+        self.BindTags(self.uniqueBossBtn1, 14, 1)
+        self.BindTags(self.uniqueBossBtn2, 14, 0)
+
         self.isSelloutActive = False
 
         if (self.randomizer.canRandomize):
@@ -612,8 +629,16 @@ class MainWindow():
                     self.strictBtn3.config(state = 'disabled')
                     self.diff_strict_frame.config(fg = 'gray50', text="[No Effect] Difficulty strictness:")
 
+                if (self.bossReplaceMode.get() == 1 or self.bossReplaceMode.get() == 3):    # If bosses are replaced with bosses or bosses & normal enemies, enable boss uniqueness options
+                    self.uniqueBossBtn1.config(state = 'normal')
+                    self.uniqueBossBtn2.config(state = 'normal')
+                    self.unique_bosses_frame.config(fg = 'gray5', text="Try for unique bosses:")
+                else:
+                    self.uniqueBossBtn1.config(state = 'disabled')
+                    self.uniqueBossBtn2.config(state = 'disabled')
+                    self.unique_bosses_frame.config(fg = 'gray50', text="[No Effect] Try for unique bosses:")
 
-                for i in range(0, 14):
+                for i in range(0, 15):
                     if (self.hoverO == -1):
                         self.tags[i] = "f"
                     else:
@@ -685,6 +710,11 @@ class MainWindow():
                                     self.tags[i] = "f"
                                 else:
                                     self.tags[i] = "c"
+                            elif (i == 14):
+                                if (self.uniqueBosses.get() == self.hoverL):
+                                    self.tags[i] = "f"
+                                else:
+                                    self.tags[i] = "c"
                         else:
                             self.tags[i] = "uf"
 
@@ -710,6 +740,7 @@ class MainWindow():
                     self.AddDescription(11, self.pinwheelChaos.get())
                     self.AddDescription(12, self.gwynNerf.get())
                     self.AddDescription(13, self.preventSame.get())
+                    self.AddDescription(14, self.uniqueBosses.get())
 
 
                 self.msg_area.config(state = "disabled")
@@ -860,7 +891,7 @@ class MainWindow():
 
         self.SaveCurrentConfigAsDefault()
         
-        randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.boss_souls_slider.get(), self.pinwheelChaos.get(), self.typeReplacement.get(), self.gwynNerf.get(), self.preventSame.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
+        randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.boss_souls_slider.get(), self.pinwheelChaos.get(), self.typeReplacement.get(), self.gwynNerf.get(), self.preventSame.get(), self.uniqueBosses.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
 
         self.randThread = randomizationThread(1, "Random-Thread", 1, self.randomizer, randomSettings, self.msg_area, self, timeString)
         self.randThread.start()
@@ -1310,7 +1341,7 @@ class MainWindow():
         Build the compact config string.
         """
 
-        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/" + str(self.boss_souls_slider.get()) + "/-/" + str(self.pinwheelChaos.get()) + "/-/" + str(self.typeReplacement.get()) + "/-/" + str(self.gwynNerf.get()) + "/-/" + str(self.preventSame.get()) + "/-/'''" + self.seedValue.get() + "'''"
+        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/" + str(self.boss_souls_slider.get()) + "/-/" + str(self.pinwheelChaos.get()) + "/-/" + str(self.typeReplacement.get()) + "/-/" + str(self.gwynNerf.get()) + "/-/" + str(self.preventSame.get()) + "/-/" + str(self.uniqueBosses.get()) + "/-/'''" + self.seedValue.get() + "'''"
         self.configValue.set(self.configString)
 
     def ApplyConfigString(self, showMessages = True):
@@ -1338,8 +1369,9 @@ class MainWindow():
         inpTypeReplacement = 0
         inpGwynRate = 0
         inpPreventSame = 0
+        inpUniqueBosses = 0
         inpSeed = ""
-        if (len(parts) == 18):
+        if (len(parts) == 19):
             try:
                 inpBossMode = int(parts[0])
                 if (inpBossMode < 0 or inpBossMode > 3):
@@ -1409,7 +1441,11 @@ class MainWindow():
                 if (inpPreventSame < 0 or inpPreventSame > 2):
                     isValidConfig = False
                 
-                inpSeed = parts[17].replace("'''", "")
+                inpUniqueBosses = int(parts[17])
+                if (inpUniqueBosses < 0 or inpUniqueBosses > 1):
+                    isValidConfig = False
+                
+                inpSeed = parts[18].replace("'''", "")
             except:
                 isValidConfig = False
         else:
@@ -1421,6 +1457,9 @@ class MainWindow():
             self.strictBtn1.config(state = 'normal')
             self.strictBtn2.config(state = 'normal')
             self.strictBtn3.config(state = 'normal')
+
+            self.uniqueBossBtn1.config(state = 'normal')
+            self.uniqueBossBtn2.config(state = 'normal')
 
             self.boss_chance_slider_bosses.config(state = 'normal', fg='gray5')
             self.boss_chance_slider.config(state = 'normal', fg='gray5')
@@ -1444,6 +1483,7 @@ class MainWindow():
             self.typeReplacement.set(inpTypeReplacement)
             self.gwynNerf.set(inpGwynRate)
             self.preventSame.set(inpPreventSame)
+            self.uniqueBosses.set(inpUniqueBosses)
             self.seedValue.set(inpSeed)
             self.UpdateMessageArea()
             if (showMessages):
