@@ -1116,13 +1116,17 @@ class Randomizer:
 
             # Log settings to the log file
             printLog("----\n Starting Randomization \n----", logFile)
-            printLog("bossMode=" + str(bossMode) + "; enemyMode=" + str(enemyMode) + "; npcMode=" + str(npcMode) + "; mimicMode=" + str(mimicMode), logFile)
-            printLog("fitMode=" + str(fitMode) + "; diffMode=" + str(diffMode) + "; diffStrictness=" + str(diffStrictness) + "; replaceChance=" + str(replaceChance) + "; bossChance(Normal)=" + str(bossChance) + "; bossChance(Boss)=" + str(bossChanceBosses) + "; gargoyleMode=" + str(gargoyleMode), logFile)
-            printLog("tpose=" + str(tposeCity) + "; bossSouls=" + str(bossSoulDrops) + "; chaosPinwheel=" + str(chaosPinwheel) + "; typeReplacement=" + str(typeReplacement) + "; gwynNerf=" + str(gwynNerf) + "; preventSame=" + str(preventSame), logFile)
-            printLog("seed='" + seed + "'", logFile)
-            printLog("max_unique=" + str(self.MAX_UNIQUE), logFile)
+            printLog("Boss Replacement: {0}; Normal Replacement: {1}; NPC Replacement: {2}".format(bossMode, enemyMode, npcMode), logFile)
+            printLog("Replace Chance: {0}%; Boss Chance (Normal): {1}%; Boss Chance (Bosses): {2}%".format(replaceChance, bossChance, bossChanceBosses), logFile)
+            printLog("Fit Mode: {0}; Difficulty Mode: {1}; Difficulty Strictness: {2}".format(fitMode, diffMode, diffStrictness), logFile)
+            printLog("T-Pose: {0}; Type Replacement: {1}; Same Enemy Prevention: {2}".format(tposeCity, typeReplacement, preventSame), logFile)
+            printLog("Mimic Replacement: {0}; Gargoyle #2 Replacement: {1}; Pinwheel Chaos: {2}".format(mimicMode, gargoyleMode, chaosPinwheel), logFile)
+            printLog("Roaming Boss Soul Drops: {0}%; Gwyn Spawn Rate Nerf: {1}".format(bossSoulDrops, gwynNerf), logFile)
+            printLog("Seed: '{0}'".format(seed), logFile)
+            printLog("Max Unique: {0}".format(self.MAX_UNIQUE), logFile)
+
             printLog("----", logFile)
-            printLog("textconfig:", logFile)
+            printLog("Textconfig:", logFile)
             textConfig = textConfig.replace("''''''", "'''" + seed + "'''")
             printLog(textConfig, logFile)
             printLog("----", logFile)
@@ -1179,7 +1183,8 @@ class Randomizer:
                 rowIndex = 0
 
                 self.typeReplaceMap = dict()
-                self.typeSub = typeReplacement == 0
+                self.typeSub = typeReplacement != 1
+                self.typeExceptBosses = typeReplacement == 2
 
                 for line in f:
                     parts = line.split("\t")
@@ -1257,7 +1262,7 @@ class Randomizer:
                     elif ("c3300" in creatureId and inFile == "m13_02_00_00"):          #Crystal Lizards in Great Hollow, for whatever reason they make the Great Hollow super unstable
                         specialCase = True
 
-                    if ("c2900" in creatureId and inFile == "m13_01_00_00"):   # don't replace small skeletons in ToG (Ravelord Nito fight)
+                    if ("c2900" in creatureId and inFile == "m13_01_00_00"):            # don't replace small skeletons in ToG (Ravelord Nito fight)
                         specialCase = True
                     if (("c2910_0019" in creatureId or "c2910_0020" in creatureId or "c2910_0021" in creatureId) and inFile == "m13_01_00_00"):    # don't replace large skeletons in Ravelord Nito fight
                         specialCase = True
@@ -1287,57 +1292,66 @@ class Randomizer:
                         elif (inFile == "m14_00_00_00" and "c3210_0000" in creatureId):     # Eingyi
                             creatureType = "2"
 
-                        if (self.typeSub and creatureTypeId in self.typeReplaceMap and creatureType != "1"):
-                            newChar = self.typeReplaceMap[creatureTypeId]
-                        else:
-                            if (randint(1, 100) <= replaceChance):
+                        
+                        if (randint(1, 100) <= replaceChance):
 
-                                maxCreatureSize = 5
-                                if (fitMode == 0):
-                                    maxCreatureSize = int(creatureSize)
-                                
-                                expectedDifficulty = int(self.validTargets[self.validIndex(creatureId)][3])
-
-                                if (creatureType == "0" and enemyMode != 0):       #replacing normal
-                                    isMimic = self.mimicId in creatureId
-
-                                    if (not isMimic or mimicMode == 1):                                 #mimic replace mode
-                                        if (enemyMode == 1):     #replace with bosses only
-                                            newChar = self.GetBossEnemy(diffMode, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
-                                        elif (enemyMode == 2):   #replace with normals only
-                                            newChar = self.GetNormalEnemy(diffMode, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
-                                        elif (enemyMode == 3):   #replace with both
-                                            newChar = self.GetNormalOrBossEnemy(diffMode, inFile, bossChance, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
-                                    else:
-                                        newChar = -3
-
-                                elif (creatureType == "1" and bossMode != 0):     #replacing boss (dont care about enemy limit so bosses _can_ be unique)
-                                    if (bossMode == 1):     #replace with bosses only
-                                        newChar = self.GetBossEnemy(diffMode, inFile, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
-                                    elif (bossMode == 2):   #replace with normals only
-                                        newChar = self.GetNormalEnemy(diffMode, inFile, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
-                                    elif (bossMode == 3):   #replace with both
-                                        newChar = self.GetNormalOrBossEnemy(diffMode, inFile, bossChanceBosses, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
-
-                                elif (creatureType == "2" and npcMode != 0):     #replacing NPC
-                                    if (fitMode == 2):
-                                        maxCreatureSize = int(creatureSize)
-                                    if (npcMode == 1):     #replace with bosses only
-                                        newChar = self.GetBossEnemy(2, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
-                                    elif (npcMode == 2):   #replace with normals only
-                                        newChar = self.GetNormalEnemy(2, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
-                                    elif (npcMode == 3):   #replace with both
-                                        newChar = self.GetNormalOrBossEnemy(2, inFile, bossChance, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
-
-                                    if ("c2640" in creatureId):                 # Special Andre -> Gwyndolin Replacement
-                                        if (npcMode == 1 or npcMode == 3):
-                                            if (randint(1,100) > 60):
-                                                newChar = 117
+                            maxCreatureSize = 5
+                            if (fitMode == 0):
+                                maxCreatureSize = int(creatureSize)
                             
-                            else:
-                                newChar = -2
+                            expectedDifficulty = int(self.validTargets[self.validIndex(creatureId)][3])
 
-                            self.typeReplaceMap[creatureTypeId] = newChar
+                            if (creatureType == "0" and enemyMode != 0):       #replacing normal
+                                isMimic = self.mimicId in creatureId
+
+                                if (not isMimic or mimicMode == 1):                                 #mimic replace mode
+                                    if (enemyMode == 1):     #replace with bosses only
+                                        newChar = self.GetBossEnemy(diffMode, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
+                                    elif (enemyMode == 2):   #replace with normals only
+                                        newChar = self.GetNormalEnemy(diffMode, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+                                    elif (enemyMode == 3):   #replace with both
+                                        newChar = self.GetNormalOrBossEnemy(diffMode, inFile, bossChance, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+                                else:
+                                    newChar = -3
+
+                            elif (creatureType == "1" and bossMode != 0):     #replacing boss (dont care about enemy limit so bosses _can_ be unique)
+                                if (bossMode == 1):     #replace with bosses only
+                                    newChar = self.GetBossEnemy(diffMode, inFile, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
+                                elif (bossMode == 2):   #replace with normals only
+                                    newChar = self.GetNormalEnemy(diffMode, inFile, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+                                elif (bossMode == 3):   #replace with both
+                                    newChar = self.GetNormalOrBossEnemy(diffMode, inFile, bossChanceBosses, False, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+
+                            elif (creatureType == "2" and npcMode != 0):     #replacing NPC
+                                if (fitMode == 2):
+                                    maxCreatureSize = int(creatureSize)
+                                if (npcMode == 1):     #replace with bosses only
+                                    newChar = self.GetBossEnemy(2, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId, False)
+                                elif (npcMode == 2):   #replace with normals only
+                                    newChar = self.GetNormalEnemy(2, inFile, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+                                elif (npcMode == 3):   #replace with both
+                                    newChar = self.GetNormalOrBossEnemy(2, inFile, bossChance, True, maxCreatureSize, expectedDifficulty, diffStrictness, creatureId)
+
+                                if ("c2640" in creatureId):                 # Special Andre -> Gwyndolin Replacement
+                                    if (npcMode == 1 or npcMode == 3):
+                                        if (randint(1,100) > 60):
+                                            newChar = 117
+                        
+                        else:
+                            newChar = -2
+
+                        if (self.typeSub and creatureTypeId in self.typeReplaceMap and creatureType != "1"):
+                            if (self.typeExceptBosses):
+                                if (self.validNew[newChar][NewCol.TYPE.value] != "1"):
+                                    newChar = self.typeReplaceMap[creatureTypeId]
+                            else:
+                                newChar = self.typeReplaceMap[creatureTypeId]
+                        else:
+                            if (self.typeExceptBosses):
+                                if (self.validNew[newChar][NewCol.TYPE.value] != "1"):
+                                    self.typeReplaceMap[creatureTypeId] = newChar
+                            else:
+                                self.typeReplaceMap[creatureTypeId] = newChar
 
                         if (newChar >= 0):
                             if (not newChar in self.uniqueIndices and not creatureType == "1"):

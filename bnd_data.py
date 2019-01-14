@@ -85,7 +85,7 @@ class BndData():
         """
         newPath = self.basePath + byteread.EncodeString(scriptName)
         if (self.useDCX):
-            self.basePathRemaster + byteread.EncodeString(scriptName)
+            newPath = self.basePathRemaster + byteread.EncodeString(scriptName)
         dta = (self.luabnd_maxIndex + 1, newPath, newBytes)
         self.luabnd_content.insert(-2, dta)
         self.luabnd_maxIndex += 1

@@ -120,7 +120,7 @@ class MainWindow():
         ["* The second gargoyle in the boss fight is not replaced", "* The second gargoyle in the boss fight IS replaced\n  Can potentially make the fight extremely difficult\n  eg. if you get Kalameet+Manus there"],
         ["* Difficulty curve is followed quite strictly: Harder enemies can still appear\n  in early-game but it's somewhat rare.\n  Least variety, but most consistent difficulty\n  (Only has effect if mode is set to 'Random with difficulty curve')", "* Following the difficulty curve is a bit looser: a bit higher chance to get\n  harder enemies in early game.\n  A bit more variety, while maintaining relatively reasonable difficulty.\n  (Only has effect if mode is set to 'Random with difficulty curve')", "* Difficulty curve following is rather loose: Enemy difficulty can vary much\n  more and harder enemies in early game are more common.\n  It's possible to, in rare cases, to even see Manus in Asylum in this mode.\n  (Only has effect if mode is set to 'Random with difficulty curve')"],
         ["* T-Posing Enabled: Enemies replacing enemies with special idle state retain\n  the original enemys idle animation resulting in T-Posing most of the time.", "* T-Posing Disabled: Enemies replacing enemies with special idle state (like\n  hollows in New Londo) have a proper animation assigned to them.\n  Do note that most of these enemies will now be immediately hostile.\n  NPC-s are still in T-Pose mode for that reason."],
-        ["* Type replacement enabled: If within one area there were originally multiple\n  of the same enemy, then all of those enemies will be replaced with one type\n  of enemy. For example: all Silver Knights in Anor Londo would be replaced\n  with Darkwraiths, instead of individual Silver Knights being replaced by\n  different enemies.", "* Type replacement disabled, each enemy is randomized separately."],
+        ["* Type replacement enabled: If within one area there were originally multiple\n  of the same enemy, then all of those enemies will be replaced with one type\n  of enemy. For example: all Silver Knights in Anor Londo would be replaced\n  with Darkwraiths, instead of individual Silver Knights being replaced by\n  different enemies.", "* Type replacement disabled, each enemy is randomized separately.", "* Placeholder"],
         ["* The main Pinwheel in the boss is not replaced, but it's clones are.\n  Replaced clones have normal HP instead of being 1 hit kill.\n  (A quite ridiculous and unfair mode; also can cause the game to lag severely\n  during the boss fight with certain enemies)", "* Pinwheel Boss will be replaced as normal, a single enemy replacing the main\n  Pinwheel."],
         ["* When an enemy is chosen to be replaced by Gwyn, there is a 85% chance that a\n  new enemy will be chosen instead.", "* When an enemy is chosen to be replaced by Gwyn, there is a 60% chance that a\n  new enemy will be chosen instead.", "* Gwyn spawn rate is not nerfed."],
         ["* Enemies are not allowed to be replaced with the same enemy (so a Hollow can't\n  be replaced with another Hollow). Can result in less boss variety with the\n  difficulty curve option in early game.", "* Enemies can be replaced with the same enemy. (eg. a Hollow can be replaced\n  with a Hollow)"]]
@@ -465,11 +465,14 @@ class MainWindow():
         
         self.typeReplaceBtn1 = Radiobutton(self.type_replace_frame, text="Enabled", variable=self.typeReplacement, value=0, command=self.UpdateMessageArea)
         self.typeReplaceBtn1.pack(anchor=W)
+        self.typeReplaceBtn3 = Radiobutton(self.type_replace_frame, text="Enabled, except roaming bosses.", variable=self.typeReplacement, value=2, command=self.UpdateMessageArea)
+        self.typeReplaceBtn3.pack(anchor=W)
         self.typeReplaceBtn2 = Radiobutton(self.type_replace_frame, text="Disabled", variable=self.typeReplacement, value=1, command=self.UpdateMessageArea)
         self.typeReplaceBtn2.pack(anchor=W)
 
         self.BindTags(self.typeReplaceBtn1, 10, 0)
         self.BindTags(self.typeReplaceBtn2, 10, 1)
+        self.BindTags(self.typeReplaceBtn3, 10, 2)
 
         # Pinwheel Chaos
 
@@ -513,10 +516,12 @@ class MainWindow():
         self.BindTags(self.sameReplaceBtn1, 13, 0)
         self.BindTags(self.sameReplaceBtn2, 13, 1)
 
+        self.isSelloutActive = False
+
         if (self.randomizer.canRandomize):
             if (self.randomizer.exeStatus == "Unknown"):
                 # Show a warning if the .exe checksum is unknown.
-                tkinter.messagebox.showwarning("Unknown DARKSOULS.exe", "The checksum of DARKSOULS.exe is unknown, if you know what you're doing then proceed, otherwise it might be a unpacking issue maybe?")
+                tkinter.messagebox.showwarning("Unknown DARKSOULS.exe", "The checksum of DARKSOULS.exe is unknown, if you know what you're doing then proceed, otherwise it might be a unpacking issue maybe?\n\nOR the other possibility is that you're using a pirated copy of the game PunOko. (If that's the case, don't bother asking for support).")
             
             if not (self.randomizer.areCopiesValid):
                 retryCopy = True
@@ -529,6 +534,8 @@ class MainWindow():
                     self.randomize_button.config(state = "disabled")
                     self.unrandomize_button.config(state = "disabled")
                     self.randomizer.canRandomize = False
+            
+            self.OpenLastConfig()
         else:
             self.randomize_button.config(state = "disabled")
             self.unrandomize_button.config(state = "disabled")
@@ -538,8 +545,6 @@ class MainWindow():
             self.root.title("Dark Souls - Enemy randomizer " + self.randomizerVersion + " by rycheNhavalys    [Current Mode: REMASTERED]")
         else:
             self.root.title("Dark Souls - Enemy randomizer " + self.randomizerVersion + " by rycheNhavalys    [Current Mode: PTDE]")
-
-        self.isSelloutActive = False
             
         self.UpdateMessageArea()
 
@@ -852,6 +857,8 @@ class MainWindow():
         self.unrandomize_button.config(state = "disabled")
 
         self.BuildConfigString()
+
+        self.SaveCurrentConfigAsDefault()
         
         randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.boss_souls_slider.get(), self.pinwheelChaos.get(), self.typeReplacement.get(), self.gwynNerf.get(), self.preventSame.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
 
@@ -1277,6 +1284,25 @@ class MainWindow():
         except:
             return False
 
+    def SaveCurrentConfigAsDefault(self):
+        with open('enemyRandomizerData/lastConfig.txt', 'w') as f:
+            f.write(self.enemyConfigForRandomization.get() + "\n")
+            f.write(self.configString)
+
+    def OpenLastConfig(self):
+        if (os.path.isfile('enemyRandomizerData/lastConfig.txt')):
+            with open('enemyRandomizerData/lastConfig.txt') as f:
+                enemyConfigName = f.readline().strip()
+                cStr = f.readline().strip()
+
+                # TODO: Check enemy config
+                if (os.path.isfile('enemyRandomizerData/customConfigs/' + enemyConfigName + '.txt')):
+                    self.enemyConfigForRandomization.set(enemyConfigName)
+
+                self.configString = cStr
+                self.configValue.set(self.configString)
+                self.ApplyConfigString(False)
+
     """ The next two methods are going to be a P A I N to keep up to date... """
 
     def BuildConfigString(self):
@@ -1287,7 +1313,7 @@ class MainWindow():
         self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/" + str(self.boss_souls_slider.get()) + "/-/" + str(self.pinwheelChaos.get()) + "/-/" + str(self.typeReplacement.get()) + "/-/" + str(self.gwynNerf.get()) + "/-/" + str(self.preventSame.get()) + "/-/'''" + self.seedValue.get() + "'''"
         self.configValue.set(self.configString)
 
-    def ApplyConfigString(self):
+    def ApplyConfigString(self, showMessages = True):
         """
         Apply the settings from the config string, if the settings are valid, otherwise complain.
         """
@@ -1372,7 +1398,7 @@ class MainWindow():
                     isValidConfig = False
                 
                 inpTypeReplacement = int(parts[14])
-                if (inpTypeReplacement < 0 or inpTypeReplacement > 1):
+                if (inpTypeReplacement < 0 or inpTypeReplacement > 2):
                     isValidConfig = False
                 
                 inpGwynRate = int(parts[15])
@@ -1420,9 +1446,11 @@ class MainWindow():
             self.preventSame.set(inpPreventSame)
             self.seedValue.set(inpSeed)
             self.UpdateMessageArea()
-            tkinter.messagebox.showinfo("Config Applied", "The config has been applied successfully")
+            if (showMessages):
+                tkinter.messagebox.showinfo("Config Applied", "The config has been applied successfully")
         else:
-            tkinter.messagebox.showerror("Invalid Config", "The input text config is invalid, please try again.")
+            if (showMessages):
+                tkinter.messagebox.showerror("Invalid Config", "The input text config is invalid, please try again.")
         
     def Unrandomize(self):
         """
