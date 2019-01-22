@@ -113,7 +113,7 @@ class MainWindow():
     messages = [["* Bosses will not be replaced", "* Bosses will be replaced with bosses", "* Bosses will be replaced with normal enemies", "* Bosses will be replaced both with bosses and normal enemies"],
         ["* Normal will not be replaced", "* Normal will be replaced with bosses\n  Would recommend you to set Replacement Chance to < 15%\n  otherwise it can become pretty difficult to beat the game", "* Normal enemies will be replaced with normal enemies", "* Normal enemies will be replaced both with bosses and normal enemies"],
         ["* Enemies will only be placed where they fit", "* Enemies can be placed anywhere, regardless of their size\n  May cause some NPC-s to become too big to be able to talk to them if\n  NPC replacement is enabled.", "* Enemies can be placed anywhere, regardless of their size\n  Except when replacing NPC-s (so size limit is enforced on them)"],
-        ["* Removed mode.", "* Mode: Enemies will be replaced with enemies from other areas\n  while still trying to maintain some sort of a difficulty curve\n  NOTICE: not really compatible with 'Replace normals only with bosses' and\n  'Replace bosses only with normals', you'll be seeing lots of unmodified\n  enemies in those modes.", "* Mode: Any enemy/boss can be placed ANYWHERE in the world\n  So yes, you could find things like Manus or Nito in the Asylum", "* Mode: Any enemy/boss can be placed ANYWHERE in the world\n  with asylum being the only exception.\n  Keeps asylum easy so you don't have to fight someone like\n  Manus with starting stats and equipment."],
+        ["* Removed mode.", "* Mode: Enemies will be replaced with enemies from other areas\n  while still trying to maintain some sort of a difficulty curve\n  NOTICE: not really compatible with 'Replace normals only with bosses' and\n  'Replace bosses only with normals', you'll be seeing lots of unmodified\n  enemies in those modes.", "* Mode: Any enemy/boss can be placed ANYWHERE in the world\n  So yes, you could find things like Manus or Nito in the Asylum", "* Mode: Any enemy/boss can be placed ANYWHERE in the world\n  with asylum being the only exception.\n  Keeps asylum easy so you don't have to fight someone like\n  Manus with starting stats and equipment.", "* Mode: Enemies will be replaced with enemies from other areas\n  while still trying to maintain some sort of a difficulty curve\n  Uses a limited list for asylum to keep it easier for certain, even on looser\n  difficulty settings.\n  NOTICE: not really compatible with 'Replace normals only with bosses' and\n  'Replace bosses only with normals', you'll be seeing lots of unmodified\n  enemies in those modes."],
         ["* Mimics are not replaced", "* Mimics are replaced; in this version of the randomizer\n  they will properly drop their items."],
         ["* NPC-s will not be replaced", "* Certain NPC-s will be replaced with bosses\n  Has no impact on talking with them", "* Certain NPC-s will be replaced with normal enemies\n  Has no impact on talking with them", "* Certain NPC-s can be replaced both with bosses and normal enemies\n  Has no impact on talking with them"],
         ["* -", "* -", "* -"],
@@ -124,7 +124,9 @@ class MainWindow():
         ["* The main Pinwheel in the boss is not replaced, but it's clones are.\n  Replaced clones have normal HP instead of being 1 hit kill.\n  (A quite ridiculous and unfair mode; also can cause the game to lag severely\n  during the boss fight with certain enemies)", "* Pinwheel Boss will be replaced as normal, a single enemy replacing the main\n  Pinwheel."],
         ["* When an enemy is chosen to be replaced by Gwyn, there is a 85% chance that a\n  new enemy will be chosen instead.", "* When an enemy is chosen to be replaced by Gwyn, there is a 60% chance that a\n  new enemy will be chosen instead.", "* Gwyn spawn rate is not nerfed."],
         ["* Enemies are not allowed to be replaced with the same enemy (so a Hollow can't\n  be replaced with another Hollow). Can result in less boss variety with the\n  difficulty curve option in early game.", "* Enemies can be replaced with the same enemy. (eg. a Hollow can be replaced\n  with a Hollow)"],
-        ["* When a boss is being replaced by a boss, the replacement is entirely random.", "* When a boss is being replaced by a boss, the randomizer tries to spawn bosses\n  that have not yet been used (whenever it's possible). Some boss repetition\n  still happens."]]
+        ["* When a boss is being replaced by a boss, the replacement is entirely random.", "* When a boss is being replaced by a boss, the randomizer tries to spawn bosses\n  that have not yet been used (whenever it's possible). Some boss repetition\n  still happens."],
+        ["* Bosses replacing normal enemies respawn like normal enemies.", "* Bosses that replace normal enemies stay dead permanently once killed."],
+        ["* Hostile Undead Merchant, Andre, Vamos and Gough can be placed into the world\n  as enemies.", "* Hostile Undead Merchant, Andre, Vamos and Gough are not placed into the world."]]
 
     def __init__(self):
         self.root = Tk()
@@ -144,6 +146,9 @@ class MainWindow():
 
         self.settingsPage2 = ttk.Frame(self.settingsTabs)
         self.settingsTabs.add(self.settingsPage2, text='Other Options')
+
+        self.settingsPage3 = ttk.Frame(self.settingsTabs)
+        self.settingsTabs.add(self.settingsPage3, text='Even More Options')
 
         self.buttons_frame = LabelFrame(self.root, text="Randomization")
         self.buttons_frame.grid(row=4, column=4, sticky='NWES', padx=2)
@@ -180,7 +185,7 @@ class MainWindow():
         self.sellout_close_button.grid(row=1, column=0, sticky="NWS", padx=6, pady=4)
         self.sellout_close_button.grid_remove() # Hide the sellout page closing button by default
 
-        self.tags=["f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
+        self.tags=["f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
 
         self.hoverO = -1
         self.hoverL = -1
@@ -229,6 +234,12 @@ class MainWindow():
         self.uniqueBosses = IntVar()
         self.uniqueBosses.set(0)
 
+        self.respawingBosses = IntVar()
+        self.respawingBosses.set(0)
+
+        self.hostileNPCs = IntVar()
+        self.hostileNPCs.set(0)
+
         self.seedValue = StringVar()
         self.seedValue.set("")
 
@@ -248,6 +259,10 @@ class MainWindow():
         self.settingsPage2.columnconfigure(4, weight=1)
         self.settingsPage2.columnconfigure(3, weight=1)
         self.settingsPage2.columnconfigure(2, weight=1)
+
+        self.settingsPage3.columnconfigure(2, weight=1)
+        self.settingsPage3.columnconfigure(1, weight=1)
+        self.settingsPage3.columnconfigure(0, weight=1)
 
         # Seed entry
 
@@ -313,9 +328,11 @@ class MainWindow():
         self.dif_frame = LabelFrame(self.settingsPage1, text="Mode:")
         self.dif_frame.grid(row=2, column=3, sticky='NWES', padx=2)
 
+        self.difBtn5 = Radiobutton(self.dif_frame, text="Difficulty curve + easy asylum", variable=self.difficultyMode, value=4, command=self.UpdateMessageArea)
+        self.difBtn5.pack(anchor=W)
         self.difBtn2 = Radiobutton(self.dif_frame, text="Random with difficulty curve", variable=self.difficultyMode, value=1, command=self.UpdateMessageArea)
         self.difBtn2.pack(anchor=W)
-        self.difBtn4 = Radiobutton(self.dif_frame, text="Fully random with easy asylum", variable=self.difficultyMode, value=3, command=self.UpdateMessageArea)
+        self.difBtn4 = Radiobutton(self.dif_frame, text="Fully random + easy asylum", variable=self.difficultyMode, value=3, command=self.UpdateMessageArea)
         self.difBtn4.pack(anchor=W)
         self.difBtn3 = Radiobutton(self.dif_frame, text="Fully random", variable=self.difficultyMode, value=2, command=self.UpdateMessageArea)
         self.difBtn3.pack(anchor=W)
@@ -323,6 +340,7 @@ class MainWindow():
         self.BindTags(self.difBtn2, 3, 1)
         self.BindTags(self.difBtn3, 3, 2)
         self.BindTags(self.difBtn4, 3, 3)
+        self.BindTags(self.difBtn5, 3, 4)
 
 
         self.mimics_frame = LabelFrame(self.settingsPage2, text="Mimics:")
@@ -454,13 +472,13 @@ class MainWindow():
         # Boss Souls
 
         self.boss_souls_frame = LabelFrame(self.settingsPage2, text="Roaming boss soul drops (%):")
-        self.boss_souls_frame.grid(row=6, column=3, sticky='NWES', padx=2)
+        self.boss_souls_frame.grid(row=7, column=2, sticky='NWES', padx=2)
 
         self.boss_souls_slider = Scale(self.boss_souls_frame, from_=0, to=100, orient=HORIZONTAL)
         self.boss_souls_slider.grid(row=0, column=0, sticky='NWES', padx=2)
         self.boss_souls_slider.set(50)
 
-        Label(self.boss_souls_frame, text="Controls the amount of souls bosses that\nreplace normal enemies drop.").grid(row=2, column=0, sticky='NWES', padx=2, pady=2)
+        Label(self.boss_souls_frame, text="Controls the amount of souls bosses that\nreplace normal enemies drop.\n(If you change this value and randomize while\nthe game is running you'll have to quit the game\nand start it again for the soul amounts to change)").grid(row=2, column=0, sticky='NWES', padx=2, pady=2)
 
         # Type replacement
 
@@ -520,10 +538,10 @@ class MainWindow():
         self.BindTags(self.sameReplaceBtn1, 13, 0)
         self.BindTags(self.sameReplaceBtn2, 13, 1)
 
-        # Same enemy replacement prevention
+        # Unique Bosses
 
         self.unique_bosses_frame = LabelFrame(self.settingsPage2, text="Try for unique bosses: ")
-        self.unique_bosses_frame.grid(row=7, column=2, sticky='NWES', padx=2)
+        self.unique_bosses_frame.grid(row=6, column=3, sticky='NWES', padx=2)
         
         self.uniqueBossBtn1 = Radiobutton(self.unique_bosses_frame, text="Enabled", variable=self.uniqueBosses, value=1, command=self.UpdateMessageArea)
         self.uniqueBossBtn1.pack(anchor=W)
@@ -533,12 +551,38 @@ class MainWindow():
         self.BindTags(self.uniqueBossBtn1, 14, 1)
         self.BindTags(self.uniqueBossBtn2, 14, 0)
 
+        # Roaming Boss Respawn
+
+        self.boss_respawn_frame = LabelFrame(self.settingsPage3, text="Bosses replacing normals respawning: ")
+        self.boss_respawn_frame.grid(row=0, column=0, sticky='NWES', padx=2)
+        
+        self.respawnBossBtn1 = Radiobutton(self.boss_respawn_frame, text="Enabled", variable=self.respawingBosses, value=0, command=self.UpdateMessageArea)
+        self.respawnBossBtn1.pack(anchor=W)
+        self.respawnBossBtn2 = Radiobutton(self.boss_respawn_frame, text="Disabled", variable=self.respawingBosses, value=1, command=self.UpdateMessageArea)
+        self.respawnBossBtn2.pack(anchor=W)
+
+        self.BindTags(self.respawnBossBtn1, 15, 0)
+        self.BindTags(self.respawnBossBtn2, 15, 1)
+
+        # Hostile NPC spawning
+
+        self.hostile_npc_frame = LabelFrame(self.settingsPage3, text="Hostile NPCs: ")
+        self.hostile_npc_frame.grid(row=0, column=1, sticky='NWES', padx=2)
+        
+        self.hostileNpcBtn1 = Radiobutton(self.hostile_npc_frame, text="Enabled", variable=self.hostileNPCs, value=1, command=self.UpdateMessageArea)
+        self.hostileNpcBtn1.pack(anchor=W)
+        self.hostileNpcBtn2 = Radiobutton(self.hostile_npc_frame, text="Disabled", variable=self.hostileNPCs, value=0, command=self.UpdateMessageArea)
+        self.hostileNpcBtn2.pack(anchor=W)
+
+        self.BindTags(self.hostileNpcBtn1, 16, 0)
+        self.BindTags(self.hostileNpcBtn2, 16, 1)
+
         self.isSelloutActive = False
 
         if (self.randomizer.canRandomize):
             if (self.randomizer.exeStatus == "Unknown"):
                 # Show a warning if the .exe checksum is unknown.
-                tkinter.messagebox.showwarning("Unknown DARKSOULS.exe", "The checksum of DARKSOULS.exe is unknown, if you know what you're doing then proceed, otherwise it might be a unpacking issue maybe?\n\nOR the other possibility is that you're using a pirated copy of the game PunOko. (If that's the case, don't bother asking for support).")
+                tkinter.messagebox.showwarning("Unknown DARKSOULS.exe", "The checksum of DARKSOULS.exe is unknown, if you know what you're doing then proceed, otherwise it might be a unpacking issue maybe?\n\nOR the other possibility is that you're using a pirated copy of the game PunOko.")
             
             if not (self.randomizer.areCopiesValid):
                 retryCopy = True
@@ -638,7 +682,7 @@ class MainWindow():
                     self.uniqueBossBtn2.config(state = 'disabled')
                     self.unique_bosses_frame.config(fg = 'gray50', text="[No Effect] Try for unique bosses:")
 
-                for i in range(0, 15):
+                for i in range(0, 17):
                     if (self.hoverO == -1):
                         self.tags[i] = "f"
                     else:
@@ -715,6 +759,16 @@ class MainWindow():
                                     self.tags[i] = "f"
                                 else:
                                     self.tags[i] = "c"
+                            elif (i == 15):
+                                if (self.respawingBosses.get() == self.hoverL):
+                                    self.tags[i] = "f"
+                                else:
+                                    self.tags[i] = "c"
+                            elif (i == 16):
+                                if (self.hostileNPCs.get() == self.hoverL):
+                                    self.tags[i] = "f"
+                                else:
+                                    self.tags[i] = "c"
                         else:
                             self.tags[i] = "uf"
 
@@ -741,6 +795,9 @@ class MainWindow():
                     self.AddDescription(12, self.gwynNerf.get())
                     self.AddDescription(13, self.preventSame.get())
                     self.AddDescription(14, self.uniqueBosses.get())
+                elif (currentPage == 2):
+                    self.AddDescription(15, self.respawingBosses.get())
+                    self.AddDescription(16, self.hostileNPCs.get())
 
 
                 self.msg_area.config(state = "disabled")
@@ -761,36 +818,49 @@ class MainWindow():
 
                 self.msg_area.insert(END, exeString, "f")
 
+                if (not self.randomizer.exeModificationSuccessful):
+                    self.msg_area.insert(END, "* The randomizer did not have the permissions to modify DARKSOULS.exe. You\n  might need to either install the game in a different location or run\n  the randomizer as administrator.\n\n", "f")
+
                 gameFileString = ""
 
                 if (self.randomizer.missingMSB == len(self.randomizer.inputFiles)):
-                    gameFileString = "* No files found in DATA/map/MapStudio, are you sure the game is properly unpacked (PTDE only) and the randomizer is placed in the correct directory?\n\n"
+                    gameFileString = "* No files found in map/MapStudio, are you sure the game is properly unpacked (PTDE only) and the randomizer is placed in the correct directory?\n\n"
                 elif (self.randomizer.missingMSB != 0):
-                    gameFileString = "* " + str(self.randomizer.missingMSB) + "/" + str(len(self.randomizer.inputFiles)) + " .msb files missing from DATA/map/MapStudio\n\n"
+                    gameFileString = "* " + str(self.randomizer.missingMSB) + "/" + str(len(self.randomizer.inputFiles)) + " .msb files missing from map/MapStudio\n\n"
                 
                 self.msg_area.insert(END, gameFileString, "f")
 
                 gameFileString = ""
 
                 if (self.randomizer.missingLUABND == len(self.randomizer.inputFiles) - 1):
-                    gameFileString = "* No required files found in DATA/script/, are you sure the game is properly unpacked (PTDE only) and the randomizer is placed in the correct directory?\n\n"
+                    gameFileString = "* No required files found in script/, are you sure the game is properly unpacked (PTDE only) and the randomizer is placed in the correct directory?\n\n"
                 elif (self.randomizer.missingLUABND != 0):
                     if (self.randomizer.useDCX):
-                        gameFileString = "* " + str(self.randomizer.missingLUABND) + "/" + str(len(self.randomizer.inputFiles) - 1) + " .luabnd.dcx files missing from DATA/script/\n\n"
+                        gameFileString = "* " + str(self.randomizer.missingLUABND) + "/" + str(len(self.randomizer.inputFiles)) + " .luabnd.dcx files missing from script/\n\n"
                     else:
-                        gameFileString = "* " + str(self.randomizer.missingLUABND) + "/" + str(len(self.randomizer.inputFiles) - 1) + " .luabnd files missing from DATA/script/\n\n"
+                        gameFileString = "* " + str(self.randomizer.missingLUABND) + "/" + str(len(self.randomizer.inputFiles)) + " .luabnd files missing from script/\n\n"
                 
                 self.msg_area.insert(END, gameFileString, "f")
 
                 gameFileString = ""
 
-                if (self.randomizer.missingFFXBND == len(self.randomizer.inputFiles) - 1):
-                    gameFileString = "* No required files found in DATA/sfx/, are you sure the game is properly unpacked (PTDE only) and the randomizer is placed in the correct directory?\n\n"
+                if (self.randomizer.missingFFXBND == len(self.randomizer.inputFFXFiles)):
+                    gameFileString = "* No required files found in sfx/, are you sure the game is properly unpacked (PTDE only) and the randomizer is placed in the correct directory?\n\n"
                 elif (self.randomizer.missingFFXBND != 0):
                     if (self.randomizer.useDCX):
-                        gameFileString = "* " + str(self.randomizer.missingFFXBND) + "/" + str(len(self.randomizer.inputFFXFiles)) + " .ffxbnd.dcx files missing from DATA/sfx/\n\n"
+                        gameFileString = "* " + str(self.randomizer.missingFFXBND) + "/" + str(len(self.randomizer.inputFFXFiles)) + " .ffxbnd.dcx files missing from sfx/\n\n"
                     else:
-                        gameFileString = "* " + str(self.randomizer.missingFFXBND) + "/" + str(len(self.randomizer.inputFFXFiles)) + " .ffxbnd files missing from DATA/sfx/\n\n"
+                        gameFileString = "* " + str(self.randomizer.missingFFXBND) + "/" + str(len(self.randomizer.inputFFXFiles)) + " .ffxbnd files missing from sfx/\n\n"
+                
+                self.msg_area.insert(END, gameFileString, "f")
+
+                if (self.randomizer.missingEmevd == len(self.randomizer.inputFiles)):
+                    gameFileString = "* No required files found in event/, are you sure the game is properly unpacked (PTDE only) and the randomizer is placed in the correct directory?\n\n"
+                elif (self.randomizer.missingEmevd != 0):
+                    if (self.randomizer.useDCX):
+                        gameFileString = "* " + str(self.randomizer.missingEmevd) + "/" + str(len(self.randomizer.inputFiles)) + " .emevd.dcx files missing from event/\n\n"
+                    else:
+                        gameFileString = "* " + str(self.randomizer.missingEmevd) + "/" + str(len(self.randomizer.inputFiles)) + " .emevd files missing from event/\n\n"
                 
                 self.msg_area.insert(END, gameFileString, "f")
 
@@ -876,7 +946,7 @@ class MainWindow():
         self.progressTopLevel = Toplevel(self.root)
         self.progressTopLevel.title("Randomizing, please wait")
 
-        progLen = 3 + len(self.randomizer.inputFiles) * 3
+        progLen = 3 + len(self.randomizer.inputFiles) * 4
 
         self.progressBar = Progressbar(self.progressTopLevel, maximum=progLen, length=512)
         self.progressBar.grid(row = 0, column = 0, sticky="NEWS", padx=8, pady=4)
@@ -891,7 +961,7 @@ class MainWindow():
 
         self.SaveCurrentConfigAsDefault()
         
-        randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.boss_souls_slider.get(), self.pinwheelChaos.get(), self.typeReplacement.get(), self.gwynNerf.get(), self.preventSame.get(), self.uniqueBosses.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
+        randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.boss_souls_slider.get(), self.pinwheelChaos.get(), self.typeReplacement.get(), self.gwynNerf.get(), self.preventSame.get(), self.uniqueBosses.get(), self.respawingBosses.get(), self.hostileNPCs.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
 
         self.randThread = randomizationThread(1, "Random-Thread", 1, self.randomizer, randomSettings, self.msg_area, self, timeString)
         self.randThread.start()
@@ -1341,7 +1411,7 @@ class MainWindow():
         Build the compact config string.
         """
 
-        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/" + str(self.boss_souls_slider.get()) + "/-/" + str(self.pinwheelChaos.get()) + "/-/" + str(self.typeReplacement.get()) + "/-/" + str(self.gwynNerf.get()) + "/-/" + str(self.preventSame.get()) + "/-/" + str(self.uniqueBosses.get()) + "/-/'''" + self.seedValue.get() + "'''"
+        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/" + str(self.boss_souls_slider.get()) + "/-/" + str(self.pinwheelChaos.get()) + "/-/" + str(self.typeReplacement.get()) + "/-/" + str(self.gwynNerf.get()) + "/-/" + str(self.preventSame.get()) + "/-/" + str(self.uniqueBosses.get()) + "/-/" + str(self.respawingBosses.get()) + "/-/" + str(self.hostileNPCs.get()) + "/-/'''" + self.seedValue.get() + "'''"
         self.configValue.set(self.configString)
 
     def ApplyConfigString(self, showMessages = True):
@@ -1370,8 +1440,10 @@ class MainWindow():
         inpGwynRate = 0
         inpPreventSame = 0
         inpUniqueBosses = 0
+        inpRespawningBosses = 0
+        inpHostileNPC = 0
         inpSeed = ""
-        if (len(parts) == 19):
+        if (len(parts) == 21):
             try:
                 inpBossMode = int(parts[0])
                 if (inpBossMode < 0 or inpBossMode > 3):
@@ -1394,7 +1466,7 @@ class MainWindow():
                     isValidConfig = False
                 
                 inpDiffMode = int(parts[5])
-                if (inpDiffMode < 1 or inpDiffMode > 3):
+                if (inpDiffMode < 1 or inpDiffMode > 4):
                     isValidConfig = False
 
                 inpRepChance = int(parts[6])
@@ -1445,7 +1517,15 @@ class MainWindow():
                 if (inpUniqueBosses < 0 or inpUniqueBosses > 1):
                     isValidConfig = False
                 
-                inpSeed = parts[18].replace("'''", "")
+                inpRespawningBosses = int(parts[18])
+                if (inpRespawningBosses < 0 or inpRespawningBosses > 1):
+                    isValidConfig = False
+                
+                inpHostileNPC = int(parts[19])
+                if (inpHostileNPC < 0 or inpHostileNPC > 1):
+                    isValidConfig = False
+                
+                inpSeed = parts[20].replace("'''", "")
             except:
                 isValidConfig = False
         else:

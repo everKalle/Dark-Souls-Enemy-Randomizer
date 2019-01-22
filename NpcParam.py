@@ -178,6 +178,7 @@ class NpcParam(ParamClass):
         (273000, 30000, "Priscilla"),
         (323000, 10000, "MLB"),
         (332000, 15000, "Pinwheel"),
+        (343000, 10000, "Hellkite Drake"),
         (347100, 30000, "Sanctuary Guardian"),
         (410000, 50000, "Artorias"),
         (450000, 60000, "Manus"),
@@ -227,8 +228,8 @@ class NpcParam(ParamClass):
         for i in range(entryCount):
             if (expectedIndex < len(self.BossSouls)):
                 if (self.param.Rows[i].id == self.BossSouls[expectedIndex][0] + 50):
-                    self.data[i]['end']['disableRespawn'] = disableRespawn
-                    self.data[i]['end']['disableInitializeDead'] = disableInitializeDead
+                    self.data[i]['end']['disableRespawn:1'] = disableRespawn
+                    self.data[i]['end']['disableInitializeDead:1'] = disableInitializeDead
                     expectedIndex += 1
         
     def AddNewBossParams(self):

@@ -68,6 +68,20 @@ class Msbdata:
     def hasSib(self):
         return self.fieldNames[self.nameIndex + 1] == "Sibpath"
 
+    def updatePartsIndices(self, newPartIndex: int):
+        for i in range(len(self.rows)):
+            if (self.partIndex1 != -1):
+                if (self.rows[i][self.partIndex1] >= newPartIndex):
+                    self.rows[i][self.partIndex1] += 1
+
+            if (self.partIndex2 != -1):
+                if (self.rows[i][self.partIndex2] >= newPartIndex):
+                    self.rows[i][self.partIndex2] += 1
+
+            if (self.partIndex3 != -1):
+                if (self.rows[i][self.partIndex3] >= newPartIndex):
+                    self.rows[i][self.partIndex3] += 1
+
     def create(self, name):
         if (name in dataLayoutMap):
             layoutString = dataLayoutMap[name]

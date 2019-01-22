@@ -66,25 +66,29 @@ def patch_exe():
             with open('DARKSOULS.exe', 'rb') as oldf:
                 bakf.write(oldf.read())
 
-    with open('DARKSOULS.exe', mode="rb+") as f:
-        fc = mmap.mmap(f.fileno(), 0)
+    try:
+        with open('DARKSOULS.exe', mode="rb+") as f:
+            fc = mmap.mmap(f.fileno(), 0)
 
-        memAmt = b"h\x00\x00\xa2\x00"
-        newMemAmt = b"h\x00\x00\xda\x00"
+            memAmt = b"h\x00\x00\xa2\x00"
+            newMemAmt = b"h\x00\x00\xda\x00"
 
-        count = 0
+            count = 0
 
-        next_pos = fc.find(memAmt)
-        while next_pos != -1:
-            fc.seek(next_pos)
-            fc.write(newMemAmt)
-            count += 1
             next_pos = fc.find(memAmt)
-        
-        print("Exe Patched")
+            while next_pos != -1:
+                fc.seek(next_pos)
+                fc.write(newMemAmt)
+                count += 1
+                next_pos = fc.find(memAmt)
+            
+            print("Exe Patched")
 
-        fc.flush()
-        fc.close()
+            fc.flush()
+            fc.close()
+            return True
+    except PermissionError:
+        return False
 
 def restore_exe():
     """

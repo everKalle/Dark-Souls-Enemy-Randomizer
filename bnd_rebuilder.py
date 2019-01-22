@@ -59,10 +59,10 @@ def unpack_bnd(content):
             (record_sep, filedata_size, filedata_offset, file_id, 
              filename_offset, dummy_filedata_size) = struct.unpack_from("<IIIIII", content, offset=master_offset)
             master_offset += struct.calcsize("<IIIIII")
-            if filedata_size != dummy_filedata_size:
+            """if filedata_size != dummy_filedata_size:
                 raise ValueError("File has malformed record structure. File data size " + 
                  str(filedata_size) + " does not match dummy file data size " + 
-                 str(dummy_filedata_size) + ".")
+                 str(dummy_filedata_size) + ".")"""
         else: # magic_flag == 0x70
             (record_sep, filedata_size, filedata_offset, file_id, 
              filename_offset) = struct.unpack_from("<IIIII", content, offset=master_offset)

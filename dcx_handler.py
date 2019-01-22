@@ -105,15 +105,16 @@ class DCXHandler:
 
         return self.data
 
-    def save_dcx(self, filename, newData):
+    def save_dcx(self, filename, newData, createBackup = True):
         """
         Compress @newData and save as @filename
         """
         # Create backup if it doesn't exist
-        if not os.path.isfile(filename + '.bak'):
-            with open(filename, 'rb') as origf:
-                with open(filename + '.bak', 'wb') as bakf:
-                    bakf.write(origf.read())
+        if (createBackup):
+            if not os.path.isfile(filename + '.bak'):
+                with open(filename, 'rb') as origf:
+                    with open(filename + '.bak', 'wb') as bakf:
+                        bakf.write(origf.read())
 
         # Recompress and save file
         with open(filename, 'wb') as f:
@@ -129,4 +130,12 @@ class DCXHandler:
             f.write(b'DCA\x00')
             f.write(struct.pack(">I", self.compressed_header_length))
             f.write(compressed_data)
-            print("[DCX] Compressed")
+
+    def set_emevd_dcx_values(self):
+        self.req1 = 256
+        self.req2 = 24
+        self.req3 = 36
+        self.req4 = 36
+        self.header_length = 44
+        self.compressed_header_length = 8
+        self.unknownHeaderPart = b'\x00\x00\x00 \t\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x01\x00'

@@ -17,6 +17,7 @@ import datetime
 from enum import Enum
 from NpcParam import NpcParam
 from dcx_handler import DCXHandler
+from event_tools import EventTools
 
 #logFile = open('log.txt', 'w')
 logFile = -1
@@ -48,6 +49,7 @@ class Randomizer:
 
     MAPSTUDIO = "map/MapStudio/"
     AISCRIPTS = "script/"
+    EMEVDS = "event/"
 
     MAPCOPY = "enemyRandomizerData/mapStudioCopies/"
     AICOPY = "enemyRandomizerData/mapAiCopies/"
@@ -60,18 +62,43 @@ class Randomizer:
     GAMEPARAM_PATH_REMASTERED = "param/GameParam/GameParam.parambnd.dcx"
     NPCPARAM_INDEX = 12
 
-    inputFiles = ["m10_00_00_00", "m10_01_00_00", "m10_02_00_00", "m11_00_00_00", "m12_00_00_00", "m12_01_00_00", "m12_00_00_01", "m13_00_00_00",  "m13_01_00_00", "m13_02_00_00", "m14_00_00_00", "m14_01_00_00", "m15_00_00_00", "m15_01_00_00", "m16_00_00_00", "m17_00_00_00", "m18_00_00_00", "m18_01_00_00"]
+    inputFilesAll = ["m10_00_00_00", "m10_01_00_00", "m10_02_00_00", "m11_00_00_00", "m12_00_00_00", "m12_01_00_00", "m12_00_00_01", "m13_00_00_00",  "m13_01_00_00", "m13_02_00_00", "m14_00_00_00", "m14_01_00_00", "m15_00_00_00", "m15_01_00_00", "m16_00_00_00", "m17_00_00_00", "m18_00_00_00", "m18_01_00_00"]
     inputFFXFiles = ['CommonEffects', 'm10', 'm10_00', 'm10_01', 'm10_02', 'm11', 'm12', 'm12_00', 'm12_01', 'm13', 'm13_00', 'm13_01', 'm13_02', 'm14', 'm14_00', 'm14_01', 'm15', 'm15_00', 'm15_01', 'm16', 'm17', 'm18', 'm18_00', 'm18_01']
-    startIndices = [250, 495, 171, 259, 280, 459, 282, 254, 242, 180, 342, 382, 210, 251, 197, 307, 84, 154]
-    names = ["Depths", "Undead Burg/Parish", "Firelink Shrine", "Painted World", "Darkroot Garden", "DLC", "DarkRoot Garden #2", "Catacombs", "Tomb of the Giants", "Great Hollow & Ash Lake", "Blighttown", "Demon Ruins & Lost Izalith", "Sen's Fortress", "Anor Londo", "New Londo Ruins", "Duke's Archives & Crystal Cave", "Kiln of the First Flame", "Northern Undead Asylum"]
+    startIndicesAll = [250, 495, 171, 259, 280, 459, 282, 254, 242, 180, 342, 382, 210, 251, 197, 307, 84, 154]
+    namesAll = ["Depths", "Undead Burg/Parish", "Firelink Shrine", "Painted World", "Darkroot Garden", "DLC", "DarkRoot Garden #2", "Catacombs", "Tomb of the Giants", "Great Hollow & Ash Lake", "Blighttown", "Demon Ruins & Lost Izalith", "Sen's Fortress", "Anor Londo", "New Londo Ruins", "Duke's Archives & Crystal Cave", "Kiln of the First Flame", "Northern Undead Asylum"]
     mimicId = "c2780"
 
+    inputFiles = ["m10_00_00_00", "m10_01_00_00", "m10_02_00_00", "m11_00_00_00", "m12_00_00_00", "m12_01_00_00", "m13_00_00_00",  "m13_01_00_00", "m13_02_00_00", "m14_00_00_00", "m14_01_00_00", "m15_00_00_00", "m15_01_00_00", "m16_00_00_00", "m17_00_00_00", "m18_00_00_00", "m18_01_00_00"]
+    startIndices = [250, 495, 171, 259, 280, 459, 254, 242, 180, 342, 382, 210, 251, 197, 307, 84, 154]
+    names = ["Depths", "Undead Burg/Parish", "Firelink Shrine", "Painted World", "Darkroot Garden", "DLC", "Catacombs", "Tomb of the Giants", "Great Hollow & Ash Lake", "Blighttown", "Demon Ruins & Lost Izalith", "Sen's Fortress", "Anor Londo", "New Londo Ruins", "Duke's Archives & Crystal Cave", "Kiln of the First Flame", "Northern Undead Asylum"]
+
+    startEventEntityIDs = [1009400, 1019400, 1029400, 1119400, 1209400, 1219400, 1309400, 1319400, 1329400, 1409400, 1419400, 1509400, 1519400, 1609400, 1709400, 1809400, 1819400]
     # Asylum easy mode is hardcoded for now
     HARDCODED_ASYLUM_NORMAL = [1, 4, 12, 16, 23, 24, 28, 29, 30, 62]
     HARDCODED_ASYLUM_BOSSES = [8, 9, 118]
 
     # Targets for Easy Asylum
     EASYASYLUM_TARGETS = ['c2232_0000', 'c2500_0000', 'c2500_0001', 'c2500_0002', 'c2500_0003', 'c2500_0005', 'c2500_0006', 'c2500_0007', 'c2500_0009', 'c2500_0010', 'c2500_0011', 'c2550_0000']
+
+    # Tail values
+    # (Relative Model Index, NPCparam value)
+    TAIL_VALUES = {
+        'c2730': (123, 273100),  # Crossbreed Priscilla
+        'c3430': (124, 343100),  # Hellkite
+        'c3471': (125, 347200),  # Sanctuary Guardian
+        'c4510': (126, 451100),  # Kalameet
+        'c5260': (127, 526100),  # Gaping Dragon
+        'c5290': (128, 529100),  # Seath
+        'c5350': (129, 535200),  # Bell Gargoyle
+        'c5351': (130, 535300)   # Anor Londo Gargoyle (the second one has NPCParam 535301)
+    }
+
+    newCharacterAllegiances = {
+        'c2510': 6,
+        'c2640': 6,
+        'c2920': 6,
+        'c4110': 6
+    }
 
     #Following is for testing on few files only
 
@@ -85,8 +112,73 @@ class Randomizer:
     #inputFiles = ["m10_02_00_00"]
     #startIndices = [171]
     #names = ["Firelink Shrine"]
-    
-    
+
+    newAmbushPositions = {
+        'm10_01_00_00': {
+            'c2500_0001': ([-53.502, -29.666, -36.589], None),          # Hollows that hang from ledges
+            'c2500_0008': ([-51.08, -29.69, -40.893], None),
+            'c2500_0021': ([-65.055, -31.109, -34.112], None),
+            'c2500_0025': ([-67.493, -31.749, -31.279], None),
+            'c2500_0026': ([-69.256, -31.844, -29.678], None),
+            'c2500_0027': ([-64.886, -31.094, -36.741], None)
+        },
+        'm16_00_00_00': {
+            'c2670_0001': ([73.41113, -143.279, 62.07529], None),       # Ghosts
+            'c2670_0003': ([102.7754, -143.208, 47.02634], None),
+            'c2670_0004': ([90.55, -148.159, 40.9], None),
+            'c2670_0006': ([53.811, -147.03, 1.325704], None),
+            'c2670_0007': ([57.76, -146.988, -3.42], None),
+            'c2670_0008': ([61.37214, -146.958, -7.72154], None),
+            'c2670_0010': ([56.419, -146.96, -9.909], None),
+            'c2670_0012': ([63.34, -142.4, 35.43], None),
+            'c2670_0013': ([69.561, -142.4, 41.554], None),
+            'c2670_0014': ([69.69, -142.4, 51.4], None),
+            'c2670_0015': ([51.07, -151.989, 4.251727], None),
+            'c2670_0016': ([104.783, -143.202, 50.314], None),
+            'c2670_0018': ([19.92, -157.36, 74.24], None),
+            'c2670_0019': ([24.623, -157.36, 72.851], None),
+            'c2670_0021': ([98.845, -143.237, 49.019], None),
+            'c2670_0022': ([98.275, -148.199, 31.818], None),
+            'c2670_0023': ([68.064, -147.977, 10.831], None),
+            'c2670_0024': ([79.2, -154.158, -12.804], None),
+            'c2670_0025': ([47.96, -138.998, -13.26], None),
+            'c2670_0026': ([54.03, -147, -13.779], None),
+            'c2670_0027': ([65, -146.996, -9.42], None),
+            'c2670_0028': ([80.061, -163.157, -1.964], None),
+            'c2670_0029': ([34.97, -157.295, 70.12], None),
+            'c2670_0030': ([78.7, -143.23, 65.06], None),
+            'c2670_0031': ([97.34, -143.196, 53.92], None)
+        }
+    }
+
+    newOtherPositions = {
+        'm16_00_00_00': {
+            'c3420_0000': ([22.96, -155.141, -66.44], None)     # Undead Dragon in valley of the drakes
+        }
+    }
+
+    itemLotsToAward = {
+        'm10_01_00_00': {
+            'c2300_0000': 23000100,
+            'c2570_0000': 25700100      # Berenike Knight guaranteed 1x Titanite Shard
+        },
+        'm13_00_00_00': {
+            'c2300_0000': 23000000
+        },
+        'm14_01_00_00': {
+            'c2300_0000': 23000500,
+            'c3480_0000': 34800100      # Sunlight Maggot
+        },
+        'm15_00_00_00': {
+            'c2300_0000': 23000200,
+            'c2300_0001': 23000200,
+            'c2300_0002': 23000100,
+            'c2300_0003': 23000100
+        },
+        'm15_01_00_00': {
+            'c2300_0000': 23000400
+        }
+    }
 
     def __init__(self):
         self.validTargets = []
@@ -118,14 +210,16 @@ class Randomizer:
         self.disallowSameReplacement = False
         self.attemptUniqueBosses = False
         self.currentBosses = []
+        self.spawnNPCS = False
 
         self.missingMSB = 0
         self.missingLUABND = 0
         self.missingFFXBND = 0
+        self.missingEmevd = 0
         self.exeStatus = "None"
         self.hasGameParam = True
 
-        self.missingMSB, self.missingLUABND, self.missingFFXBND, self.exeStatus, self.hasGameParam = self.checkIfRightPlace()
+        self.missingMSB, self.missingLUABND, self.missingFFXBND, self.missingEmevd, self.exeStatus, self.hasGameParam = self.checkIfRightPlace()
 
         self.folderStatus = False
         self.aiRefStatus = False
@@ -149,27 +243,36 @@ class Randomizer:
         self.canRandomize = False
         self.useDCX = False
 
+        self.exeModificationSuccessful = True
+
         self.writingPermssion = True
         if (self.missingMSB == 0):
             self.writingPermssion = self.checkIfAllowedToModify()
 
-        if (self.missingMSB == 0 and self.missingLUABND == 0 and self.missingFFXBND == 0 and (self.exeStatus == "Unpacked" or self.exeStatus == "Unpacked Debug" or self.exeStatus == "Unknown" or self.exeStatus == "Patched" or self.exeStatus == "Patched Debug" or self.exeStatus == "Remaster") and
+        if (self.missingMSB == 0 and self.missingLUABND == 0 and self.missingFFXBND == 0 and self.missingEmevd == 0 and (self.exeStatus == "Unpacked" or self.exeStatus == "Unpacked Debug" or self.exeStatus == "Unknown" or self.exeStatus == "Patched" or self.exeStatus == "Patched Debug" or self.exeStatus == "Remaster") and
             self.folderStatus and self.aiRefStatus and self.ffxRefStatus and self.validNewStatus and self.validReplaceStatus and self.writingPermssion and self.originalRefMissing == 0): 
             if (self.exeStatus == "Remaster"):
                 self.useDCX = True
-                self.startIndices = [250, 495, 171, 259, 280, 464, 282, 254, 242, 181, 342, 382, 210, 251, 197, 307, 84, 154]
+                self.startIndicesAll = [250, 495, 171, 259, 280, 464, 282, 254, 242, 181, 342, 382, 210, 251, 197, 307, 84, 154]
+                self.startIndices = [250, 495, 171, 259, 280, 464, 254, 242, 181, 342, 382, 210, 251, 197, 307, 84, 154]
                 self.MAX_UNIQUE = 60        #can use a much higher unique limit for remaster
+                #self.MAX_UNIQUE = 30
 
                 """Firelink shrine only"""
                 #self.startIndices = [171]
             self.canRandomize = True
             self.aic = AiDataContainer('enemyRandomizerData/airef.csv')
-            if (self.exeStatus == "Unpacked" or self.exeStatus == "Unpacked Debug"):
-                check_exe.patch_exe()
-            self.firstTimeSetup()
-            self.cleanupV032backup()
 
-            self.retryFileCopy()
+            if (self.exeStatus == "Unpacked" or self.exeStatus == "Unpacked Debug"):
+                self.exeModificationSuccessful = check_exe.patch_exe()
+            
+            if (self.exeModificationSuccessful):
+                self.firstTimeSetup()
+                self.cleanupV032backup()
+
+                self.retryFileCopy()
+            else:
+                self.canRandomize = False
 
     def cleanupV032backup(self):
         """
@@ -207,7 +310,7 @@ class Randomizer:
                     bakf.write(oldf.read())
                     print(filename + " backed up")
 
-    def restoreBackup(self, filename):
+    def restoreBackup(self, filename, warnMissing = True):
         """
         Restores the backup of @filename.
         """
@@ -217,7 +320,7 @@ class Randomizer:
                     oldf.write(bakf.read())
                     print(filename + " reverted")
         else:
-            if ((not self.useDCX) and (not "FRPG_SfxBnd" in filename)):
+            if ((not self.useDCX) and (not "FRPG_SfxBnd" in filename) and warnMissing):
                 print("Failed to restore " + filename + ", " + filename + ".bak not found.")
 
         
@@ -230,6 +333,7 @@ class Randomizer:
         notFoundMSB = 0
         notFoundLUABND = 0
         notFoundFFXBND = 0
+        notFoundEmevd = 0
         gameParamExists = False
 
         exeStatus = check_exe.check_exe_checksum()
@@ -237,7 +341,7 @@ class Randomizer:
         if (exeStatus == "Remaster"):
             check_for_dcx = True
 
-        for iFile in self.inputFiles:
+        for iFile in self.inputFilesAll:
             if not (os.path.isfile(self.MAPSTUDIO + iFile + '.msb')):
                 notFoundMSB += 1
 
@@ -248,6 +352,13 @@ class Randomizer:
                 else:
                     if not (os.path.isfile(self.AISCRIPTS + iFile + '.luabnd')):
                         notFoundLUABND += 1
+
+                if (check_for_dcx):
+                    if not (os.path.isfile(self.EMEVDS + iFile + '.emevd.dcx')):
+                        notFoundEmevd += 1
+                else:
+                    if not (os.path.isfile(self.EMEVDS + iFile + '.emevd')):
+                        notFoundEmevd += 1
         
         for iFile in self.inputFFXFiles:
             if (iFile != "NONE"):
@@ -263,7 +374,7 @@ class Randomizer:
         else:
             gameParamExists = os.path.isfile(self.GAMEPARAM_PATH)
 
-        return (notFoundMSB, notFoundLUABND, notFoundFFXBND, exeStatus, gameParamExists)
+        return (notFoundMSB, notFoundLUABND, notFoundFFXBND, notFoundEmevd, exeStatus, gameParamExists)
 
     def checkProperUnpack(self):
         """
@@ -303,7 +414,7 @@ class Randomizer:
         self.invalidMapCopies = 0
         self.missingMapCopies = 0
 
-        for iFile in self.inputFiles:
+        for iFile in self.inputFilesAll:
             if not (os.path.isfile(self.MAPCOPY + iFile + '.msb')):
                 self.missingMapCopies += 1
             else:
@@ -394,6 +505,9 @@ class Randomizer:
             os.makedirs("enemyRandomizerData/mapStudioCopies")
 
         modelsToAdd = ["c1200", "c1201", "c1202", "c1203", "c2060", "c2230", "c2231", "c2232", "c2240", "c2250", "c2260", "c2270", "c2280", "c2300", "c2310", "c2320", "c2330", "c2360", "c2370", "c2380", "c2390", "c2400", "c2410", "c2430", "c2500", "c2510", "c2520", "c2530", "c2540", "c2550", "c2560", "c2570", "c2640", "c2650", "c2660", "c2670", "c2680", "c2690", "c2700", "c2710", "c2711", "c2730", "c2780", "c2790", "c2791", "c2792", "c2793", "c2800", "c2810", "c2811", "c2830", "c2840", "c2860", "c2870", "c2900", "c2910", "c2920", "c2930", "c2940", "c2950", "c2960", "c3090", "c3200", "c3210", "c3220", "c3230", "c3240", "c3250", "c3270", "c3300", "c3320", "c3330", "c3340", "c3341", "c3350", "c3370", "c3380", "c3390", "c3400", "c3410", "c3420", "c3421", "c3430", "c3460", "c3461", "c3471", "c3480", "c3490", "c3491", "c3500", "c3520", "c3530", "c4100", "c4110", "c4120", "c4130", "c4150", "c4160", "c4170", "c4171", "c4172", "c4180", "c4190", "c4500", "c4510", "c5200", "c5201", "c5202", "c5210", "c5220", "c5240", "c5250", "c5260", "c5270", "c5271", "c5280", "c5290", "c5320", "c5350", "c5351", "c5360", "c5370", "c5390"]
+        
+        tailModels = ['c2731', 'c3431', 'c3472', 'c4511', 'c5261', 'c5291', 'c5352', 'c5353']
+        modelsToAdd += tailModels
 
         MODEL_TYPE_OFFSET = 1
         MODEL_IDX_OFFSET = 2
@@ -402,17 +516,25 @@ class Randomizer:
 
         SIBPATH_FORMAT = "N:\FRPG\data\Model\chr\{0}\sib\{0}.sib"
 
-        for j in enumerate(self.inputFiles):                                    #backup msb/luabnd
+        for j in enumerate(self.inputFilesAll):                                    #backup msb/luabnd
             print("[Check/Preparation] Map and script files " + str(j[0]) + "/" + str(len(self.inputFiles)))
-            passed1 = not (os.path.isfile(self.MAPCOPY + j[1] + '.msb'))
-            passed2 = False
-            if not (passed1):
+            copyMissing = not (os.path.isfile(self.MAPCOPY + j[1] + '.msb'))
+            invalidCopy = False
+            needsModelsListUpdate = False
+            if not (copyMissing):
                 with open(self.MAPCOPY + j[1] + '.msb', 'rb') as testf:
                     testData = testf.read()
-                    #print(len(testData))
                     if (len(testData) < 10):
-                        passed2 = True
-            if (passed1 or passed2):
+                        invalidCopy = True
+
+            if not (invalidCopy):
+                self.msbio.open(self.MAPCOPY + j[1] + '.msb')
+                if (len(self.msbio.models.rows) < self.startIndicesAll[j[0]] + len(modelsToAdd)):
+                    needsModelsListUpdate = True
+                    print("Models list requires update. Current model count: {0}, expected model count: {1}.".format(len(self.msbio.models.rows), self.startIndicesAll[j[0]] + len(modelsToAdd)))
+                self.msbio.clean()
+
+            if (copyMissing or invalidCopy or needsModelsListUpdate):
                 
                 self.msbio.open(self.MAPSTUDIO + j[1] + '.msb')
 
@@ -505,7 +627,7 @@ class Randomizer:
     def check(self):            #check whether or not necessary files are there
         passedCheck = True
         printLog("Checking Files", logFile)
-        for j in enumerate(self.inputFiles):
+        for j in enumerate(self.inputFilesAll):
             s = " - ref file exists"
             s2 = " - msb file exists"
             s3 = " - luabnd file exists"
@@ -546,7 +668,7 @@ class Randomizer:
                 else:
                     if not (os.path.isfile(self.FFX_DIR.format(self.inputFFXFiles[j[0]]))):
                         s4 = " !!! SFX FILE NOT FOUND"
-            printLog(j[1] + " - " + self.names[j[0]] + " - offset: " + str(self.startIndices[j[0]]) + s + s2 + s3 + s4, logFile)
+            printLog(j[1] + " - " + self.namesAll[j[0]] + " - offset: " + str(self.startIndicesAll[j[0]]) + s + s2 + s3 + s4, logFile)
         return passedCheck
 
     def isValid(self, s):
@@ -639,7 +761,7 @@ class Randomizer:
                     configStringForLog += parts[NewCol.IGNORED.value]
                     
                     if (notIgnored):
-                        if (parts[NewCol.TYPE.value] == "0"):
+                        if (parts[NewCol.TYPE.value] == "0" or (parts[NewCol.TYPE.value] == "2" and self.spawnNPCS)):
                             self.validNewNormalIndices.append(len(self.validNew) - 1)
                         elif (parts[NewCol.TYPE.value] == "1"):
                             self.validNewBossIndices.append(len(self.validNew) - 1)
@@ -649,7 +771,7 @@ class Randomizer:
                         for i in range(nwSize, 6):          # Populate size lists
                             self.validSizeNew[i].append(len(self.validNew) - 1)
                             self.validDiffSizeNew[nwDiff][i].append(len(self.validNew) - 1)
-                            if (parts[NewCol.TYPE.value] == "0"):
+                            if (parts[NewCol.TYPE.value] == "0" or (parts[NewCol.TYPE.value] == "2" and self.spawnNPCS)):
                                 self.validSizeNormal[i].append(len(self.validNew) - 1)
                                 self.validDiffSizeNormal[nwDiff][i].append(len(self.validNew) - 1)
                             elif (parts[NewCol.TYPE.value] == "1"):
@@ -658,9 +780,9 @@ class Randomizer:
                         
                         # 
                         self.validDiffNew[nwDiff].append(len(self.validNew) - 1)
-                        if (parts[2] == "0"):
+                        if (parts[NewCol.TYPE.value] == "0" or (parts[NewCol.TYPE.value] == "2" and self.spawnNPCS)):
                             self.validDiffNormal[nwDiff].append(len(self.validNew) - 1)
-                        elif (parts[2] == "1"):
+                        elif (parts[NewCol.TYPE.value] == "1"):
                             self.validDiffBosses[nwDiff].append(len(self.validNew) - 1)
 
                 else:
@@ -794,7 +916,7 @@ class Randomizer:
         else:
             newC = self.GetEnemyFromListWithRetry(self.uniqueNormals[maxSize], originalEnemyID)
 
-        if (diffmode == 3 and mapname == "m18_01_00_00" and originalEnemyID in self.EASYASYLUM_TARGETS):
+        if (diffmode >= 3 and mapname == "m18_01_00_00" and originalEnemyID in self.EASYASYLUM_TARGETS):
             newC = self.getRandomFromList(self.HARDCODED_ASYLUM_NORMAL)
 
         return newC
@@ -832,7 +954,7 @@ class Randomizer:
             else:
                 newC = self.GetEnemyFromListWithRetry(self.uniqueBosses[maxSize], originalEnemyID)
 
-        if (diffmode == 3 and mapname == "m18_01_00_00" and originalEnemyID in self.EASYASYLUM_TARGETS):
+        if (diffmode >= 3 and mapname == "m18_01_00_00" and originalEnemyID in self.EASYASYLUM_TARGETS):
             newC = self.getRandomFromList(self.HARDCODED_ASYLUM_BOSSES)
 
         return newC
@@ -864,6 +986,7 @@ class Randomizer:
             # Load the backups of msb/luabnd files
             print("[Unrandomize] Reverting msb and luabnd files " + str(j[0]) + "/" + str(len(self.inputFiles)))
             self.restoreBackup(self.MAPSTUDIO + j[1] + '.msb')
+            self.restoreBackup('event/{0}.emevd{1}'.format(j[1], '.dcx' if self.useDCX else ''))
             
             if not (j[1] == "m12_00_00_01"):
                 if (self.useDCX):
@@ -881,26 +1004,11 @@ class Randomizer:
 
             check_exe.restore_exe()
 
-        if (self.useDCX):
-            self.restoreBackup('event/m10_01_00_00.emevd.dcx')
-            self.restoreBackup('event/m12_00_00_00.emevd.dcx')
-            self.restoreBackup('event/m12_01_00_00.emevd.dcx')
-            self.restoreBackup('event/m13_00_00_00.emevd.dcx')
-            self.restoreBackup('event/m14_01_00_00.emevd.dcx')
-            self.restoreBackup('event/m15_00_00_00.emevd.dcx')
-            self.restoreBackup('event/m15_01_00_00.emevd.dcx')
-            self.restoreBackup('event/m17_00_00_00.emevd.dcx')
-        else:
-            self.restoreBackup('event/m10_01_00_00.emevd')
-            self.restoreBackup('event/m12_00_00_00.emevd')
-            self.restoreBackup('event/m12_01_00_00.emevd')
-            self.restoreBackup('event/m13_00_00_00.emevd')
-            self.restoreBackup('event/m14_01_00_00.emevd')
-            self.restoreBackup('event/m15_00_00_00.emevd')
-            self.restoreBackup('event/m15_01_00_00.emevd')
-            self.restoreBackup('event/m17_00_00_00.emevd')
-
         self.revertParam()
+
+    def revertEmevds(self):
+        for inFile in self.inputFiles:
+            self.restoreBackup('event/{0}.emevd{1}'.format(inFile, '.dcx' if self.useDCX else ''), False)
 
     def applyEmevd(self, emevdName):
         """
@@ -920,9 +1028,10 @@ class Randomizer:
                     oldf.write(modf.read())
                     print('copied new ' + emevdFileName)
     
-    def applyBossSouls(self, soulPercentage:int):
+    def applyBossSouls(self, soulPercentage:int, disableRespawn:bool):
         """
         Adds new NpcParam entries for bosses, so there's a separate version that drops souls when killed (@soulPercentage % of the souls dropped from the original boss fight).
+        Also changes the respawn flags of those versions, so they will not respawn upon a reload and optionally stay permanently dead.
         """
         paramPath = self.GAMEPARAM_PATH
 
@@ -949,6 +1058,7 @@ class Randomizer:
         np = NpcParam()
         np.read(nData)
         np.ApplyBossSoulCount(soulPercentage)
+        np.SetRespawnFlags(disableRespawn, False)
         np.RemoveItemLots()
 
         paramData[self.NPCPARAM_INDEX] = (paramData[self.NPCPARAM_INDEX][0], paramData[self.NPCPARAM_INDEX][1], np.write())
@@ -1066,6 +1176,43 @@ class Randomizer:
             return True
         return False
 
+    def copyDarkrootGarden(self):
+        self.msbio.open(self.MAPCOPY + "m12_00_00_01.msb")
+        refMsb = MsbIO()
+        refMsb.open(self.MAPSTUDIO + "m12_00_00_00.msb")
+
+        MODEL_DATA_COL = 3
+        NPCAI_DATA_COL = 38
+        PARAM_DATA_COL = 39
+
+        EVENT_ENTITY_ID_DATA_COL = 27
+        ANIMID_DATA_COL = 50
+
+        POS_DATA_COL = 5    # X pos , Y + 1, Z + 2, ROTX + 3, ROTY + 4, ROTZ + 5;
+
+        MODEL_INDEX_DIFF = 2
+
+        rowCount = len(self.msbio.parts[2].rows)
+
+        for i in range(len(refMsb.parts[2].rows)):
+            if (i < rowCount):
+                self.msbio.parts[2].rows[i][MODEL_DATA_COL] = refMsb.parts[2].rows[i][MODEL_DATA_COL] + MODEL_INDEX_DIFF
+                self.msbio.parts[2].rows[i][NPCAI_DATA_COL] = refMsb.parts[2].rows[i][NPCAI_DATA_COL]
+                self.msbio.parts[2].rows[i][PARAM_DATA_COL] = refMsb.parts[2].rows[i][PARAM_DATA_COL]
+                self.msbio.parts[2].rows[i][EVENT_ENTITY_ID_DATA_COL] = refMsb.parts[2].rows[i][EVENT_ENTITY_ID_DATA_COL]
+                self.msbio.parts[2].rows[i][ANIMID_DATA_COL] = refMsb.parts[2].rows[i][ANIMID_DATA_COL]
+
+                self.msbio.parts[2].rows[i][POS_DATA_COL] = refMsb.parts[2].rows[i][POS_DATA_COL]
+                self.msbio.parts[2].rows[i][POS_DATA_COL + 1] = refMsb.parts[2].rows[i][POS_DATA_COL + 1]
+                self.msbio.parts[2].rows[i][POS_DATA_COL + 2] = refMsb.parts[2].rows[i][POS_DATA_COL + 2]
+                self.msbio.parts[2].rows[i][POS_DATA_COL + 3] = refMsb.parts[2].rows[i][POS_DATA_COL + 3]
+                self.msbio.parts[2].rows[i][POS_DATA_COL + 4] = refMsb.parts[2].rows[i][POS_DATA_COL + 4]
+                self.msbio.parts[2].rows[i][POS_DATA_COL + 5] = refMsb.parts[2].rows[i][POS_DATA_COL + 5]
+            else:
+                self.msbio.AddCreatureRow(refMsb.parts[2].rows[i])
+
+        self.msbio.save(self.MAPSTUDIO + "m12_00_00_01.msb")
+
     def randomize(self, settings, msgArea):
         """
         Perform the randomization
@@ -1079,11 +1226,13 @@ class Randomizer:
 
         if (self.check()):
             # Get settings
-            progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, gargoyleMode, diffStrictness, tposeCity, bossSoulDrops, chaosPinwheel, typeReplacement, gwynNerf, preventSame, uniqueBosses, seed, textConfig, enemyConfigName = settings
+            progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, gargoyleMode, diffStrictness, tposeCity, bossSoulDrops, chaosPinwheel, typeReplacement, gwynNerf, preventSame, uniqueBosses, respawningBosses, hostileNPC, seed, textConfig, enemyConfigName = settings
 
             self.gwynNerfMode = gwynNerf
             self.disallowSameReplacement = (preventSame == 0)
             self.attemptUniqueBosses = (uniqueBosses == 1)
+            disableRoamingBossRespawning = (respawningBosses == 1)
+            self.spawnNPCS = (hostileNPC == 1)
 
             # Generate a seed if none is provided.
             if (seed == ""):
@@ -1100,9 +1249,9 @@ class Randomizer:
 
             self.ffxdata.AddEverythingToCommon(self.useDCX)
 
+            self.revertEmevds()             # Restore original .emevd files so modifications are not made multiple times
+
             # Replace original event scripts with custom ones.
-            self.applyEmevd('m10_01_00_00') # Gargoyle#2 warping removed
-            self.applyEmevd('m12_00_00_00') # MLB forced animation removed
             self.applyEmevd('m12_01_00_00') # Mimic drops
             self.applyEmevd('m13_00_00_00') # Skeleton immortality removed
             self.applyEmevd('m14_01_00_00') # Remove BoC parts AI activation, remove immortality of actual boss immediately, remove immortality of branches
@@ -1114,11 +1263,13 @@ class Randomizer:
             luagnl = LuaGnl()
             luainfo = LuaInfo()
             luabnd = BndData()
+            eventTools = EventTools(self.useDCX)
 
             MODEL_DATA_COL = 3
             NPCAI_DATA_COL = 38
             PARAM_DATA_COL = 39
 
+            EVENT_ENTITY_ID_DATA_COL = 27
             ANIMID_DATA_COL = 50
 
             POS_DATA_COL = 5    # X pos , Y + 1, Z + 2, ROTX + 3, ROTY + 4, ROTZ + 5;
@@ -1138,6 +1289,7 @@ class Randomizer:
             printLog("T-Pose: {0}; Type Replacement: {1}; Same Enemy Prevention: {2}".format(tposeCity, typeReplacement, preventSame), logFile)
             printLog("Mimic Replacement: {0}; Gargoyle #2 Replacement: {1}; Pinwheel Chaos: {2}".format(mimicMode, gargoyleMode, chaosPinwheel), logFile)
             printLog("Roaming Boss Soul Drops: {0}%; Gwyn Spawn Rate Nerf: {1}; Attempt Unique Bosses: {2}".format(bossSoulDrops, gwynNerf, uniqueBosses), logFile)
+            printLog("Disable Roaming Boss Respawning {0}; Spawn Hostile NPCs: {1}".format(respawningBosses, hostileNPC), logFile)
             printLog("Seed: '{0}'".format(seed), logFile)
             printLog("Max Unique: {0}".format(self.MAX_UNIQUE), logFile)
 
@@ -1148,7 +1300,7 @@ class Randomizer:
             printLog("----", logFile)
 
             printLog("Applying " + str(bossSoulDrops) + "% roaming boss soul drops.", logFile)
-            self.applyBossSouls(bossSoulDrops)
+            self.applyBossSouls(bossSoulDrops, False)
             printLog("----", logFile)
 
             i = 0
@@ -1177,6 +1329,9 @@ class Randomizer:
                 gnlBytes, infoBytes = luabnd.open(self.AICOPY + aiFileName + ".luabnd", self.useDCX)
                 luagnl.open_bytes(gnlBytes)
                 luainfo.open_bytes(infoBytes)
+
+                eventTools.open(inFile)
+                currentEventEntityID = self.startEventEntityIDs[i]
 
                 self.uniqueIndices = []
                 self.uniqueBosses = [[], [], [], [], [], []]
@@ -1220,10 +1375,6 @@ class Randomizer:
                     elif (inFile == "m10_01_00_00" and "c5350_0001" in creatureId):     #Second gargoyle in the boss fight
                         if (gargoyleMode == 0):
                             specialCase = True
-                            if (self.useDCX):
-                                self.restoreBackup('event/m10_01_00_00.emevd.dcx')
-                            else:
-                                self.restoreBackup('event/m10_01_00_00.emevd')
                         else:
                             changePos = True
                             newPos = (10.69, 48.92, 124.35)
@@ -1397,7 +1548,7 @@ class Randomizer:
                                 newParam = self.validNew[newChar][NewCol.PARAM.value][newAiParamIndex]
 
                             paramValue = int(newParam)
-                            if (creatureType == "0" and newChar in self.validNewBossIndices):
+                            if (creatureType == "0" and newChar in self.validNewBossIndices and (self.validNew[newChar][NewCol.ID.value] != 'c5351')):
                                 paramValue += 50
 
                             self.msbio.parts[2].rows[rowIndex][PARAM_DATA_COL] = paramValue
@@ -1425,9 +1576,6 @@ class Randomizer:
                                         self.msbio.parts[2].rows[rowIndex][ANIMID_DATA_COL] = int(newAnim)
                                         animLine = " >> changing idle anim from " + str(currentAnim) + " to " + newAnim + ";"
 
-                            if ("c5350_0001" in creatureId and "c5350" in self.validNew[newChar][NewCol.ID.value]):    # restore original event script for 10_01 if gargoyle#2 is replaced by gargoyle, so that jumping down and stuff works properly
-                                self.restoreBackup('event/m10_01_00_00.emevd')
-
                             if ("c2232" in creatureId and "c2232" in self.validNew[newChar][NewCol.ID.value]):
                                 changePos = False
 
@@ -1442,7 +1590,88 @@ class Randomizer:
                                 self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 3] = newRot[0]
                                 self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 4] = newRot[1]
                                 self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 5] = newRot[2]
+
+                            # Ambush position change
+                            if (inFile in self.newAmbushPositions):
+                                if (creatureId in self.newAmbushPositions[inFile]):
+                                    posLine = " changed position"
+                                    self.msbio.parts[2].rows[rowIndex][POS_DATA_COL] = self.newAmbushPositions[inFile][creatureId][0][0]
+                                    self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 1] = self.newAmbushPositions[inFile][creatureId][0][1]
+                                    self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 2] = self.newAmbushPositions[inFile][creatureId][0][2]
+
+                                    if (self.newAmbushPositions[inFile][creatureId][1] != None):
+                                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 3] = self.newAmbushPositions[inFile][creatureId][1][0]
+                                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 4] = self.newAmbushPositions[inFile][creatureId][1][1]
+                                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 5] = self.newAmbushPositions[inFile][creatureId][1][2]
+
+                            # Other position changes
+                            if (inFile in self.newOtherPositions):
+                                if (creatureId in self.newOtherPositions[inFile]):
+                                    posLine = " changed position"
+                                    self.msbio.parts[2].rows[rowIndex][POS_DATA_COL] = self.newOtherPositions[inFile][creatureId][0][0]
+                                    self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 1] = self.newOtherPositions[inFile][creatureId][0][1]
+                                    self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 2] = self.newOtherPositions[inFile][creatureId][0][2]
+
+                                    if (self.newOtherPositions[inFile][creatureId][1] != None):
+                                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 3] = self.newOtherPositions[inFile][creatureId][1][0]
+                                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 4] = self.newOtherPositions[inFile][creatureId][1][1]
+                                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 5] = self.newOtherPositions[inFile][creatureId][1][2]
+
+                            # Add scripted item drops
+                            if (inFile in self.itemLotsToAward):
+                                if (creatureId in self.itemLotsToAward[inFile]):
+                                    if (self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] == -1):
+                                        self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] = currentEventEntityID
+                                        currentEventEntityID += 1
+
+                                    eventTools.AddItemLotAwardOnDeath(self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL], self.itemLotsToAward[inFile][creatureId])
+
+                            # Change Event Scripts
+                            if (disableRoamingBossRespawning):
+                                if (self.validNew[newChar][NewCol.TYPE.value] == "1" and creatureType == "0"):
+                                    if (self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] == -1):
+                                        self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] = currentEventEntityID
+                                        currentEventEntityID += 1
+                                    
+                                    eventTools.AddRespawnEventInit(self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL])
                             
+                            # Tail Cuts
+                            if (self.validNew[newChar][NewCol.ID.value] in self.TAIL_VALUES):
+                                tailRow = self.msbio.parts[2].rows[rowIndex][:]
+                                tailRow[25] = tailRow[25][:6] + 'tail'
+
+                                tailRow[MODEL_DATA_COL] = self.startIndices[i] + self.TAIL_VALUES[self.validNew[newChar][NewCol.ID.value]][0]
+
+                                tailRow[EVENT_ENTITY_ID_DATA_COL] = currentEventEntityID
+                                currentEventEntityID += 1
+
+                                tailRow[PARAM_DATA_COL] = self.TAIL_VALUES[self.validNew[newChar][NewCol.ID.value]][1]
+                                tailRow[NPCAI_DATA_COL] = 1
+
+                                self.msbio.AddCreatureRow(tailRow)
+
+                                if (self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] == -1):
+                                    self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] = currentEventEntityID
+                                    currentEventEntityID += 1
+
+                                eventTools.AddTailCutEventInit(self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL], tailRow[EVENT_ENTITY_ID_DATA_COL], self.validNew[newChar][NewCol.ID.value])
+                                #print('Added Tail Cut For {0}'.format(self.validNew[newChar][NewCol.ID.value]))
+
+                            if (self.validNew[newChar][NewCol.ID.value] in self.newCharacterAllegiances):
+                                if (self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] == -1):
+                                    self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] = currentEventEntityID
+                                    currentEventEntityID += 1
+
+                                eventTools.SetCharacterAllegiance(self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL], self.newCharacterAllegiances[self.validNew[newChar][NewCol.ID.value]])
+                                #print("Set {0} allegiance to {1}".format(self.validNew[newChar][NewCol.ID.value], self.newCharacterAllegiances[self.validNew[newChar][NewCol.ID.value]]))
+                            
+                            # Gargoyle#2 Changes
+                            if ("c5350_0001" in creatureId and not "c5350" in self.validNew[newChar][NewCol.ID.value]):
+                                eventTools.ApplyGargoyle2Fix()
+
+                            # Remove the forced animation playing at the start of MLB boss fight
+                            if (inFile == "m12_00_00_00" and "c3230_0000" in creatureId and not "c3230" in self.validNew[newChar][NewCol.ID.value]):
+                                eventTools.ApplyMoonlightButterflyAnimFix()
                             
                             printLog("Replacing (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " with (" + self.validNew[newChar][NewCol.ID.value] + ") " + self.validNew[newChar][NewCol.NAME.value] + "[" + str(newChar) + "]" + aiStr + posLine + animLine, logFile, False)
                         else:
@@ -1455,24 +1684,24 @@ class Randomizer:
                             else:
                                 printLog("Did not replace (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " - c=" + str(newChar), logFile, False)
 
-                            if ((inFile == "m12_00_00_00" or inFile == "m12_00_00_01") and "c3230_0000" in creatureId):         # restore 12_00_00_00 if MLB is not replaced, so that flying down works properly
-                                if (self.useDCX):
-                                    self.restoreBackup('event/m12_00_00_00.emevd.dcx')
-                                else:
-                                    self.restoreBackup('event/m12_00_00_00.emevd')
-                                printLog("MLB Boss not replaced, reverting m12_00_00_00.emevd(.dcx)", logFile, False)
-
                     rowIndex += 1
                 f.close()
                 progressBar.step()
                 progressLabel.config(text="Randomizing " + self.names[i] + " - saving .luabnd")
                 luabnd.save(self.AISCRIPTS + aiFileName + ".luabnd", luagnl.save_bytes(), luainfo.save_bytes())
+
+                progressBar.step()
+                progressLabel.config(text="Randomizing " + self.names[i] + " - saving .emevd")
+                eventTools.save(inFile)
+
                 progressBar.step()
                 progressLabel.config(text="Randomizing " + self.names[i] + " - saving .msb")
                 self.msbio.save(self.MAPSTUDIO + inFile + ".msb")
 
                 printLog("---------------------", logFile)
                 i += 1
+
+            self.copyDarkrootGarden()
 
             msgArea.insert(END,  "Randomization complete\n")
             msgArea.config(state = "disabled")

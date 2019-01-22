@@ -310,6 +310,19 @@ class MsbIO:
 
         return offset
 
+    def AddCreatureRow(self, rowContents):
+        self.parts[2].rows.append(rowContents)
+        newPartIndex = len(self.parts[2].rows) + len(self.parts[1].rows) + len(self.parts[0].rows) - 1
+
+        for i in range(len(self.events)):
+            self.events[i].updatePartsIndices(newPartIndex)
+
+        for i in range(len(self.points)):
+            self.points[i].updatePartsIndices(newPartIndex)
+
+        for i in range(len(self.parts)):
+            self.parts[i].updatePartsIndices(newPartIndex)
+
 
     def WriteBytesAt(self, byteStream: bytearray, pos: int, data: bytes):
         """
