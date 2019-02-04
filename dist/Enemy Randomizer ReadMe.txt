@@ -1,6 +1,6 @@
---------------------------------
-Dark Souls Enemy Randomizer v0.4
---------------------------------
+----------------------------------
+Dark Souls Enemy Randomizer v0.4.1
+----------------------------------
 
 --Installation Instructions [PTDE]:
 
@@ -45,28 +45,30 @@ Metal Crow - fix for the game (PTDE) crashing when trying to load all visual eff
 Lan5432 - helping me test v0.2, providing the best comments for screenshots.
 DuckyKoi - gifting me the remaster so I could port the randomizer to it.
 
-This is still kind of an early version of the mod, and does still have some issues.
-
---v0.4 Changelog:
-* Fixed .msb file backups being overwritten every time in v0.3.2.
-* Randomizer attempts to fix invalid .msb file backups that were caused by v0.3.2, should they exist.
-* Bosses replacing normal enemies now drop souls.
-* Added a slider to change the percentage of souls dropped by bosses replacing normal enemies.
-* Added the 'Enemy type replacement' option: when enabled same enemies in one area will be replaced with the same enemies. (For example all Silver Knights in Anor Londo could become Darkwraiths, instead of individual Silver Knights being different).
-* Added 'Pinwheel Chaos' option: when enabled the main Pinwheel in the boss fight is not replaced, but the clones are.
-* Added an option to nerf Gwyn spawn rate.
-* Added an option to avoid an enemy getting replaced with the same enemy.
-* Changed the the item drop of all Mimics in the game from a dropped guaranteed item to an itemlot awarded via event scripts, so the items can be obtained when the enemies are replaced.
-* 2 Passive Pisacas that drop the unique miracles recieved the same treatement as mimics.
-* Randomizer removes the ItemLotId-s of the previously mentioned enemies from NpcParam.param, so that when these enemies don't get replaced (eg. when Replace chance is less than 100%), the items are not aquired twice.
-* Added separate pages for options to fit them all without making the window massive.
-* Description area shows descriptions only for the options on the selected page to avoid a massive wall of text.
-* Removed Armored Tusk [Parish Version] and Great Felines from spawning by default, since all they want to do is go home (can be re-enabled using Enemy Config).
-* Removed Phalanx from spawning as they do nothing (can be re-enabled using Enemy Config).
-* Tweaked the size limit on some spawn locations to allow a bit larger enemies to spawn.
-* Raised the difficulty value of Quelaag boss fight to be a bit higher than individual gargoyles.
-* Quelaag is considered a larger boss than previously, to avoid her spawning in Taurus/Capra fights when size limit is enforced as her lava can be impossible to avoid in those arenas.
-* Lowered the Unique enemy limit on Remastered from 70 to 60, improves stability a bit, without sacrificing much enemy variety.
-* Blighttown has a separate, lower unique enemy limit now, to lessen the chances of the game crashing when entering Great Hollow or Demon Ruins.
-* Writing permission error message is not displayed when the check wasn't actually done because of missing files.
-* Changed the decription of Mimic replacement mode, to reflect the changes to the item rewards.
+--v0.4.1 Changelog:
+* Tail cuts now work on spawned enemies (though loot will be awarded only for the first cut for each tail-cuttable enemy type; meaning each tail-cut award can not be obtained more than once).
+* Added an option to make bosses, that replace normal enemies, stay dead permanently.
+* Added an option to spawn hostile Undead Merchant, Andre of Astora, Vamos and Hawkeye Gough as enemies.
+* Bosses replacing normal enemies no longer respawn after reloading the game after a save&quit/crash.
+* Enemies in ambushes involving Hollows hanging from ledges have been moved, so that the replacing enemies don't immediately fall to their deaths.
+* Enemies replacing ghosts in New Londo Ruins that previously spawned in walls (and got stuck) or in locations where they immediately die have been moved to valid locations.
+* Added an option called "try for unique bosses" which, when enabled, tries to minimize the repetition of bosses in actual boss fights.
+* Enemies replacing the two Undead Dragons have finally discovered the concept of gravity and no longer walk around in mid-air.
+* Enemy replacing the Undead Dragon in Valley of the Drakes no longer spawns in mid-air.
+* Enemies replacing Titanite Demons now award Demon Titanite when killed.
+* Enemy replacing the Berenike Knight now awards the Titanite Shard when killed.
+* Enemy replacing the red-eyed Chaos Bug now awards the Sunlight Maggot when killed.
+* Added a new option for Type Replacement that makes bosses replacing normal enemies disobey the normal type replacement, so that when normal enemies can be replaced with both normal enemies and bosses, individual enemies can become bosses, instead of all of one specific enemy type becoming bosses.
+* Added an option to disable replacement of the respawning mosquitoes in Blighttown swamp.
+* Chaos Bugs are not spawned by default, since they're passive.
+* Evil Vagrants can now spawn.
+* Fixed an issue that caused Anor Londo Gargoyles and Hellkite Drake having invalid parameter values when spawned as a normal enemies.
+* Seath can no longer replace Stray Demon, to avoid him poking his head and wings into the Asylum Demon arena.
+* Added a Difficulty Curve + Easy Asylum mode, so that even on looser difficulty curves the Asylum is guaranteed to remain easier.
+* Size limit is always enforced on the enemy replacing the Crest Key mimic to avoid the replacer potentially getting stuck in the wall/ceiling and making the key unobtainable.
+* Randomizer now saves the current settings on randomization and automatically loads them on startup.
+* Added 'Restore default settings' button to set all the options to their default values.
+* Randomizer should now work with notaprofi's Infinite NG+ mod.
+* Message given when PTDE version's .exe checksum does not match any known ones is improved.
+* Randomizer gives a proper error message when it's unable to modify DARKSOULS.exe on PTDE.
+* Fixed a small bug that caused the randomizer to throw an error on launch about a sellout page variable in some circumstances.

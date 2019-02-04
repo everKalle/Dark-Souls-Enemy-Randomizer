@@ -256,7 +256,7 @@ class Randomizer:
                 self.startIndicesAll = [250, 495, 171, 259, 280, 464, 282, 254, 242, 181, 342, 382, 210, 251, 197, 307, 84, 154]
                 self.startIndices = [250, 495, 171, 259, 280, 464, 254, 242, 181, 342, 382, 210, 251, 197, 307, 84, 154]
                 self.MAX_UNIQUE = 60        #can use a much higher unique limit for remaster
-                #self.MAX_UNIQUE = 30
+                self.MAX_UNIQUE = 30
 
                 """Firelink shrine only"""
                 #self.startIndices = [171]
@@ -527,7 +527,7 @@ class Randomizer:
                     if (len(testData) < 10):
                         invalidCopy = True
 
-            if not (invalidCopy):
+            if (not copyMissing and not invalidCopy):
                 self.msbio.open(self.MAPCOPY + j[1] + '.msb')
                 if (len(self.msbio.models.rows) < self.startIndicesAll[j[0]] + len(modelsToAdd)):
                     needsModelsListUpdate = True
@@ -982,7 +982,7 @@ class Randomizer:
         """
         Restore the backups of all modified files.
         """
-        for j in enumerate(self.inputFiles):
+        for j in enumerate(self.inputFilesAll):
             # Load the backups of msb/luabnd files
             print("[Unrandomize] Reverting msb and luabnd files " + str(j[0]) + "/" + str(len(self.inputFiles)))
             self.restoreBackup(self.MAPSTUDIO + j[1] + '.msb')
@@ -1151,6 +1151,10 @@ class Randomizer:
             elif ('c2370' in oldID):    # Channeler
                 return True
 
+        if ('c2230' in oldID):          # Stray Demon
+            if ('c5290' in newID):      # Seath
+                return True
+
         # When type replacement is enabled, avoid replacing multiple enemy types in one area with the same enemy
         if (self.typeSub):
             for key in self.typeReplaceMap:
@@ -1185,10 +1189,13 @@ class Randomizer:
         NPCAI_DATA_COL = 38
         PARAM_DATA_COL = 39
 
+        NAME_DATA_COL = 25
+
         EVENT_ENTITY_ID_DATA_COL = 27
         ANIMID_DATA_COL = 50
 
         POS_DATA_COL = 5    # X pos , Y + 1, Z + 2, ROTX + 3, ROTY + 4, ROTZ + 5;
+        PARTSIDX_DATA_COL = 43
 
         MODEL_INDEX_DIFF = 2
 
@@ -1196,20 +1203,25 @@ class Randomizer:
 
         for i in range(len(refMsb.parts[2].rows)):
             if (i < rowCount):
-                self.msbio.parts[2].rows[i][MODEL_DATA_COL] = refMsb.parts[2].rows[i][MODEL_DATA_COL] + MODEL_INDEX_DIFF
-                self.msbio.parts[2].rows[i][NPCAI_DATA_COL] = refMsb.parts[2].rows[i][NPCAI_DATA_COL]
-                self.msbio.parts[2].rows[i][PARAM_DATA_COL] = refMsb.parts[2].rows[i][PARAM_DATA_COL]
-                self.msbio.parts[2].rows[i][EVENT_ENTITY_ID_DATA_COL] = refMsb.parts[2].rows[i][EVENT_ENTITY_ID_DATA_COL]
-                self.msbio.parts[2].rows[i][ANIMID_DATA_COL] = refMsb.parts[2].rows[i][ANIMID_DATA_COL]
+                if (self.isValid(self.msbio.parts[2].rows[i][NAME_DATA_COL][:5])):
+                    self.msbio.parts[2].rows[i][MODEL_DATA_COL] = refMsb.parts[2].rows[i][MODEL_DATA_COL] + MODEL_INDEX_DIFF
+                    self.msbio.parts[2].rows[i][NPCAI_DATA_COL] = refMsb.parts[2].rows[i][NPCAI_DATA_COL]
+                    self.msbio.parts[2].rows[i][PARAM_DATA_COL] = refMsb.parts[2].rows[i][PARAM_DATA_COL]
+                    self.msbio.parts[2].rows[i][EVENT_ENTITY_ID_DATA_COL] = refMsb.parts[2].rows[i][EVENT_ENTITY_ID_DATA_COL]
+                    self.msbio.parts[2].rows[i][ANIMID_DATA_COL] = refMsb.parts[2].rows[i][ANIMID_DATA_COL]
 
-                self.msbio.parts[2].rows[i][POS_DATA_COL] = refMsb.parts[2].rows[i][POS_DATA_COL]
-                self.msbio.parts[2].rows[i][POS_DATA_COL + 1] = refMsb.parts[2].rows[i][POS_DATA_COL + 1]
-                self.msbio.parts[2].rows[i][POS_DATA_COL + 2] = refMsb.parts[2].rows[i][POS_DATA_COL + 2]
-                self.msbio.parts[2].rows[i][POS_DATA_COL + 3] = refMsb.parts[2].rows[i][POS_DATA_COL + 3]
-                self.msbio.parts[2].rows[i][POS_DATA_COL + 4] = refMsb.parts[2].rows[i][POS_DATA_COL + 4]
-                self.msbio.parts[2].rows[i][POS_DATA_COL + 5] = refMsb.parts[2].rows[i][POS_DATA_COL + 5]
+                    self.msbio.parts[2].rows[i][POS_DATA_COL] = refMsb.parts[2].rows[i][POS_DATA_COL]
+                    self.msbio.parts[2].rows[i][POS_DATA_COL + 1] = refMsb.parts[2].rows[i][POS_DATA_COL + 1]
+                    self.msbio.parts[2].rows[i][POS_DATA_COL + 2] = refMsb.parts[2].rows[i][POS_DATA_COL + 2]
+                    self.msbio.parts[2].rows[i][POS_DATA_COL + 3] = refMsb.parts[2].rows[i][POS_DATA_COL + 3]
+                    self.msbio.parts[2].rows[i][POS_DATA_COL + 4] = refMsb.parts[2].rows[i][POS_DATA_COL + 4]
+                    self.msbio.parts[2].rows[i][POS_DATA_COL + 5] = refMsb.parts[2].rows[i][POS_DATA_COL + 5]
             else:
-                self.msbio.AddCreatureRow(refMsb.parts[2].rows[i])
+                self.msbio.AddCreatureRow(refMsb.parts[2].rows[i][:])
+
+        for i in range(len(refMsb.parts[2].rows)):
+            if (i >= rowCount):
+                self.msbio.parts[2].rows[i][PARTSIDX_DATA_COL] = refMsb.parts[2].rows[i][PARTSIDX_DATA_COL]
 
         self.msbio.save(self.MAPSTUDIO + "m12_00_00_01.msb")
 
@@ -1226,13 +1238,14 @@ class Randomizer:
 
         if (self.check()):
             # Get settings
-            progressBar, progressLabel, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, gargoyleMode, diffStrictness, tposeCity, bossSoulDrops, chaosPinwheel, typeReplacement, gwynNerf, preventSame, uniqueBosses, respawningBosses, hostileNPC, seed, textConfig, enemyConfigName = settings
+            progressBar, progressLabel, versionString, bossMode, enemyMode, npcMode, mimicMode, fitMode, diffMode, replaceChance, bossChance, bossChanceBosses, gargoyleMode, diffStrictness, tposeCity, bossSoulDrops, chaosPinwheel, typeReplacement, gwynNerf, preventSame, uniqueBosses, respawningBosses, hostileNPC, mosquitoReplacement, seed, textConfig, enemyConfigName = settings
 
             self.gwynNerfMode = gwynNerf
             self.disallowSameReplacement = (preventSame == 0)
             self.attemptUniqueBosses = (uniqueBosses == 1)
             disableRoamingBossRespawning = (respawningBosses == 1)
             self.spawnNPCS = (hostileNPC == 1)
+            disableRespawningMosquitoes = (mosquitoReplacement == 0)
 
             # Generate a seed if none is provided.
             if (seed == ""):
@@ -1282,6 +1295,7 @@ class Randomizer:
             msgArea.config(state = "normal")
 
             # Log settings to the log file
+            printLog("----\nRandomizer version {0}".format(versionString), logFile)
             printLog("----\n Starting Randomization \n----", logFile)
             printLog("Boss Replacement: {0}; Normal Replacement: {1}; NPC Replacement: {2}".format(bossMode, enemyMode, npcMode), logFile)
             printLog("Replace Chance: {0}%; Boss Chance (Normal): {1}%; Boss Chance (Bosses): {2}%".format(replaceChance, bossChance, bossChanceBosses), logFile)
@@ -1289,7 +1303,7 @@ class Randomizer:
             printLog("T-Pose: {0}; Type Replacement: {1}; Same Enemy Prevention: {2}".format(tposeCity, typeReplacement, preventSame), logFile)
             printLog("Mimic Replacement: {0}; Gargoyle #2 Replacement: {1}; Pinwheel Chaos: {2}".format(mimicMode, gargoyleMode, chaosPinwheel), logFile)
             printLog("Roaming Boss Soul Drops: {0}%; Gwyn Spawn Rate Nerf: {1}; Attempt Unique Bosses: {2}".format(bossSoulDrops, gwynNerf, uniqueBosses), logFile)
-            printLog("Disable Roaming Boss Respawning {0}; Spawn Hostile NPCs: {1}".format(respawningBosses, hostileNPC), logFile)
+            printLog("Disable Roaming Boss Respawning {0}; Spawn Hostile NPCs: {1}; Disable Respawning Mosquitoes: {2}".format(respawningBosses, hostileNPC, mosquitoReplacement), logFile)
             printLog("Seed: '{0}'".format(seed), logFile)
             printLog("Max Unique: {0}".format(self.MAX_UNIQUE), logFile)
 
@@ -1434,6 +1448,10 @@ class Randomizer:
                     if (("c2910_0019" in creatureId or "c2910_0020" in creatureId or "c2910_0021" in creatureId) and inFile == "m13_01_00_00"):    # don't replace large skeletons in Ravelord Nito fight
                         specialCase = True
 
+                    if (disableRespawningMosquitoes):
+                        if (creatureId in ['c3090_0058', 'c3090_0059', 'c3090_0085', 'c3090_0086', 'c3090_0090', 'c3090_0091']):
+                            specialCase = True
+
                     if (self.isValid(creatureId) and not specialCase):
                         newChar = -1
 
@@ -1464,6 +1482,9 @@ class Randomizer:
 
                             maxCreatureSize = 5
                             if (fitMode == 0):
+                                maxCreatureSize = int(creatureSize)
+                            
+                            if (inFile == "m12_01_00_00" and "c2780_0000" in creatureId):
                                 maxCreatureSize = int(creatureSize)
                             
                             expectedDifficulty = int(self.validTargets[self.validIndex(creatureId)][3])
@@ -1676,11 +1697,11 @@ class Randomizer:
                             printLog("Replacing (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " with (" + self.validNew[newChar][NewCol.ID.value] + ") " + self.validNew[newChar][NewCol.NAME.value] + "[" + str(newChar) + "]" + aiStr + posLine + animLine, logFile, False)
                         else:
                             if (newChar == -2):
-                                printLog("Did not replace (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " - random chance", logFile, False)
+                                printLog("Did not replace (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " - Random chance", logFile, False)
                             elif (newChar == -3):
-                                printLog("Did not replace (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " - mimic mode is 0", logFile, False)
+                                printLog("Did not replace (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " - Mimic replacement disabled", logFile, False)
                             elif (newChar == -6):
-                                printLog("Did not replace (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " - failed to find fitting enemy with appropriate difficulty", logFile, False)
+                                printLog("Did not replace (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " - Failed to find fitting enemy with appropriate difficulty", logFile, False)
                             else:
                                 printLog("Did not replace (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " - c=" + str(newChar), logFile, False)
 

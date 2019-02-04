@@ -126,7 +126,8 @@ class MainWindow():
         ["* Enemies are not allowed to be replaced with the same enemy (so a Hollow can't\n  be replaced with another Hollow). Can result in less boss variety with the\n  difficulty curve option in early game.", "* Enemies can be replaced with the same enemy. (eg. a Hollow can be replaced\n  with a Hollow)"],
         ["* When a boss is being replaced by a boss, the replacement is entirely random.", "* When a boss is being replaced by a boss, the randomizer tries to spawn bosses\n  that have not yet been used (whenever it's possible). Some boss repetition\n  still happens."],
         ["* Bosses replacing normal enemies respawn like normal enemies.", "* Bosses that replace normal enemies stay dead permanently once killed."],
-        ["* Hostile Undead Merchant, Andre, Vamos and Gough can be placed into the world\n  as enemies.", "* Hostile Undead Merchant, Andre, Vamos and Gough are not placed into the world."]]
+        ["* Hostile Undead Merchant, Andre, Vamos and Gough are not placed into the world.", "* Hostile Undead Merchant, Andre, Vamos and Gough can be placed into the world\n  as enemies."],
+        ["* The respawning mosquitoes in Blighttown swamp are NOT replaced.", "* The respawning mosquitoes in Blighttown swamp are replaced. Replacing enemy\n  will respawn multiple times just like the original mosquitoes."]]
 
     def __init__(self):
         self.root = Tk()
@@ -162,6 +163,9 @@ class MainWindow():
         self.unrandomize_button = Button(self.buttons_frame, text="Revert to normal", command=self.Unrandomize)
         self.unrandomize_button.grid(row=1, column=0, sticky='NWSE', padx=2, pady=4)
 
+        self.revert_options_button = Button(self.root, text="Restore default settings", width=24, command=self.RestoreDefaultSettings)
+        self.revert_options_button.grid(row=2, column=4, sticky='NWE', padx=2, pady=4)
+
         # Create message area
         self.msg_area = Text(self.root, width=80, height=38, state="disabled", background="gray84", relief=GROOVE, wrap="word")
         self.msg_area.grid(row=2, column=0, columnspan=2, rowspan=7, padx=2, pady=2)
@@ -185,7 +189,7 @@ class MainWindow():
         self.sellout_close_button.grid(row=1, column=0, sticky="NWS", padx=6, pady=4)
         self.sellout_close_button.grid_remove() # Hide the sellout page closing button by default
 
-        self.tags=["f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
+        self.tags=["f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
 
         self.hoverO = -1
         self.hoverL = -1
@@ -205,7 +209,7 @@ class MainWindow():
         self.difficultyMode.set(3)
 
         self.mimicMode = IntVar()
-        self.mimicMode.set(0)
+        self.mimicMode.set(1)
 
         self.npcMode = IntVar()
         self.npcMode.set(0)
@@ -239,6 +243,9 @@ class MainWindow():
 
         self.hostileNPCs = IntVar()
         self.hostileNPCs.set(0)
+
+        self.mosquitoReplacement = IntVar()
+        self.mosquitoReplacement.set(1)
 
         self.seedValue = StringVar()
         self.seedValue.set("")
@@ -574,8 +581,21 @@ class MainWindow():
         self.hostileNpcBtn2 = Radiobutton(self.hostile_npc_frame, text="Disabled", variable=self.hostileNPCs, value=0, command=self.UpdateMessageArea)
         self.hostileNpcBtn2.pack(anchor=W)
 
-        self.BindTags(self.hostileNpcBtn1, 16, 0)
-        self.BindTags(self.hostileNpcBtn2, 16, 1)
+        self.BindTags(self.hostileNpcBtn1, 16, 1)
+        self.BindTags(self.hostileNpcBtn2, 16, 0)
+
+        # Respawning Mosquito Replacement
+
+        self.mosquito_frame = LabelFrame(self.settingsPage3, text="Respawning mosquito replacement: ")
+        self.mosquito_frame.grid(row=0, column=2, sticky='NWES', padx=2)
+        
+        self.mosquitoBtn1 = Radiobutton(self.mosquito_frame, text="Enabled", variable=self.mosquitoReplacement, value=1, command=self.UpdateMessageArea)
+        self.mosquitoBtn1.pack(anchor=W)
+        self.mosquitoBtn2 = Radiobutton(self.mosquito_frame, text="Disabled", variable=self.mosquitoReplacement, value=0, command=self.UpdateMessageArea)
+        self.mosquitoBtn2.pack(anchor=W)
+
+        self.BindTags(self.mosquitoBtn1, 17, 1)
+        self.BindTags(self.mosquitoBtn2, 17, 0)
 
         self.isSelloutActive = False
 
@@ -662,7 +682,7 @@ class MainWindow():
                     self.boss_chance_slider.config(state = 'disabled', fg='gray50')
                     self.boss_chance_frame.config(fg = 'gray50', text="[No effect] Boss chance [Normal Enemies](%):")
 
-                if (self.difficultyMode.get() == 1):    # If difficulty setting is 'Random with difficuly curve' then enable the difficulty strictness option, otherwise disable it.
+                if (self.difficultyMode.get() == 1 or self.difficultyMode.get() == 4):    # If difficulty setting is 'Random with difficuly curve' then enable the difficulty strictness option, otherwise disable it.
                     self.strictBtn1.config(state = 'normal')
                     self.strictBtn2.config(state = 'normal')
                     self.strictBtn3.config(state = 'normal')
@@ -682,7 +702,7 @@ class MainWindow():
                     self.uniqueBossBtn2.config(state = 'disabled')
                     self.unique_bosses_frame.config(fg = 'gray50', text="[No Effect] Try for unique bosses:")
 
-                for i in range(0, 17):
+                for i in range(len(self.tags)):
                     if (self.hoverO == -1):
                         self.tags[i] = "f"
                     else:
@@ -769,6 +789,11 @@ class MainWindow():
                                     self.tags[i] = "f"
                                 else:
                                     self.tags[i] = "c"
+                            elif (i == 17):
+                                if (self.mosquitoReplacement.get() == self.hoverL):
+                                    self.tags[i] = "f"
+                                else:
+                                    self.tags[i] = "c"
                         else:
                             self.tags[i] = "uf"
 
@@ -798,6 +823,7 @@ class MainWindow():
                 elif (currentPage == 2):
                     self.AddDescription(15, self.respawingBosses.get())
                     self.AddDescription(16, self.hostileNPCs.get())
+                    self.AddDescription(17, self.mosquitoReplacement.get())
 
 
                 self.msg_area.config(state = "disabled")
@@ -961,7 +987,7 @@ class MainWindow():
 
         self.SaveCurrentConfigAsDefault()
         
-        randomSettings = (self.progressBar, self.progressLabel, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.boss_souls_slider.get(), self.pinwheelChaos.get(), self.typeReplacement.get(), self.gwynNerf.get(), self.preventSame.get(), self.uniqueBosses.get(), self.respawingBosses.get(), self.hostileNPCs.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
+        randomSettings = (self.progressBar, self.progressLabel, self.randomizerVersion, self.bossReplaceMode.get(), self.enemyReplaceMode.get(), self.npcMode.get(), self.mimicMode.get(), self.fitMode.get(), self.difficultyMode.get(), self.replace_chance_slider.get(), self.boss_chance_slider.get(), self.boss_chance_slider_bosses.get(), self.gargoyleMode.get(), self.diffStrictness.get(), self.tposeCity.get(), self.boss_souls_slider.get(), self.pinwheelChaos.get(), self.typeReplacement.get(), self.gwynNerf.get(), self.preventSame.get(), self.uniqueBosses.get(), self.respawingBosses.get(), self.hostileNPCs.get(), self.mosquitoReplacement.get(), self.seedValue.get(), self.configString, self.enemyConfigForRandomization.get())
 
         self.randThread = randomizationThread(1, "Random-Thread", 1, self.randomizer, randomSettings, self.msg_area, self, timeString)
         self.randThread.start()
@@ -987,7 +1013,7 @@ class MainWindow():
             self.configLabel = Label(self.textConfigTopLevel, text="* This field does NOT update automatically, press the 'Generate' button to update.")
             self.configLabel.grid(row = 2, column = 3, sticky="W", padx=2)
 
-            self.configDexcriptionLabel = Label(self.textConfigTopLevel, text="This window allows you to generate a text representation of the currently selected settings and seed.\nAfter pressing 'Generate current settings as text' the text version of current settings will be put into the text field.\nYou can also input a config into the text field and press 'Apply settings from text' to apply the settings from the text to the randomizer.\n\nThis is useful if you want to for example get the same enemy configuration with a friend.\nOne of you can configure the randomizer to desired settings, then generate the text version of the setup and send that to the other person,\nwho can then paste it here and apply the settings+seed from that.")
+            self.configDexcriptionLabel = Label(self.textConfigTopLevel, text="This window allows you to generate a text representation of the currently selected settings and seed.\nAfter pressing 'Generate current settings as text' the text version of current settings will be put into the text field.\nYou can also input a config into the text field and press 'Apply settings from text' to apply the settings from the text to the randomizer.\n\nThis is useful if you want to for example get the same enemy configuration with a friend.\nOne of you can configure the randomizer to desired settings, then generate the text version of the setup and send that to the other person,\nwho can then paste it here and apply the settings+seed from that.\n\nMake sure you also input a seed before generating this config.")
             self.configDexcriptionLabel.grid(row = 0, column = 3, sticky="W", padx=2)
         else:
             try:
@@ -1404,6 +1430,11 @@ class MainWindow():
                 self.configValue.set(self.configString)
                 self.ApplyConfigString(False)
 
+    def RestoreDefaultSettings(self):
+        self.configString = "1/-/2/-/0/-/1/-/0/-/3/-/100/-/10/-/90/-/1/-/1/-/0/-/50/-/1/-/1/-/1/-/1/-/0/-/0/-/0/-/1/-/''''''"
+        self.configValue.set(self.configString)
+        self.ApplyConfigString(False)
+
     """ The next two methods are going to be a P A I N to keep up to date... """
 
     def BuildConfigString(self):
@@ -1411,7 +1442,7 @@ class MainWindow():
         Build the compact config string.
         """
 
-        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/" + str(self.boss_souls_slider.get()) + "/-/" + str(self.pinwheelChaos.get()) + "/-/" + str(self.typeReplacement.get()) + "/-/" + str(self.gwynNerf.get()) + "/-/" + str(self.preventSame.get()) + "/-/" + str(self.uniqueBosses.get()) + "/-/" + str(self.respawingBosses.get()) + "/-/" + str(self.hostileNPCs.get()) + "/-/'''" + self.seedValue.get() + "'''"
+        self.configString = str(self.bossReplaceMode.get()) + "/-/" + str(self.enemyReplaceMode.get()) + "/-/" + str(self.npcMode.get()) + "/-/" + str(self.mimicMode.get()) + "/-/" + str(self.fitMode.get()) + "/-/" + str(self.difficultyMode.get()) + "/-/" + str(self.replace_chance_slider.get()) + "/-/" + str(self.boss_chance_slider.get()) + "/-/"  + str(self.boss_chance_slider_bosses.get()) + "/-/" + str(self.gargoyleMode.get()) + "/-/" + str(self.diffStrictness.get()) + "/-/" + str(self.tposeCity.get()) + "/-/" + str(self.boss_souls_slider.get()) + "/-/" + str(self.pinwheelChaos.get()) + "/-/" + str(self.typeReplacement.get()) + "/-/" + str(self.gwynNerf.get()) + "/-/" + str(self.preventSame.get()) + "/-/" + str(self.uniqueBosses.get()) + "/-/" + str(self.respawingBosses.get()) + "/-/" + str(self.hostileNPCs.get()) + "/-/" + str(self.mosquitoReplacement.get()) + "/-/'''" + self.seedValue.get() + "'''"
         self.configValue.set(self.configString)
 
     def ApplyConfigString(self, showMessages = True):
@@ -1442,8 +1473,9 @@ class MainWindow():
         inpUniqueBosses = 0
         inpRespawningBosses = 0
         inpHostileNPC = 0
+        inpMosquito = 0
         inpSeed = ""
-        if (len(parts) == 21):
+        if (len(parts) == 22):
             try:
                 inpBossMode = int(parts[0])
                 if (inpBossMode < 0 or inpBossMode > 3):
@@ -1525,7 +1557,11 @@ class MainWindow():
                 if (inpHostileNPC < 0 or inpHostileNPC > 1):
                     isValidConfig = False
                 
-                inpSeed = parts[20].replace("'''", "")
+                inpMosquito = int(parts[20])
+                if (inpMosquito < 0 or inpMosquito > 1):
+                    isValidConfig = False
+                
+                inpSeed = parts[21].replace("'''", "")
             except:
                 isValidConfig = False
         else:
@@ -1564,6 +1600,9 @@ class MainWindow():
             self.gwynNerf.set(inpGwynRate)
             self.preventSame.set(inpPreventSame)
             self.uniqueBosses.set(inpUniqueBosses)
+            self.respawingBosses.set(inpRespawningBosses)
+            self.hostileNPCs.set(inpHostileNPC)
+            self.mosquitoReplacement.set(inpMosquito)
             self.seedValue.set(inpSeed)
             self.UpdateMessageArea()
             if (showMessages):
