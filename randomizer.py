@@ -3,6 +3,7 @@ import random
 import os.path
 import os
 from tkinter import *
+from tkinter.filedialog import askopenfilename
 from tkinter.ttk import Progressbar
 from tkinter.ttk import Notebook
 import tkinter.ttk as ttk
@@ -29,7 +30,7 @@ class randomizationThread (threading.Thread):
     """
     Separate thread for randomizing, so that the UI can be updated.
     """
-    def __init__(self, threadID, name, counter, randomizer, rsettings, msgArea, mainw, timeString):
+    def __init__(self, threadID, name, counter, randomizer, rsettings, msgArea, mainw, timeString, copyFilePath = ""):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
@@ -39,13 +40,22 @@ class randomizationThread (threading.Thread):
         self.msgArea = msgArea
         self.mainw = mainw
         self.timeString = timeString
+        self.copyFilePath = copyFilePath
     def run(self):
         try:
-            self.randomizer.randomize(self.rsettings, self.msgArea)
-            tkinter.messagebox.showinfo("Randomization complete", "Randomization completed successfully. \nLog saved to 'enemyRandomizerData/logs/rlog" + self.timeString + ".txt'")
+            if (self.copyFilePath == ""):
+                self.randomizer.randomize(self.rsettings, self.msgArea)
+                tkinter.messagebox.showinfo("Randomization complete", "Randomization completed successfully. \n\nLog saved to 'enemyRandomizerData/logs/rlog" + self.timeString + ".txt'\n\nEnemy placement reference saved to 'enemyRandomizerData/refs/enemy-layout-" + self.timeString + ".txt'")
+            else:
+                self.randomizer.CopyFromReference(self.rsettings, self.msgArea, self.copyFilePath)
+                tkinter.messagebox.showinfo("Enemy copy complete", "Enemy placement was successfully copied from the reference.")
         except Exception as e:
-            tkinter.messagebox.showerror("Something went very wrong.", "The randomizer has run into an exception:\n'" + str(e) + "'\nTraceback in the console.")
-            raise
+            if (self.copyFilePath == ""):
+                tkinter.messagebox.showerror("Something went very wrong.", "The randomizer has run into an exception:\n'" + str(e) + "'\nTraceback in the console.")
+                raise
+            else:
+                tkinter.messagebox.showerror("Failed to copy enemy placement.", "The selected file is either not an enemy placement reference file or is malformed:\n\n'" + str(e) + "'")
+                raise
         finally:
             self.mainw.progressTopLevel.destroy()
             self.mainw.randomize_button.config(state = "normal")
@@ -131,7 +141,7 @@ class MainWindow():
 
     def __init__(self):
         self.root = Tk()
-        self.randomizerVersion = "v0.4.1"
+        self.randomizerVersion = "v0.4.1.1"
         self.root.title("Dark Souls - Enemy randomizer " + self.randomizerVersion + " by rycheNhavalys")
 
         self.root.iconbitmap(default=resource_path('favicon.ico'))
@@ -165,6 +175,19 @@ class MainWindow():
 
         self.revert_options_button = Button(self.root, text="Restore default settings", width=24, command=self.RestoreDefaultSettings)
         self.revert_options_button.grid(row=2, column=4, sticky='NWE', padx=2, pady=4)
+        
+        self.copy_enemies_frame = LabelFrame(self.root, text="Enemy placement copy")
+        self.copy_enemies_frame.grid(row=3, column=4, sticky='NWES', padx=2)
+        self.copy_enemies_frame.columnconfigure(0, weight=1)
+        self.copy_enemies_frame.rowconfigure(0, weight=1)
+        self.copy_enemies_frame.rowconfigure(1, weight=1)
+        self.copy_enemies_frame.rowconfigure(2, weight=5)
+
+        self.copy_enemies_button = Button(self.copy_enemies_frame, text="Copy enemy placement", width=24, command=self.CopyEnemiesFromReference)
+        self.copy_enemies_button.grid(row=0, column=0, sticky='NWE', padx=2, pady=4)
+
+        self.copy_enemies_help_button = Button(self.copy_enemies_frame, text="Info", width=24, command=self.ShowEnemyCopyInfo)
+        self.copy_enemies_help_button.grid(row=1, column=0, sticky='NWE', padx=2, pady=1)
 
         # Create message area
         self.msg_area = Text(self.root, width=80, height=38, state="disabled", background="gray84", relief=GROOVE, wrap="word")
@@ -991,6 +1014,39 @@ class MainWindow():
 
         self.randThread = randomizationThread(1, "Random-Thread", 1, self.randomizer, randomSettings, self.msg_area, self, timeString)
         self.randThread.start()
+
+    def CopyEnemiesFromReference(self):
+        currentTime = datetime.datetime.now()
+        timeString = f"{currentTime:%Y-%m-%d-%H-%M-%S}"
+
+        fname = askopenfilename(filetypes=[("Enemy placement reference .txt file", "*.txt")])
+        if fname:
+            try:
+                self.progressTopLevel = Toplevel(self.root)
+                self.progressTopLevel.title("Copying enemy placement, please wait")
+
+                progLen = 3 + len(self.randomizer.inputFiles) * 4
+
+                self.progressBar = Progressbar(self.progressTopLevel, maximum=progLen, length=512)
+                self.progressBar.grid(row = 0, column = 0, sticky="NEWS", padx=8, pady=4)
+
+                self.progressLabel = Label(self.progressTopLevel, text="Checking and preparing effect files [can take a while]")
+                self.progressLabel.grid(row = 1, column = 0, sticky = "NEWS")
+
+                self.randomize_button.config(state = "disabled")
+                self.unrandomize_button.config(state = "disabled")
+
+                self.BuildConfigString()
+                
+                randomSettings = (self.progressBar, self.progressLabel, self.randomizerVersion)
+
+                self.randThread = randomizationThread(1, "Random-Thread", 1, self.randomizer, randomSettings, self.msg_area, self, timeString, fname)
+                self.randThread.start()
+            except:
+                tkinter.messagebox.showerror("Reference file load error.", "Failed to read file\n'%s'" % fname)
+
+    def ShowEnemyCopyInfo(self):
+        tkinter.messagebox.showinfo("Enemy copy info.", "The enemy placement copying lets you directly copy the enemy placement from a reference file if, for some reason, the same settings and seed fail to produce the same placement for different people.\n\nThe enemy placement file for each randomization is automatically saved in the 'enemyRandomizerData/refs' folder.\n\nTo copy the enemy placement from another person, ask them to send over the latest enemy placement text file from that folder and select it by clicking the 'Copy enemy placement' button.")
 
     def OpenTextConfigTopLevel(self):
         """

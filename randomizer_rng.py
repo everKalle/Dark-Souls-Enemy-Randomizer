@@ -603,6 +603,10 @@ class Randomizer:
             print("[Check/Preparation] Created log directory")
             os.makedirs("enemyRandomizerData/logs")
 
+        if not (os.path.isdir("enemyRandomizerData/refs")):     #create log directory
+            print("[Check/Preparation] Created ref file directory")
+            os.makedirs("enemyRandomizerData/refs")
+
         if not (os.path.isdir("enemyRandomizerData/param")):
             print("[Check/Preparation] Created param directory")
             os.makedirs("enemyRandomizerData/param")
@@ -905,7 +909,7 @@ class Randomizer:
         """
         newC = -1
         if (not careAboutLimit or len(self.uniqueIndices) < self.MAX_UNIQUE):
-            if (diffmode == 1):
+            if (diffmode == 1 or diffmode == 4):
                 diffList = self.getDifficultyList(desiredDifficulty, diffStrictness, False, maxSize)
                 if (len(diffList) > 0):
                     newC = self.GetEnemyFromListWithRetry(diffList, originalEnemyID)
@@ -936,7 +940,7 @@ class Randomizer:
         """
         newC = -1
         if (not careAboutLimit or len(self.uniqueIndices) < self.MAX_UNIQUE):
-            if (diffmode == 1):
+            if (diffmode == 1 or diffmode == 4):
                 diffList = self.getDifficultyList(desiredDifficulty, diffStrictness, True, maxSize)
                 if (len(diffList) > 0):
                     newC = self.GetEnemyFromListWithRetry(diffList, originalEnemyID, replacingBoss)
@@ -1171,6 +1175,11 @@ class Randomizer:
                 if (uniform(0, 100) < rngThreshhold):
                     return True
 
+        if ('c2510' in newID):
+            rngThreshhold = 65
+            if (uniform(0, 100) < rngThreshhold):
+                return True
+
         # Replacement with the same enemy
         if (self.disallowSameReplacement):
             if (newID in oldID):
@@ -1233,6 +1242,7 @@ class Randomizer:
         currentTime = datetime.datetime.now()
         timeString = f"{currentTime:%Y-%m-%d-%H-%M-%S}"
         logFile = open('enemyRandomizerData/logs/rlog' + timeString + '.txt', 'w')      # Create logfile
+        outRefFile = open('enemyRandomizerData/refs/enemy-layout-' + timeString + '.txt', 'w')
 
         self.firstTimeSetup()
 
@@ -1317,6 +1327,14 @@ class Randomizer:
             self.applyBossSouls(bossSoulDrops, False)
             printLog("----", logFile)
 
+            outRefFile.write("section version\n")
+            outRefFile.write("randomizerVersion {0}\n".format(versionString))
+            outRefFile.write("mode {0}\n".format('Remastered' if self.useDCX else 'PTDE'))
+            outRefFile.write("section settings\n")
+            outRefFile.write("bossSouls {0}\n".format(bossSoulDrops))
+            outRefFile.write("pinwheelChaos {0}\n".format(chaosPinwheel))
+            outRefFile.write("roamingBossRespawn {0}\n".format(respawningBosses))
+
             i = 0
             for inputIndex, inFile in enumerate(self.inputFiles):
                 if (inFile == "m14_00_00_00"):
@@ -1328,6 +1346,7 @@ class Randomizer:
                     self.MAX_UNIQUE = originalUniqueLimit
 
                 printLog("Randomizing " + inFile + " - " + self.names[i] + " (" + str(self.MAX_UNIQUE) + ")", logFile)
+                outRefFile.write("section {0}\n".format(inFile))
                 msgArea.insert(END,  "Randomizing " + inFile + " - " + self.names[i] + "\n")
 
                 progressBar.step()
@@ -1693,6 +1712,8 @@ class Randomizer:
                             # Remove the forced animation playing at the start of MLB boss fight
                             if (inFile == "m12_00_00_00" and "c3230_0000" in creatureId and not "c3230" in self.validNew[newChar][NewCol.ID.value]):
                                 eventTools.ApplyMoonlightButterflyAnimFix()
+
+                            self.WriteReferenceRow(outRefFile, self.msbio.parts[2].rows[rowIndex])
                             
                             printLog("Replacing (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " with (" + self.validNew[newChar][NewCol.ID.value] + ") " + self.validNew[newChar][NewCol.NAME.value] + "[" + str(newChar) + "]" + aiStr + posLine + animLine, logFile, False)
                         else:
@@ -1720,6 +1741,7 @@ class Randomizer:
                 self.msbio.save(self.MAPSTUDIO + inFile + ".msb")
 
                 printLog("---------------------", logFile)
+                outRefFile.write("levID {0}\n".format(currentEventEntityID))
                 i += 1
 
             self.copyDarkrootGarden()
@@ -1729,5 +1751,302 @@ class Randomizer:
 
         else:
             tkinter.messagebox.showerror("Randomization error", "Required files not found. \nCheck log rlog" + timeString + ".txt for details")
+
+        logFile.close()
+        outRefFile.close()
+
+    def WriteReferenceRow(self, refFile, row):
+        NAME_DATA_COL = 25
+
+        MODEL_DATA_COL = 3
+        NPCAI_DATA_COL = 38
+        PARAM_DATA_COL = 39
+
+        EVENT_ENTITY_ID_DATA_COL = 27
+        ANIMID_DATA_COL = 50
+
+        POS_DATA_COL = 5    # X pos , Y + 1, Z + 2, ROTX + 3, ROTY + 4, ROTZ + 5;
+
+        outString = row[NAME_DATA_COL] + "\t"
+        outString += "{0}\t{1}\t{2}\t".format(row[POS_DATA_COL], row[POS_DATA_COL + 1], row[POS_DATA_COL + 2])
+        outString += "{0}\t{1}\t{2}\t".format(row[POS_DATA_COL + 3], row[POS_DATA_COL + 4], row[POS_DATA_COL + 5])
+        outString += "{0}\t{1}\t{2}\t".format(row[MODEL_DATA_COL], row[NPCAI_DATA_COL], row[PARAM_DATA_COL])
+        outString += "{0}\t{1}".format(row[EVENT_ENTITY_ID_DATA_COL], row[ANIMID_DATA_COL])
+        
+        refFile.write(outString + "\n")
+
+    def CopyFromReference(self, settings, msgArea, refFilePath):
+        refDict = dict()
+        inFileName = ""
+        with open(refFilePath, 'r') as f:
+            lineIndex = 0
+            for l in f:
+                line = l.strip()
+                if ("section" in line):
+                    inFileName = line.split(" ")[1]
+                    refDict[inFileName] = dict()
+                elif ("levID" in line):
+                    refDict[inFileName]['levID'] = int(line.split(" ")[1])
+                else:
+                    if (inFileName == 'settings'):
+                        parts = line.split(" ")
+                        refDict[inFileName][parts[0]] = int(parts[1])
+                    elif (inFileName == 'version'):
+                        parts = line.split(" ")
+                        refDict[inFileName][parts[0]] = parts[1]
+                    else:
+                        parts = line.split("\t")
+                        if (len(parts) == 12):
+                            refDict[inFileName][parts[0]] = (float(parts[1]), float(parts[2]), float(parts[3]), float(parts[4]), float(parts[5]), float(parts[6]), int(parts[7]), int(parts[8]), int(parts[9]), int(parts[10]), int(parts[11]))
+                        else:
+                            raise ValueError("Malformed line in reference file: {0} - {1}".format(lineIndex, line))
+                lineIndex += 1
+
+        if ('settings' in refDict):
+            if (not 'bossSouls' in refDict['settings']):
+                raise ValueError("Setting 'bossSouls' missing from the reference file.")
+            if (not 'pinwheelChaos' in refDict['settings']):
+                raise ValueError("Setting 'pinwheelChaos' missing from the reference file.")
+            if (not 'roamingBossRespawn' in refDict['settings']):
+                raise ValueError("Setting 'roamingBossRespawn' missing from the reference file.")
+        else:
+            raise ValueError("Missing section 'settings' from reference file.")
+
+        if ('version' in refDict):
+            if (not 'randomizerVersion' in refDict['version']):
+                raise ValueError("Randomizer version info missing from the reference file.")
+            if (not 'mode' in refDict['version']):
+                raise ValueError("Randomizer mode info missing from the reference file.")
+            else:
+                if (refDict['version']['mode'] == 'Remastered'):
+                    if (not self.useDCX):
+                        raise ValueError("Trying to load a reference file from Remastered while using the randomizer on Prepare to Die Edition.")
+                elif (refDict['version']['mode'] == 'PTDE'):
+                    if (self.useDCX):
+                        raise ValueError("Trying to load a reference file from Prepare to Die Edition while using the randomizer on Remastered.")
+                else:
+                    raise ValueError("Invalid randomizer mode in reference file: '{0}'. Expected 'PTDE' or 'Remastered'".format(refDict['version']['mode']))
+
+        else:
+            raise ValueError("Missing section 'version' from reference file.")
+
+        disableRoamingBossRespawning = (refDict['settings']['roamingBossRespawn'] == 1)
+
+        global logFile
+        currentTime = datetime.datetime.now()
+        timeString = f"{currentTime:%Y-%m-%d-%H-%M-%S}"
+        logFile = open('enemyRandomizerData/logs/rlog' + timeString + '.txt', 'w')      # Create logfile
+
+        if (self.check()):
+            # Get settings
+            progressBar, progressLabel, versionString = settings
+
+            self.exeStatus = check_exe.check_exe_checksum()
+
+            #Patch the exe if necessary
+            if (self.exeStatus == "Unpacked" or self.exeStatus == "Unpacked Debug"):
+                check_exe.patch_exe()
+
+            self.ffxdata.AddEverythingToCommon(self.useDCX)
+
+            self.revertEmevds()             # Restore original .emevd files so modifications are not made multiple times
+
+            # Replace original event scripts with custom ones.
+            self.applyEmevd('m12_01_00_00') # Mimic drops
+            self.applyEmevd('m13_00_00_00') # Skeleton immortality removed
+            self.applyEmevd('m14_01_00_00') # Remove BoC parts AI activation, remove immortality of actual boss immediately, remove immortality of branches
+            self.applyEmevd('m15_00_00_00') # Mimic drops
+            self.applyEmevd('m15_01_00_00') # Make the statue disappear if Gwyndolin dies, mimic drops
+            self.applyEmevd('m17_00_00_00') # Remove Seath's immortality immediately when the crystal is broken instad of waiting for a flag from the animation. Mimic drops, passive Pisaca drops
+
+            #msbio = MsbIO()
+            luagnl = LuaGnl()
+            luainfo = LuaInfo()
+            luabnd = BndData()
+            eventTools = EventTools(self.useDCX)
+
+            MODEL_DATA_COL = 3
+            NPCAI_DATA_COL = 38
+            PARAM_DATA_COL = 39
+
+            EVENT_ENTITY_ID_DATA_COL = 27
+            ANIMID_DATA_COL = 50
+
+            POS_DATA_COL = 5    # X pos , Y + 1, Z + 2, ROTX + 3, ROTY + 4, ROTZ + 5;
+            
+            progressBar.step()
+            progressLabel.config(text="Loading Files")
+            self.loadFiles('Default')
+            msgArea.config(state = "normal")
+            printLog("----", logFile)
+
+            printLog("Applying " + str(refDict['settings']['bossSouls']) + "% roaming boss soul drops.", logFile)
+            self.applyBossSouls(refDict['settings']['bossSouls'], False)
+            printLog("----", logFile)
+
+            i = 0
+            for inputIndex, inFile in enumerate(self.inputFiles):
+                printLog("Setting enemy placement for " + inFile + " - " + self.names[i] + " (" + str(self.MAX_UNIQUE) + ")", logFile)
+                msgArea.insert(END,  "Copying  " + inFile + " - " + self.names[i] + "\n")
+
+                progressBar.step()
+                progressLabel.config(text="Copying " + self.names[i])
+
+                self.createBackup(self.MAPSTUDIO + inFile + ".msb")
+                self.msbio.open(self.MAPCOPY + inFile + ".msb")
+
+                aiFileName = inFile
+                if inFile == "m12_00_00_01":
+                    aiFileName = "m12_00_00_00"
+
+                gnlBytes, infoBytes = luabnd.open(self.AICOPY + aiFileName + ".luabnd", self.useDCX)
+                luagnl.open_bytes(gnlBytes)
+                luainfo.open_bytes(infoBytes)
+
+                eventTools.open(inFile)
+                currentEventEntityID = refDict[inFile]['levID'] + 1
+
+                self.uniqueIndices = []
+                self.uniqueBosses = [[], [], [], [], [], []]
+                self.uniqueNormals = [[], [], [], [], [], []]
+
+                refFileName = inFile
+                if (inFile == 'm12_01_00_00'):
+                    if (self.useDCX):
+                        refFileName = 'm12_01_00_00.remaster'
+                    else:
+                        refFileName = 'm12_01_00_00.ptde'
+                elif (inFile == 'm13_00_00_00'):
+                    if (self.useDCX):
+                        refFileName = 'm13_00_00_00.remaster'
+                    else:
+                        refFileName = 'm13_00_00_00.ptde'
+
+                f = open('enemyRandomizerData/original_enemies_ref/' + refFileName + '.txt', 'r')
+
+                rowIndex = 0
+
+                for line in f:
+                    parts = line.split("\t")
+                    creatureId = parts[0]
+
+                    if (creatureId in refDict[inFile]):
+                        newChar = refDict[inFile][creatureId][6] - self.startIndices[i]
+
+                        creatureTypeId = creatureId.split('_')[0]
+
+                        creatureType = self.validTargets[self.validIndex(creatureId)][2]
+
+                        if (inFile == "m13_00_00_00"):       # Only consider the actual bossfight main pinwheel (the one that actually takes damage) a boss (and not the clones and the ones in ToG)
+                            if (refDict['settings']['pinwheelChaos'] == 0):
+                                if ("c3320_0000" in creatureId):
+                                    creatureType = "0"
+                                elif ("c3320" in creatureId):
+                                    creatureType = "1"
+                            else:
+                                if ("c3320_0000" in creatureId):
+                                    creatureType = "1"
+                        elif (inFile == "m10_01_00_00" and "c2250" in creatureId):          # Consider taurus boss a boss
+                            creatureType = "1"
+                        elif (inFile == "m14_01_00_00" and "c2240" in creatureId):          # Consider capras in Demon Ruins normal enemies
+                            creatureType = "0"
+                        elif (inFile == "m15_01_00_00" and "c2860_0000" in creatureId):     # Consider blacksmith giant a npc
+                            creatureType = "2"
+                        elif (inFile == "m14_00_00_00" and "c3210_0000" in creatureId):     # Eingyi
+                            creatureType = "2"
+
+                        self.msbio.parts[2].rows[rowIndex][MODEL_DATA_COL] = refDict[inFile][creatureId][6]
+                        self.msbio.parts[2].rows[rowIndex][NPCAI_DATA_COL] = refDict[inFile][creatureId][7]
+                        self.msbio.parts[2].rows[rowIndex][PARAM_DATA_COL] = refDict[inFile][creatureId][8]
+
+                        aiEntry = self.aic.GetEntryByAI(str(refDict[inFile][creatureId][7]))
+
+                        exists = luainfo.AddEntryAuto(aiEntry.info)
+                        if not (exists):
+                            luagnl.AddEntriesAuto(aiEntry.aiFuncsGnl)
+                            luabnd.addAuto(aiEntry.battle_script)
+                            luabnd.addAuto(aiEntry.logic_script)
+
+                        self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] = refDict[inFile][creatureId][9]
+                        self.msbio.parts[2].rows[rowIndex][ANIMID_DATA_COL] = refDict[inFile][creatureId][10]
+
+                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL] = refDict[inFile][creatureId][0]
+                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 1] = refDict[inFile][creatureId][1]
+                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 2] = refDict[inFile][creatureId][2]
+
+                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 3] = refDict[inFile][creatureId][3]
+                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 4] = refDict[inFile][creatureId][4]
+                        self.msbio.parts[2].rows[rowIndex][POS_DATA_COL + 5] = refDict[inFile][creatureId][5]
+
+                        # Add scripted item drops
+                        if (inFile in self.itemLotsToAward):
+                            if (creatureId in self.itemLotsToAward[inFile]):
+                                eventTools.AddItemLotAwardOnDeath(self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL], self.itemLotsToAward[inFile][creatureId])
+
+                        # Change Event Scripts
+                        if (disableRoamingBossRespawning):
+                            if (self.validNew[newChar][NewCol.TYPE.value] == "1" and creatureType == "0"):
+                                eventTools.AddRespawnEventInit(self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL])
+                        
+                        # Tail Cuts
+                        if (self.validNew[newChar][NewCol.ID.value] in self.TAIL_VALUES):
+                            tailRow = self.msbio.parts[2].rows[rowIndex][:]
+                            tailRow[25] = tailRow[25][:6] + 'tail'
+
+                            tailRow[MODEL_DATA_COL] = self.startIndices[i] + self.TAIL_VALUES[self.validNew[newChar][NewCol.ID.value]][0]
+
+                            tailRow[EVENT_ENTITY_ID_DATA_COL] = currentEventEntityID
+                            currentEventEntityID += 1
+
+                            tailRow[PARAM_DATA_COL] = self.TAIL_VALUES[self.validNew[newChar][NewCol.ID.value]][1]
+                            tailRow[NPCAI_DATA_COL] = 1
+
+                            self.msbio.AddCreatureRow(tailRow)
+
+                            if (self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] == -1):
+                                self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] = currentEventEntityID
+                                currentEventEntityID += 1
+
+                            eventTools.AddTailCutEventInit(self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL], tailRow[EVENT_ENTITY_ID_DATA_COL], self.validNew[newChar][NewCol.ID.value])
+                            #print('Added Tail Cut For {0}'.format(self.validNew[newChar][NewCol.ID.value]))
+
+                        if (self.validNew[newChar][NewCol.ID.value] in self.newCharacterAllegiances):
+                            eventTools.SetCharacterAllegiance(self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL], self.newCharacterAllegiances[self.validNew[newChar][NewCol.ID.value]])
+                        
+                        # Gargoyle#2 Changes
+                        if ("c5350_0001" in creatureId and not "c5350" in self.validNew[newChar][NewCol.ID.value]):
+                            eventTools.ApplyGargoyle2Fix()
+
+                        # Remove the forced animation playing at the start of MLB boss fight
+                        if (inFile == "m12_00_00_00" and "c3230_0000" in creatureId and not "c3230" in self.validNew[newChar][NewCol.ID.value]):
+                            eventTools.ApplyMoonlightButterflyAnimFix()
+
+                        
+                        printLog("Replacing (" + creatureId + ") " + self.validTargets[self.validIndex(creatureId)][1] + " with (" + self.validNew[newChar][NewCol.ID.value] + ") " + self.validNew[newChar][NewCol.NAME.value] + "[" + str(newChar) + "]", logFile, False)
+
+                    rowIndex += 1
+                f.close()
+                progressBar.step()
+                progressLabel.config(text="Copying " + self.names[i] + " - saving .luabnd")
+                luabnd.save(self.AISCRIPTS + aiFileName + ".luabnd", luagnl.save_bytes(), luainfo.save_bytes())
+
+                progressBar.step()
+                progressLabel.config(text="Copying " + self.names[i] + " - saving .emevd")
+                eventTools.save(inFile)
+
+                progressBar.step()
+                progressLabel.config(text="Copying " + self.names[i] + " - saving .msb")
+                self.msbio.save(self.MAPSTUDIO + inFile + ".msb")
+
+                printLog("---------------------", logFile)
+                i += 1
+
+            self.copyDarkrootGarden()
+
+            msgArea.insert(END,  "Randomization complete\n")
+            msgArea.config(state = "disabled")
+
+        else:
+            tkinter.messagebox.showerror("Enemy copy error", "Required files not found. \nCheck log rlog" + timeString + ".txt for details")
 
         logFile.close()
