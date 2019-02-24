@@ -1,5 +1,5 @@
 ------------------------------------
-Dark Souls Enemy Randomizer v0.4.1.1
+Dark Souls Enemy Randomizer v0.4.1.2
 ------------------------------------
 
 --Installation Instructions [PTDE]:
@@ -45,10 +45,14 @@ Metal Crow - fix for the game (PTDE) crashing when trying to load all visual eff
 Lan5432 - helping me test v0.2, providing the best comments for screenshots.
 DuckyKoi - gifting me the remaster so I could port the randomizer to it.
 
---v0.4.1.1 Changelog:
-*Nerfed spawn rate of Undead Merchant when Hostile NPC spawning is enabled.
-*Fixed 'Difficulty Curve+Easy Asylum' mode not actually following the difficulty curve.
-*Randomizer now saves an enemy placement file that can be used to copy the enemy placement from that file (for the cases where same seed+settings fail to produce the same results for different people).
+--v0.4.1.2 Changelog:
+*Fixed the randomizer throwing an error when loading a reference file where NPC replacement is enabled.
+*Artorias is no longer allowed to replace Ceaseless Discharge as he crashes the game upon his death.
+*Disabled Tail Cuts in DLC on Remastered for now as it's causing issues with bonfires.
+*Added a message when .ffxbnd saving fails.
+*Improved error message for missing game files.
+*Fixed some of the error messages giving information about PTDE when using the randomizer on Remastered.
+*Fixed missing .ffxbnd error message being shown twice.
 
 --Changelogs for previous versions can be found on here on the nexusmods page:
 https://www.nexusmods.com/darksouls/mods/1407?tab=logs

@@ -243,7 +243,11 @@ class Randomizer:
         self.canRandomize = False
         self.useDCX = False
 
+        if (self.exeStatus == "Remaster"):
+            self.useDCX = True
+
         self.exeModificationSuccessful = True
+        self.ffxAddSuccessful = True
 
         self.writingPermssion = True
         if (self.missingMSB == 0):
@@ -624,7 +628,10 @@ class Randomizer:
                     print("[Check/Preparation] Backed up GameParam.param")
 
         print("[Check/Preparation] Preparing effect files (Takes a while)")
-        self.ffxdata.AddEverythingToCommon(self.useDCX)
+        try:
+            self.ffxAddSuccessful = self.ffxdata.AddEverythingToCommon(self.useDCX)
+        except PermissionError:
+            self.ffxAddSuccessful = False
 
         print("[Check/Preparation] Done")
 
@@ -1159,6 +1166,10 @@ class Randomizer:
             if ('c5290' in newID):      # Seath
                 return True
 
+        if ('c5250' in oldID):
+            if ('c4100' in newID):
+                return True
+
         # When type replacement is enabled, avoid replacing multiple enemy types in one area with the same enemy
         if (self.typeSub):
             for key in self.typeReplaceMap:
@@ -1270,7 +1281,10 @@ class Randomizer:
             if (self.exeStatus == "Unpacked" or self.exeStatus == "Unpacked Debug"):
                 check_exe.patch_exe()
 
-            self.ffxdata.AddEverythingToCommon(self.useDCX)
+            try:
+                self.ffxAddSuccessful = self.ffxdata.AddEverythingToCommon(self.useDCX)
+            except PermissionError:
+                self.ffxAddSuccessful = False
 
             self.revertEmevds()             # Restore original .emevd files so modifications are not made multiple times
 
@@ -1676,26 +1690,27 @@ class Randomizer:
                                     eventTools.AddRespawnEventInit(self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL])
                             
                             # Tail Cuts
-                            if (self.validNew[newChar][NewCol.ID.value] in self.TAIL_VALUES):
-                                tailRow = self.msbio.parts[2].rows[rowIndex][:]
-                                tailRow[25] = tailRow[25][:6] + 'tail'
+                            if (not (self.useDCX and inFile == "m12_01_00_00")):    # Disable Tail Cuts on Remastered in the DLC
+                                if (self.validNew[newChar][NewCol.ID.value] in self.TAIL_VALUES):
+                                    tailRow = self.msbio.parts[2].rows[rowIndex][:]
+                                    tailRow[25] = tailRow[25][:6] + 'tail'
 
-                                tailRow[MODEL_DATA_COL] = self.startIndices[i] + self.TAIL_VALUES[self.validNew[newChar][NewCol.ID.value]][0]
+                                    tailRow[MODEL_DATA_COL] = self.startIndices[i] + self.TAIL_VALUES[self.validNew[newChar][NewCol.ID.value]][0]
 
-                                tailRow[EVENT_ENTITY_ID_DATA_COL] = currentEventEntityID
-                                currentEventEntityID += 1
-
-                                tailRow[PARAM_DATA_COL] = self.TAIL_VALUES[self.validNew[newChar][NewCol.ID.value]][1]
-                                tailRow[NPCAI_DATA_COL] = 1
-
-                                self.msbio.AddCreatureRow(tailRow)
-
-                                if (self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] == -1):
-                                    self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] = currentEventEntityID
+                                    tailRow[EVENT_ENTITY_ID_DATA_COL] = currentEventEntityID
                                     currentEventEntityID += 1
 
-                                eventTools.AddTailCutEventInit(self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL], tailRow[EVENT_ENTITY_ID_DATA_COL], self.validNew[newChar][NewCol.ID.value])
-                                #print('Added Tail Cut For {0}'.format(self.validNew[newChar][NewCol.ID.value]))
+                                    tailRow[PARAM_DATA_COL] = self.TAIL_VALUES[self.validNew[newChar][NewCol.ID.value]][1]
+                                    tailRow[NPCAI_DATA_COL] = 1
+
+                                    self.msbio.AddCreatureRow(tailRow)
+
+                                    if (self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] == -1):
+                                        self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] = currentEventEntityID
+                                        currentEventEntityID += 1
+
+                                    eventTools.AddTailCutEventInit(self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL], tailRow[EVENT_ENTITY_ID_DATA_COL], self.validNew[newChar][NewCol.ID.value])
+                                    #print('Added Tail Cut For {0}'.format(self.validNew[newChar][NewCol.ID.value]))
 
                             if (self.validNew[newChar][NewCol.ID.value] in self.newCharacterAllegiances):
                                 if (self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] == -1):
@@ -1847,7 +1862,10 @@ class Randomizer:
             if (self.exeStatus == "Unpacked" or self.exeStatus == "Unpacked Debug"):
                 check_exe.patch_exe()
 
-            self.ffxdata.AddEverythingToCommon(self.useDCX)
+            try:
+                self.ffxAddSuccessful = self.ffxdata.AddEverythingToCommon(self.useDCX)
+            except PermissionError:
+                self.ffxAddSuccessful = False
 
             self.revertEmevds()             # Restore original .emevd files so modifications are not made multiple times
 
@@ -1961,11 +1979,13 @@ class Randomizer:
 
                         aiEntry = self.aic.GetEntryByAI(str(refDict[inFile][creatureId][7]))
 
-                        exists = luainfo.AddEntryAuto(aiEntry.info)
-                        if not (exists):
-                            luagnl.AddEntriesAuto(aiEntry.aiFuncsGnl)
-                            luabnd.addAuto(aiEntry.battle_script)
-                            luabnd.addAuto(aiEntry.logic_script)
+                        if (aiEntry != None):
+                            # Didn't find AI entry, assiming it's just an NPC replacement, so ignore it.
+                            exists = luainfo.AddEntryAuto(aiEntry.info)
+                            if not (exists):
+                                luagnl.AddEntriesAuto(aiEntry.aiFuncsGnl)
+                                luabnd.addAuto(aiEntry.battle_script)
+                                luabnd.addAuto(aiEntry.logic_script)
 
                         self.msbio.parts[2].rows[rowIndex][EVENT_ENTITY_ID_DATA_COL] = refDict[inFile][creatureId][9]
                         self.msbio.parts[2].rows[rowIndex][ANIMID_DATA_COL] = refDict[inFile][creatureId][10]

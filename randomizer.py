@@ -141,7 +141,7 @@ class MainWindow():
 
     def __init__(self):
         self.root = Tk()
-        self.randomizerVersion = "v0.4.1.1"
+        self.randomizerVersion = "v0.4.1.2"
         self.root.title("Dark Souls - Enemy randomizer " + self.randomizerVersion + " by rycheNhavalys")
 
         self.root.iconbitmap(default=resource_path('favicon.ico'))
@@ -638,6 +638,9 @@ class MainWindow():
                     self.randomize_button.config(state = "disabled")
                     self.unrandomize_button.config(state = "disabled")
                     self.randomizer.canRandomize = False
+
+            if (not self.randomizer.ffxAddSuccessful):
+                tkinter.messagebox.showwarning("Failed to save .ffxbnd", "Failed to write modifications to FRPG_SfxBnd_CommonEffects.ffxbnd{0}\n\nMany enemy visual effects will be missing, including certain projectiles being invisible.\n\nTo fix this try launching the randomizer as administrator or installing the game in a different location.".format(".dcx" if self.randomizer.exeStatus == "Remaster" else ""))
             
             self.OpenLastConfig()
         else:
@@ -870,6 +873,12 @@ class MainWindow():
                 if (not self.randomizer.exeModificationSuccessful):
                     self.msg_area.insert(END, "* The randomizer did not have the permissions to modify DARKSOULS.exe. You\n  might need to either install the game in a different location or run\n  the randomizer as administrator.\n\n", "f")
 
+                if (self.randomizer.missingMSB != 0 or self.randomizer.missingLUABND != 0 or self.randomizer.missingFFXBND != 0 or self.randomizer.missingEmevd != 0):
+                    if (self.randomizer.useDCX):
+                        self.msg_area.insert(END, "* One or more game files are missing.\n  Try verifying the game cache in steam or reinstalling the game.\n  Missing files:\n\n", "f")
+                    else:
+                        self.msg_area.insert(END, "* One or more game files are missing.\n  Make sure you unpacked the game files using UDSFM.\n  Missing files:\n\n", "f")
+
                 gameFileString = ""
 
                 if (self.randomizer.missingMSB == len(self.randomizer.inputFiles)):
@@ -902,6 +911,8 @@ class MainWindow():
                         gameFileString = "* " + str(self.randomizer.missingFFXBND) + "/" + str(len(self.randomizer.inputFFXFiles)) + " .ffxbnd files missing from sfx/\n\n"
                 
                 self.msg_area.insert(END, gameFileString, "f")
+
+                gameFileString = ""
 
                 if (self.randomizer.missingEmevd == len(self.randomizer.inputFiles)):
                     gameFileString = "* No required files found in event/, are you sure the game is properly unpacked (PTDE only) and the randomizer is placed in the correct directory?\n\n"

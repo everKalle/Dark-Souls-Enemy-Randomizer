@@ -5,6 +5,7 @@ import byteread
 import re
 from collections import defaultdict
 from dcx_handler import DCXHandler
+from check_exe import sha256_checksum
 
 class FFXData():
 
@@ -233,6 +234,10 @@ class FFXData():
         openFileName = 'sfx\\FRPG_SfxBnd_CommonEffects.ffxbnd'
         if (useDCX):
             openFileName += '.dcx'
+
+        oldCheckSum = sha256_checksum(openFileName)
+        writeSuccessful = True
+
         with open(openFileName, 'rb') as f:
             upcontent = f.read()
             content = upcontent
@@ -299,6 +304,11 @@ class FFXData():
                 print("[FFX] Saving sfx\\FRPG_SfxBnd_CommonEffects.ffxbnd.")
                 with open('sfx\\FRPG_SfxBnd_CommonEffects.ffxbnd', 'wb') as f:
                     f.write(bnd_rebuilder.repack_bnd(newContent))
+
+            newCheckSum = sha256_checksum(openFileName)
+
+            if (oldCheckSum == newCheckSum):
+                writeSuccessful = False
         
             print('[FFX] sfx\\FRPG_SfxBnd_CommonEffects.ffxbnd saved')
 
@@ -318,7 +328,7 @@ class FFXData():
         else:
             print('[FFX] Ignored cleanup (REMASTERED Version being used)')
 
-
         print("[FFX] Done")
+        return writeSuccessful
 
 
