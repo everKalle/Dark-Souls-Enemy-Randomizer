@@ -211,6 +211,7 @@ class Randomizer:
         self.attemptUniqueBosses = False
         self.currentBosses = []
         self.spawnNPCS = False
+        self.easyAsylum = False
 
         self.missingMSB = 0
         self.missingLUABND = 0
@@ -1166,6 +1167,11 @@ class Randomizer:
             if ('c5290' in newID):      # Seath
                 return True
 
+        if (self.easyAsylum):
+            if ('c2230' in oldID):
+                if ('c5390' in newID):
+                    return True
+
         if ('c5250' in oldID):
             if ('c4100' in newID):
                 return True
@@ -1267,6 +1273,7 @@ class Randomizer:
             disableRoamingBossRespawning = (respawningBosses == 1)
             self.spawnNPCS = (hostileNPC == 1)
             disableRespawningMosquitoes = (mosquitoReplacement == 0)
+            self.easyAsylum = (diffMode >= 3)
 
             # Generate a seed if none is provided.
             if (seed == ""):
@@ -1403,6 +1410,9 @@ class Randomizer:
                 self.typeReplaceMap = dict()
                 self.typeSub = typeReplacement != 1
                 self.typeExceptBosses = typeReplacement == 2
+
+                if (inFile == "m18_01_00_00"):
+                    eventTools.RemoveAsylumDemonWarping()
 
                 for line in f:
                     parts = line.split("\t")

@@ -8,6 +8,7 @@ idxItemLotAwardOnKill = 2
 idxGargoyleFix1 = 3
 idxGargoyleFix2 = 4
 idxMoonlightButterflyAnimation = 5
+idxAsylumDemonFix = 6
 
 class EventTools:
 
@@ -170,3 +171,9 @@ class EventTools:
         for i in range(len(self.eventHandler.events)):
             if (self.eventHandler.events[i].eventId == 11205382):
                 self.eventHandler.events[i] = self.templates[idxMoonlightButterflyAnimation]
+
+    def RemoveAsylumDemonWarping(self):
+        for i in range(len(self.eventHandler.events)):
+            if (self.eventHandler.events[i].eventId == 11810310):
+                self.eventHandler.events[i] = self.templates[idxAsylumDemonFix]
+                print("Removed Asylum Demon Warping")
