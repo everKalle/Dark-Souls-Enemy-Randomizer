@@ -1132,7 +1132,10 @@ class Randomizer:
                 return True
             elif ('c4510' in newID):    # Kalameet
                 return True
-
+        if ('c2230' in oldID):          # Stray Demon
+            if ('c4100' in newID):      # Artorius (Fixes a crash)
+                return True
+            
         if ('c2240' in oldID):          # Capra Demon (These replacements can get stuck floating above the arena)
             if ('c5290' in newID):      # Seath
                 return True
