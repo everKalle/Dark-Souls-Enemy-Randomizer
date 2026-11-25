@@ -1,0 +1,65 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Palette: warm parchment background, ash text, ember accent. -->
+  <Color x:Key="AccentColor">#9A3412</Color>
+  <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+  <SolidColorBrush x:Key="AccentSoftBrush" Color="#FDEBDD" />
+  <SolidColorBrush x:Key="WindowBrush" Color="#F7F5F2" />
+  <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="BorderBrush" Color="#D9D4CC" />
+  <SolidColorBrush x:Key="TextBrush" Color="#26221E" />
+  <SolidColorBrush x:Key="MutedTextBrush" Color="#8A837A" />
+  <SolidColorBrush x:Key="HighlightBrush" Color="#EFEBE5" />
+
+  <Style x:Key="AppWindow" TargetType="Window">
+    <Setter Property="Background" Value="{StaticResource WindowBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    <Setter Property="FontFamily" Value="Segoe UI" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="UseLayoutRounding" Value="True" />
+    <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+  </Style>
+
+  <Style TargetType="GroupBox">
+    <Setter Property="Margin" Value="0,0,8,8" />
+    <Setter Property="Padding" Value="8,6" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+    <Setter Property="Background" Value="{StaticResource PanelBrush}" />
+    <Setter Property="HeaderTemplate">
+      <Setter.Value>
+        <DataTemplate>
+          <TextBlock Text="{Binding}" FontWeight="SemiBold" />
+        </DataTemplate>
+      </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+      <Trigger Property="IsEnabled" Value="False">
+        <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <Style TargetType="Button">
+    <Setter Property="Padding" Value="12,5" />
+    <Setter Property="Margin" Value="0,0,0,6" />
+    <Setter Property="MinWidth" Value="80" />
+  </Style>
+
+  <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+    <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Padding" Value="12,8" />
+  </Style>
+
+  <Style TargetType="RadioButton">
+    <Setter Property="Margin" Value="0,2" />
+  </Style>
+
+  <Style TargetType="TextBox">
+    <Setter Property="Padding" Value="4,3" />
+  </Style>
+
+  <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+</ResourceDictionary>

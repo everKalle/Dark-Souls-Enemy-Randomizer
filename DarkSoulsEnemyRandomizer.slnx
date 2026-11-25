@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="CHANGELOG.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+    <File Path="docs/MIGRATION-PLAN.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/EnemyRandomizer.Core/EnemyRandomizer.Core.csproj" />
+    <Project Path="src/EnemyRandomizer.Formats/EnemyRandomizer.Formats.csproj" />
+    <Project Path="src/EnemyRandomizer.Infrastructure/EnemyRandomizer.Infrastructure.csproj" />
+    <Project Path="src/EnemyRandomizer.App/EnemyRandomizer.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <File Path="tests/Directory.Build.props" />
+    <Project Path="tests/EnemyRandomizer.Core.Tests/EnemyRandomizer.Core.Tests.csproj" />
+    <Project Path="tests/EnemyRandomizer.Infrastructure.Tests/EnemyRandomizer.Infrastructure.Tests.csproj" />
+    <Project Path="tests/EnemyRandomizer.App.Tests/EnemyRandomizer.App.Tests.csproj" />
+  </Folder>
+</Solution>

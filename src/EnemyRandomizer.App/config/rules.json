@@ -1,0 +1,53 @@
+{
+  "ReplacementRules": {
+    "UniqueEnemyLimit": {
+      "Default": 30,
+      "PerMap": {
+        "m14_00_00_00": { "Ptde": 24, "Remastered": 50 }
+      }
+    },
+    "UniqueBossResetCount": 22,
+    "ExcludedFromEnableAll": [ "c5201", "c5202" ],
+    "BannedPairings": [
+      {
+        "Reason": "Large flying bosses clip out of these arenas and die, or float above them (Gwyndolin, Capra Demon, Pinwheel, Iron Golem).",
+        "Originals": [ "c5320", "c2240", "c3320_0000", "c2320" ],
+        "Replacements": [ "c5290", "c5260", "c4510" ]
+      },
+      {
+        "Reason": "Trees are so tall that they block the walkway above Crystal Soldiers and Channelers.",
+        "Originals": [ "c2800", "c2370" ],
+        "Replacements": [ "c3350" ]
+      },
+      {
+        "Reason": "Seath does not fit the Stray Demon arena.",
+        "Originals": [ "c2230" ],
+        "Replacements": [ "c5290" ]
+      },
+      {
+        "Reason": "Easy asylum: no c5390 as Stray Demon.",
+        "Originals": [ "c2230" ],
+        "Replacements": [ "c5390" ],
+        "OnlyWithEasyAsylum": true
+      },
+      {
+        "Reason": "Artorias replacing Ceaseless Discharge crashes the game when he dies.",
+        "Originals": [ "c5250" ],
+        "Replacements": [ "c4100" ]
+      }
+    ],
+    "RandomRejections": [
+      {
+        "Name": "Gwyn",
+        "ModelId": "c5370",
+        "Option": "GwynNerf",
+        "ChanceByOptionValue": { "0": 85, "1": 60, "2": 0 }
+      },
+      {
+        "Name": "Lautrec",
+        "ModelId": "c2510",
+        "ChancePercent": 65
+      }
+    ]
+  }
+}

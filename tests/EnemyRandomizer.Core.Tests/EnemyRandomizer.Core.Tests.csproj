@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EnemyRandomizer.Core\EnemyRandomizer.Core.csproj" />
+  </ItemGroup>
+
+</Project>

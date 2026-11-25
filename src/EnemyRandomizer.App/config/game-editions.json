@@ -1,0 +1,63 @@
+{
+  "GameData": {
+    "CompressedSuffix": ".dcx",
+    "Folders": {
+      "MapStudio": "map/MapStudio",
+      "AiScripts": "script",
+      "Events": "event",
+      "Sfx": "sfx",
+      "SfxFileFormat": "FRPG_SfxBnd_{0}.ffxbnd",
+      "GameParam": "param/GameParam/GameParam.parambnd"
+    },
+    "NpcParamIndex": 12,
+    "MimicModelId": "c2780",
+    "FfxFiles": [
+      "CommonEffects", "m10", "m10_00", "m10_01", "m10_02", "m11", "m12", "m12_00", "m12_01", "m13", "m13_00", "m13_01",
+      "m13_02", "m14", "m14_00", "m14_01", "m15", "m15_00", "m15_01", "m16", "m17", "m18", "m18_00", "m18_01"
+    ],
+    "Maps": [
+      { "Id": "m10_00_00_00", "Name": "Depths", "StartEventEntityId": 1009400, "DisableRespawnEventId": 11009000, "StartIndices": { "Ptde": 250, "Remastered": 250 } },
+      { "Id": "m10_01_00_00", "Name": "Undead Burg/Parish", "StartEventEntityId": 1019400, "DisableRespawnEventId": 11019000, "StartIndices": { "Ptde": 495, "Remastered": 495 } },
+      { "Id": "m10_02_00_00", "Name": "Firelink Shrine", "StartEventEntityId": 1029400, "DisableRespawnEventId": 11029000, "StartIndices": { "Ptde": 171, "Remastered": 171 } },
+      { "Id": "m11_00_00_00", "Name": "Painted World", "StartEventEntityId": 1119400, "DisableRespawnEventId": 11109000, "StartIndices": { "Ptde": 259, "Remastered": 259 } },
+      { "Id": "m12_00_00_00", "Name": "Darkroot Garden", "StartEventEntityId": 1209400, "DisableRespawnEventId": 11209000, "StartIndices": { "Ptde": 280, "Remastered": 280 } },
+      { "Id": "m12_01_00_00", "Name": "DLC", "HasEditionSpecificReference": true, "StartEventEntityId": 1219400, "DisableRespawnEventId": 11219000, "StartIndices": { "Ptde": 459, "Remastered": 464 } },
+      { "Id": "m12_00_00_01", "Name": "DarkRoot Garden #2", "Randomized": false, "StartIndices": { "Ptde": 282, "Remastered": 282 } },
+      { "Id": "m13_00_00_00", "Name": "Catacombs", "HasEditionSpecificReference": true, "StartEventEntityId": 1309400, "DisableRespawnEventId": 11309000, "StartIndices": { "Ptde": 254, "Remastered": 254 } },
+      { "Id": "m13_01_00_00", "Name": "Tomb of the Giants", "StartEventEntityId": 1319400, "DisableRespawnEventId": 11319000, "StartIndices": { "Ptde": 242, "Remastered": 242 } },
+      { "Id": "m13_02_00_00", "Name": "Great Hollow & Ash Lake", "StartEventEntityId": 1329400, "DisableRespawnEventId": 11329000, "StartIndices": { "Ptde": 180, "Remastered": 181 } },
+      { "Id": "m14_00_00_00", "Name": "Blighttown", "StartEventEntityId": 1409400, "DisableRespawnEventId": 11409000, "StartIndices": { "Ptde": 342, "Remastered": 342 } },
+      { "Id": "m14_01_00_00", "Name": "Demon Ruins & Lost Izalith", "StartEventEntityId": 1419400, "DisableRespawnEventId": 11419000, "StartIndices": { "Ptde": 382, "Remastered": 382 } },
+      { "Id": "m15_00_00_00", "Name": "Sen's Fortress", "StartEventEntityId": 1509400, "DisableRespawnEventId": 11509000, "StartIndices": { "Ptde": 210, "Remastered": 210 } },
+      { "Id": "m15_01_00_00", "Name": "Anor Londo", "StartEventEntityId": 1519400, "DisableRespawnEventId": 11519000, "StartIndices": { "Ptde": 251, "Remastered": 251 } },
+      { "Id": "m16_00_00_00", "Name": "New Londo Ruins", "StartEventEntityId": 1609400, "DisableRespawnEventId": 11609000, "StartIndices": { "Ptde": 197, "Remastered": 197 } },
+      { "Id": "m17_00_00_00", "Name": "Duke's Archives & Crystal Cave", "StartEventEntityId": 1709400, "DisableRespawnEventId": 11709000, "StartIndices": { "Ptde": 307, "Remastered": 307 } },
+      { "Id": "m18_00_00_00", "Name": "Kiln of the First Flame", "StartEventEntityId": 1809400, "DisableRespawnEventId": 11809000, "StartIndices": { "Ptde": 84, "Remastered": 84 } },
+      { "Id": "m18_01_00_00", "Name": "Northern Undead Asylum", "StartEventEntityId": 1819400, "DisableRespawnEventId": 11819000, "StartIndices": { "Ptde": 154, "Remastered": 154 } }
+    ],
+    "Editions": {
+      "Ptde": {
+        "ExeName": "DARKSOULS.exe",
+        "UsesDcx": false,
+        "ExeHashes": {
+          "903a946273bfe123fe5c85740c3613374e2cf538564bb661db371c6cb5a421ff": "Unpacked",
+          "473de70f0dd03048ca5dea545508f6776206424494334a9da091fb27c8e5a23f": "UnpackedDebug",
+          "67bcab513c8f0ed6164279d85f302e06b1d8a53abff5df7f3d10e1d4dfd81459": "NotUnpacked",
+          "b6958f3f0db5fdb7ce6f56bff14353d8d81da8bae3456795a39dbe217c1897cf": "NotUnpackedDebug",
+          "5aaea26acfd72976812f00b0bf6dbdc82d78998e161d4e2c17d4a05684f24aad": "Patched",
+          "72d231a51635703f3224fdc1f155a148c02b40d2dc4854f27e2da4db64d63eea": "PatchedDebug"
+        },
+        "ExePatch": {
+          "Search": "68 00 00 A2 00",
+          "Replace": "68 00 00 DA 00",
+          "BackupName": "DARKSOULS.prerandomizer.exe",
+          "DebugBackupName": "DARKSOULS.prerandomizer.debug.exe"
+        }
+      },
+      "Remastered": {
+        "ExeName": "DarkSoulsRemastered.exe",
+        "UsesDcx": true
+      }
+    }
+  }
+}

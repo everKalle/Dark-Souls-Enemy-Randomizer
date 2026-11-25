@@ -1,0 +1,38 @@
+{
+  "Messages": {
+    "Texts": {
+      "StartupErrorsHeader": "The randomizer encountered following errors that must be resolved before you can use the randomizer (restart randomizer when the problems are resolved):",
+      "ExeNotUnpacked": "The exe has not been modified by UDSFM, are you sure you unpacked the game properly?",
+      "ExeDebugNotUnpacked": "The debug exe has not been modified by UDSFM, are you sure you unpacked the game properly?",
+      "ExeNotFound": "DARKSOULS.exe/DarkSoulsRemastered.exe not found, are you sure you placed the randomizer in the correct directory?",
+      "ExePatchPermissionDenied": "The randomizer did not have the permissions to modify DARKSOULS.exe. You might need to either install the game in a different location or run the randomizer as administrator.",
+      "UnknownExeTitle": "Unknown DARKSOULS.exe",
+      "UnknownExeText": "The checksum of DARKSOULS.exe is unknown, if you know what you're doing then proceed, otherwise it might be an unpacking issue maybe?\n\nOR the other possibility is that you're using a pirated copy of the game PunOko.",
+      "GameFilesMissingPtde": "One or more game files are missing. Make sure you unpacked the game files using UDSFM. Missing files:",
+      "GameFilesMissingRemastered": "One or more game files are missing. Try verifying the game cache in steam or reinstalling the game. Missing files:",
+      "NoFilesInFolder": "No required files found in {0}/, are you sure the game is properly unpacked (PTDE only) and the randomizer is placed in the correct directory?",
+      "FilesMissingInFolder": "{0}/{1} {2} files missing from {3}/",
+      "DataFolderMissing": "{0} folder not found, are you sure you unpacked the .zip file properly?",
+      "DataFileMissing": "{0} not found.",
+      "NoOriginalReferences": "Reference files in {0}/ not found.",
+      "OriginalReferencesMissing": "{0}/{1} reference files in {2}/ not found.",
+      "NoWritePermission": "Randomizer doesn't seem to have writing permissions here. You might need to either install the game in a different location or run the randomizer as administrator.",
+      "CopiesMissing": "{0}/{1} of {2} copies are missing from {3}.",
+      "CopiesInvalid": "{0}/{1} of {2} copies are invalid in {3}.",
+      "AboutTitle": "About",
+      "AboutText": "This is a .NET 10 migration of the Python Dark Souls Enemy Randomizer (v0.4.1.2), forked from:",
+      "AboutThanks": "Thanks to {0}, the original author of the Enemy Randomizer, and to everyone credited in the README.",
+      "CopyInfoTitle": "Enemy copy info",
+      "CopyInfoText": "The enemy placement copying lets you directly copy the enemy placement from a reference file if, for some reason, the same settings and seed fail to produce the same placement for different people.\n\nThe enemy placement file for each randomization is automatically saved in the 'enemyRandomizerData/refs' folder.\n\nTo copy the enemy placement from another person, ask them to send over the latest enemy placement text file from that folder and select it by clicking the 'Copy enemy placement' button.",
+      "TextConfigHelp": "This window allows you to generate a text representation of the currently selected settings and seed.\nAfter pressing 'Generate current settings as text' the text version of the current settings is put into the text field.\nYou can also paste a config into the text field and press 'Apply settings from text' to apply it.\n\nThis is useful if you want to get the same enemy configuration as a friend: one of you configures the randomizer, generates the text and sends it to the other person, who pastes it here and applies the settings and seed.\n\nMake sure you also enter a seed before generating this config.",
+      "TextConfigInvalid": "The text config is not valid: {0}",
+      "RevertAskEffects": "Restore effect files too?",
+      "UnsavedEnemyConfig": "You have unsaved changes, do you really wish to discard your changes and open a different enemy config?",
+      "EnemyConfigExists": "A custom enemy config named \"{0}\" already exists.\nDo you wish to overwrite that config?",
+      "EnemyConfigSaved": "Custom enemy config successfully saved as\n'{0}'",
+      "EnemyConfigSaveFailed": "Failed to save the custom config: {0}",
+      "EnemyConfigInvalidName": "'{0}' is not a valid config name.",
+      "ReferenceFileFilter": "Enemy placement reference (*.txt)|*.txt"
+    }
+  }
+}

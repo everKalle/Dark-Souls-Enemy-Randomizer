@@ -1,0 +1,18 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <Version>0.5.0</Version>
+    <Product>Dark Souls Enemy Randomizer</Product>
+    <Authors>Dark Souls Enemy Randomizer .NET contributors (original by rycheNhavalys)</Authors>
+    <RepositoryUrl>https://github.com/xtvsx/Dark-Souls-Enemy-Randomizer</RepositoryUrl>
+  </PropertyGroup>
+</Project>

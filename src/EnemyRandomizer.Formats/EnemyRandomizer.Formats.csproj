@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Game file formats (DCX, BND3, MSB, PARAM, LUAGNL, LUAINFO, EMEVD, FFX). Filled in migration step 4. -->
+  <PropertyGroup>
+    <RootNamespace>EnemyRandomizer.Formats</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EnemyRandomizer.Core\EnemyRandomizer.Core.csproj" />
+  </ItemGroup>
+
+</Project>

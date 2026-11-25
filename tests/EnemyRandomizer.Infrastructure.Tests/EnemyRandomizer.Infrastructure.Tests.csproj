@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EnemyRandomizer.Infrastructure\EnemyRandomizer.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Test against the real shipped config files. -->
+    <Content Include="..\..\src\EnemyRandomizer.App\config\*.json" Link="config\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\dist\enemyRandomizerData\replacement_ref\valid_new.txt" Link="data\valid_new.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

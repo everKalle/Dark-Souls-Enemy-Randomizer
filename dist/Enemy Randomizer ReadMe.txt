@@ -54,5 +54,7 @@ DuckyKoi - gifting me the remaster so I could port the randomizer to it.
 *Fixed some of the error messages giving information about PTDE when using the randomizer on Remastered.
 *Fixed missing .ffxbnd error message being shown twice.
 
---Changelogs for previous versions can be found on here on the nexusmods page:
-https://www.nexusmods.com/darksouls/mods/1407?tab=logs
+--Note:
+This is the last Python release (v0.4.1.2). The project is being migrated to .NET 10 as a fork of
+https://github.com/xtvsx/Dark-Souls-Enemy-Randomizer
+Thanks to rycheNhavalys, the original author of the Enemy Randomizer.

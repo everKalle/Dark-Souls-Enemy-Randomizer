@@ -1,0 +1,162 @@
+{
+  "RandomizerOptions": {
+    "Tabs": [
+      { "Id": "main", "Title": "Main Replacement Options" },
+      { "Id": "other", "Title": "Other Options" },
+      { "Id": "more", "Title": "Even More Options" }
+    ],
+    "Options": [
+      {
+        "Key": "BossMode", "LegacyIndex": 0, "Tab": "main", "Kind": "Choice", "Title": "Replace Bosses:", "Default": 1,
+        "Choices": [
+          { "Value": 0, "Label": "Don't replace", "Description": "Bosses will not be replaced." },
+          { "Value": 1, "Label": "Only with bosses", "Description": "Bosses will be replaced with bosses." },
+          { "Value": 2, "Label": "Only with normal enemies", "Description": "Bosses will be replaced with normal enemies." },
+          { "Value": 3, "Label": "With bosses or normal enemies", "Description": "Bosses will be replaced both with bosses and normal enemies." }
+        ]
+      },
+      {
+        "Key": "DifficultyMode", "LegacyIndex": 5, "Tab": "main", "Kind": "Choice", "Title": "Mode:", "Default": 3,
+        "Choices": [
+          { "Value": 4, "Label": "Difficulty curve + easy asylum", "Description": "Enemies will be replaced with enemies from other areas while still trying to maintain some sort of a difficulty curve. Uses a limited list for asylum to keep it easier for certain, even on looser difficulty settings.\nNOTICE: not really compatible with 'Replace normals only with bosses' and 'Replace bosses only with normals', you'll be seeing lots of unmodified enemies in those modes." },
+          { "Value": 1, "Label": "Random with difficulty curve", "Description": "Enemies will be replaced with enemies from other areas while still trying to maintain some sort of a difficulty curve.\nNOTICE: not really compatible with 'Replace normals only with bosses' and 'Replace bosses only with normals', you'll be seeing lots of unmodified enemies in those modes." },
+          { "Value": 3, "Label": "Fully random + easy asylum", "Description": "Any enemy/boss can be placed ANYWHERE in the world with asylum being the only exception. Keeps asylum easy so you don't have to fight someone like Manus with starting stats and equipment." },
+          { "Value": 2, "Label": "Fully random", "Description": "Any enemy/boss can be placed ANYWHERE in the world. So yes, you could find things like Manus or Nito in the Asylum." }
+        ]
+      },
+      {
+        "Key": "NormalMode", "LegacyIndex": 1, "Tab": "main", "Kind": "Choice", "Title": "Replace Normal Enemies:", "Default": 2,
+        "Choices": [
+          { "Value": 0, "Label": "Don't replace", "Description": "Normal enemies will not be replaced." },
+          { "Value": 1, "Label": "Only with bosses", "Description": "Normal enemies will be replaced with bosses.\nWould recommend you to set Replacement Chance to < 15%, otherwise it can become pretty difficult to beat the game." },
+          { "Value": 2, "Label": "Only with normal enemies", "Description": "Normal enemies will be replaced with normal enemies." },
+          { "Value": 3, "Label": "With bosses or normal enemies", "Description": "Normal enemies will be replaced both with bosses and normal enemies." }
+        ]
+      },
+      {
+        "Key": "DiffStrictness", "LegacyIndex": 10, "Tab": "main", "Kind": "Choice", "Title": "Difficulty strictness:", "Default": 1,
+        "EnabledWhen": [ { "Option": "DifficultyMode", "Values": [ 1, 4 ] } ],
+        "Choices": [
+          { "Value": 0, "Label": "Strict", "Description": "Difficulty curve is followed quite strictly: harder enemies can still appear in early-game but it's somewhat rare. Least variety, but most consistent difficulty.\n(Only has effect if mode is set to 'Random with difficulty curve')" },
+          { "Value": 1, "Label": "A bit loose", "Description": "Following the difficulty curve is a bit looser: a bit higher chance to get harder enemies in early game. A bit more variety, while maintaining relatively reasonable difficulty.\n(Only has effect if mode is set to 'Random with difficulty curve')" },
+          { "Value": 2, "Label": "Very loose", "Description": "Difficulty curve following is rather loose: enemy difficulty can vary much more and harder enemies in early game are more common. It's possible, in rare cases, to even see Manus in Asylum in this mode.\n(Only has effect if mode is set to 'Random with difficulty curve')" }
+        ]
+      },
+      {
+        "Key": "NpcMode", "LegacyIndex": 2, "Tab": "main", "Kind": "Choice", "Title": "Replace NPC-s:", "Default": 0,
+        "Choices": [
+          { "Value": 0, "Label": "Do not replace", "Description": "NPC-s will not be replaced." },
+          { "Value": 1, "Label": "Only with bosses", "Description": "Certain NPC-s will be replaced with bosses. Has no impact on talking with them." },
+          { "Value": 2, "Label": "Only with normal enemies", "Description": "Certain NPC-s will be replaced with normal enemies. Has no impact on talking with them." },
+          { "Value": 3, "Label": "With bosses or normal enemies", "Description": "Certain NPC-s can be replaced both with bosses and normal enemies. Has no impact on talking with them." }
+        ]
+      },
+      {
+        "Key": "FitMode", "LegacyIndex": 4, "Tab": "main", "Kind": "Choice", "Title": "Enemy placement:", "Default": 0,
+        "Choices": [
+          { "Value": 0, "Label": "Only where they fit", "Description": "Enemies will only be placed where they fit." },
+          { "Value": 1, "Label": "Anywhere", "Description": "Enemies can be placed anywhere, regardless of their size. May cause some NPC-s to become too big to be able to talk to them if NPC replacement is enabled." },
+          { "Value": 2, "Label": "Anywhere, except when replacing NPC-s", "Description": "Enemies can be placed anywhere, regardless of their size, except when replacing NPC-s (so size limit is enforced on them)." }
+        ]
+      },
+      {
+        "Key": "ReplaceChance", "LegacyIndex": 6, "Tab": "main", "Kind": "Slider", "Title": "Replacement chance (%):", "Default": 100, "Min": 0, "Max": 100,
+        "Description": "Chance that an enemy/boss will be replaced at all."
+      },
+      {
+        "Key": "BossChanceNormals", "LegacyIndex": 7, "Tab": "main", "Kind": "Slider", "Title": "Boss chance [Normal Enemies](%):", "Default": 10, "Min": 0, "Max": 100,
+        "Description": "Chance that a normal enemy or NPC will be replaced with a boss instead of a normal enemy. Only has effect when normal enemy or NPC mode is set to 'With bosses or normal enemies'.",
+        "EnabledWhen": [ { "Option": "NormalMode", "Values": [ 3 ] }, { "Option": "NpcMode", "Values": [ 3 ] } ]
+      },
+      {
+        "Key": "BossChanceBosses", "LegacyIndex": 8, "Tab": "main", "Kind": "Slider", "Title": "Boss chance [Bosses](%):", "Default": 90, "Min": 0, "Max": 100,
+        "Description": "Chance that a boss will be replaced with a boss instead of a normal enemy. Only has effect when boss mode is set to 'With bosses or normal enemies'.",
+        "EnabledWhen": [ { "Option": "BossMode", "Values": [ 3 ] } ]
+      },
+      {
+        "Key": "MimicMode", "LegacyIndex": 3, "Tab": "other", "Kind": "Choice", "Title": "Mimics:", "Default": 1,
+        "Choices": [
+          { "Value": 0, "Label": "Do not replace", "Description": "Mimics are not replaced." },
+          { "Value": 1, "Label": "Replace", "Description": "Mimics are replaced; in this version of the randomizer they will properly drop their items." }
+        ]
+      },
+      {
+        "Key": "TypeReplacement", "LegacyIndex": 14, "Tab": "other", "Kind": "Choice", "Title": "Type Replacement:", "Default": 1,
+        "Choices": [
+          { "Value": 0, "Label": "Enabled", "Description": "Type replacement enabled: if within one area there were originally multiple of the same enemy, then all of those enemies will be replaced with one type of enemy. For example: all Silver Knights in Anor Londo would be replaced with Darkwraiths, instead of individual Silver Knights being replaced by different enemies." },
+          { "Value": 2, "Label": "Enabled, except roaming bosses.", "Description": "Type replacement enabled, except for bosses that replace normal enemies (roaming bosses)." },
+          { "Value": 1, "Label": "Disabled", "Description": "Type replacement disabled, each enemy is randomized separately." }
+        ]
+      },
+      {
+        "Key": "GargoyleMode", "LegacyIndex": 9, "Tab": "other", "Kind": "Choice", "Title": "Gargoyle #2:", "Default": 1,
+        "Choices": [
+          { "Value": 0, "Label": "Do not replace", "Description": "The second gargoyle in the boss fight is not replaced." },
+          { "Value": 1, "Label": "Replace", "Description": "The second gargoyle in the boss fight IS replaced. Can potentially make the fight extremely difficult, e.g. if you get Kalameet+Manus there." }
+        ]
+      },
+      {
+        "Key": "PinwheelChaos", "LegacyIndex": 13, "Tab": "other", "Kind": "Choice", "Title": "Pinwheel Chaos:", "Default": 1,
+        "Choices": [
+          { "Value": 0, "Label": "Enabled", "Description": "The main Pinwheel in the boss fight is not replaced, but its clones are. Replaced clones have normal HP instead of being 1 hit kill.\n(A quite ridiculous and unfair mode; also can cause the game to lag severely during the boss fight with certain enemies)" },
+          { "Value": 1, "Label": "Disabled", "Description": "Pinwheel boss will be replaced as normal, a single enemy replacing the main Pinwheel." }
+        ]
+      },
+      {
+        "Key": "TPoseCity", "LegacyIndex": 11, "Tab": "other", "Kind": "Choice", "Title": "T-Posing enemies:", "Default": 0,
+        "Choices": [
+          { "Value": 0, "Label": "Enabled", "Description": "T-Posing enabled: enemies replacing enemies with special idle state retain the original enemy's idle animation, resulting in T-Posing most of the time." },
+          { "Value": 1, "Label": "Disabled", "Description": "T-Posing disabled: enemies replacing enemies with special idle state (like hollows in New Londo) have a proper animation assigned to them. Do note that most of these enemies will now be immediately hostile. NPC-s are still in T-Pose mode for that reason." }
+        ]
+      },
+      {
+        "Key": "GwynNerf", "LegacyIndex": 15, "Tab": "other", "Kind": "Choice", "Title": "Gwyn Spawn-Rate Nerf:", "Default": 1,
+        "Choices": [
+          { "Value": 0, "Label": "Strong", "Description": "When an enemy is chosen to be replaced by Gwyn, there is an 85% chance that a new enemy will be chosen instead." },
+          { "Value": 1, "Label": "Medium", "Description": "When an enemy is chosen to be replaced by Gwyn, there is a 60% chance that a new enemy will be chosen instead." },
+          { "Value": 2, "Label": "None", "Description": "Gwyn spawn rate is not nerfed." }
+        ]
+      },
+      {
+        "Key": "PreventSame", "LegacyIndex": 16, "Tab": "other", "Kind": "Choice", "Title": "Prevent replacement with same enemy:", "Default": 1,
+        "Choices": [
+          { "Value": 0, "Label": "Enabled", "Description": "Enemies are not allowed to be replaced with the same enemy (so a Hollow can't be replaced with another Hollow). Can result in less boss variety with the difficulty curve option in early game." },
+          { "Value": 1, "Label": "Disabled", "Description": "Enemies can be replaced with the same enemy (e.g. a Hollow can be replaced with a Hollow)." }
+        ]
+      },
+      {
+        "Key": "UniqueBosses", "LegacyIndex": 17, "Tab": "other", "Kind": "Choice", "Title": "Try for unique bosses:", "Default": 0,
+        "EnabledWhen": [ { "Option": "BossMode", "Values": [ 1, 3 ] } ],
+        "Choices": [
+          { "Value": 1, "Label": "Enabled", "Description": "When a boss is being replaced by a boss, the randomizer tries to spawn bosses that have not yet been used (whenever it's possible). Some boss repetition still happens." },
+          { "Value": 0, "Label": "Disabled", "Description": "When a boss is being replaced by a boss, the replacement is entirely random." }
+        ]
+      },
+      {
+        "Key": "BossSoulDrops", "LegacyIndex": 12, "Tab": "other", "Kind": "Slider", "Title": "Roaming boss soul drops (%):", "Default": 50, "Min": 0, "Max": 100,
+        "Description": "Controls the amount of souls bosses that replace normal enemies drop.\n(If you change this value and randomize while the game is running you'll have to quit the game and start it again for the soul amounts to change)"
+      },
+      {
+        "Key": "RespawningBosses", "LegacyIndex": 18, "Tab": "more", "Kind": "Choice", "Title": "Bosses replacing normals respawning:", "Default": 0,
+        "Choices": [
+          { "Value": 0, "Label": "Enabled", "Description": "Bosses replacing normal enemies respawn like normal enemies." },
+          { "Value": 1, "Label": "Disabled", "Description": "Bosses that replace normal enemies stay dead permanently once killed." }
+        ]
+      },
+      {
+        "Key": "HostileNpcs", "LegacyIndex": 19, "Tab": "more", "Kind": "Choice", "Title": "Hostile NPCs:", "Default": 0,
+        "Choices": [
+          { "Value": 1, "Label": "Enabled", "Description": "Hostile Undead Merchant, Andre, Vamos and Gough can be placed into the world as enemies." },
+          { "Value": 0, "Label": "Disabled", "Description": "Hostile Undead Merchant, Andre, Vamos and Gough are not placed into the world." }
+        ]
+      },
+      {
+        "Key": "MosquitoReplacement", "LegacyIndex": 20, "Tab": "more", "Kind": "Choice", "Title": "Respawning mosquito replacement:", "Default": 1,
+        "Choices": [
+          { "Value": 1, "Label": "Enabled", "Description": "The respawning mosquitoes in Blighttown swamp are replaced. The replacing enemy will respawn multiple times just like the original mosquitoes." },
+          { "Value": 0, "Label": "Disabled", "Description": "The respawning mosquitoes in Blighttown swamp are NOT replaced." }
+        ]
+      }
+    ]
+  }
+}
