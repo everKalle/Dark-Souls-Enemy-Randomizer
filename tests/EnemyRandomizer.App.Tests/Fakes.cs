@@ -4,6 +4,7 @@ using EnemyRandomizer.Core;
 using EnemyRandomizer.Core.Abstractions;
 using EnemyRandomizer.Core.Configuration;
 using EnemyRandomizer.Core.EnemyConfigs;
+using EnemyRandomizer.Core.Installation;
 using EnemyRandomizer.Core.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -33,7 +34,10 @@ internal sealed class FakeDialogs : IDialogService, IUiThread
     public bool ConfirmAnswer { get; set; } = true;
     public int ProgressRuns { get; private set; }
 
+    public List<string> Warnings { get; } = [];
+
     public void ShowInfo(string title, string message) => Infos.Add(message);
+    public void ShowWarning(string title, string message) => Warnings.Add(message);
     public void ShowError(string title, string message) => Errors.Add(message);
     public bool Confirm(string title, string message) => ConfirmAnswer;
     public string? OpenFile(string filter, string? initialDirectory) => null;
@@ -41,9 +45,9 @@ internal sealed class FakeDialogs : IDialogService, IUiThread
     public void ShowEnemyConfigEditor() { }
     public void ShowAbout() { }
 
-    public Task<OperationResult> RunWithProgressAsync(
+    public Task<T> RunWithProgressAsync<T>(
         string title,
-        Func<IProgress<OperationProgress>, CancellationToken, Task<OperationResult>> work)
+        Func<IProgress<OperationProgress>, CancellationToken, Task<T>> work)
     {
         ProgressRuns++;
         return work(new Progress<OperationProgress>(), CancellationToken.None);
@@ -112,13 +116,34 @@ internal sealed class FakePaths : IGamePaths
     public string DataDirectory => "C:/game/data";
     public string CustomConfigDirectory => "C:/game/data/customConfigs";
     public string ReplacementReferenceDirectory => "C:/game/data/replacement_ref";
+    public string OriginalEnemyReferenceDirectory => "C:/game/data/original_enemies_ref";
+    public string InGame(string relativePath) => "C:/game/" + relativePath;
+    public string InData(string relativePath) => "C:/game/data/" + relativePath;
     public string LayoutReferenceDirectory => "C:/game/data/refs";
     public string LogDirectory => "C:/game/data/logs";
+    public string MapStudioCopyDirectory => "C:/game/data/mapStudioCopies";
+    public string MapAiCopyDirectory => "C:/game/data/mapAiCopies";
+    public string AiScriptDirectory => "C:/game/data/aiscripts";
+    public string ParamBackupDirectory => "C:/game/data/param";
     public string LastConfigFile => "C:/game/data/lastConfig.json";
     public string LegacyLastConfigFile => "C:/game/data/lastConfig.txt";
 }
 
-internal sealed class FakeInstallation(GameEdition? edition) : IGameInstallation
+internal sealed class FakeInstallationStatus(params InstallationReport[] reports) : IInstallationStatus
 {
-    public GameEdition? Edition { get; } = edition;
+    private int _calls;
+
+    public InstallationReport? Report { get; private set; }
+
+    public int Calls => _calls;
+
+    /// <summary>Returns the given reports one after another (the last one repeats).</summary>
+    public Task<InstallationReport> CheckAsync(IProgress<OperationProgress> progress, CancellationToken cancellationToken)
+    {
+        Report = reports[Math.Min(_calls++, reports.Length - 1)];
+        return Task.FromResult(Report);
+    }
+
+    public static FakeInstallationStatus Ok(ExeState state = ExeState.Patched) =>
+        new(new InstallationReport(ExeStates.EditionOf(state), state, []));
 }

@@ -103,6 +103,9 @@ public sealed class MapDefinition
     /// </summary>
     public bool Randomized { get; set; } = true;
 
+    /// <summary>For derived maps: the randomized map whose creatures are copied after randomizing.</summary>
+    public string? CopyOf { get; set; }
+
     /// <summary>True when <c>original_enemies_ref</c> has separate <c>.ptde</c>/<c>.remaster</c> files.</summary>
     public bool HasEditionSpecificReference { get; set; }
 

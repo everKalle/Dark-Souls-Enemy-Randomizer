@@ -10,6 +10,8 @@ public interface IDialogService
 {
     void ShowInfo(string title, string message);
 
+    void ShowWarning(string title, string message);
+
     void ShowError(string title, string message);
 
     bool Confirm(string title, string message);
@@ -24,9 +26,9 @@ public interface IDialogService
     void ShowAbout();
 
     /// <summary>Runs <paramref name="work"/> off the UI thread while a progress window is shown.</summary>
-    Task<OperationResult> RunWithProgressAsync(
+    Task<T> RunWithProgressAsync<T>(
         string title,
-        Func<IProgress<OperationProgress>, CancellationToken, Task<OperationResult>> work);
+        Func<IProgress<OperationProgress>, CancellationToken, Task<T>> work);
 }
 
 /// <summary>Posts work to the UI thread (used to undo a selection after the binding finished).</summary>

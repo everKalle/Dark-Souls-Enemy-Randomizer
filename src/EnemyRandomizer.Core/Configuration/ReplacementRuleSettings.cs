@@ -3,7 +3,7 @@ namespace EnemyRandomizer.Core.Configuration;
 /// <summary>
 /// Rules that limit which enemy may replace which (<c>config/rules.json</c>, section <c>ReplacementRules</c>).
 /// Legacy <c>randomizer_rng.py:1124-1207</c> (banned pairings, Gwyn/Lautrec nerf) and <c>:203, 1361-1367</c> (unique limits).
-/// Per-map special cases (<c>:1427-1521</c>) are added in migration step 7 together with the code that uses them.
+/// and the per-map special cases (<c>:1426-1521</c>) as <see cref="CreatureRules"/>.
 /// </summary>
 public sealed class ReplacementRuleSettings : IValidatableSettings
 {
@@ -19,11 +19,27 @@ public sealed class ReplacementRuleSettings : IValidatableSettings
 
     public List<BannedPairing> BannedPairings { get; set; } = [];
 
+    /// <summary>
+    /// Bosses that get a "with souls" NpcParam copy (id + 50) used when they replace normal enemies, in NpcParam
+    /// row order (legacy <c>NpcParam.BossSouls</c>).
+    /// </summary>
+    public List<BossSoulDefinition> BossSouls { get; set; } = [];
+
+    /// <summary>NpcParam rows whose first item lot is removed (legacy <c>NpcParam.ToRemoveItemLots</c>).</summary>
+    public List<int> NpcParamsWithoutItemLot { get; set; } = [];
+
     public List<RandomRejection> RandomRejections { get; set; } = [];
+
+    /// <summary>Per-map special cases: skips, position fixes, reclassifications, forced replacements.</summary>
+    public List<CreatureRule> CreatureRules { get; set; } = [];
+
+    /// <summary>Bosses that keep their normal NpcParam when they replace a normal enemy (no "with souls" copy).</summary>
+    public List<string> NoSoulVariant { get; set; } = [];
 
     public IEnumerable<string> Validate()
     {
         var errors = new List<string>();
+        errors.AddRange(CreatureRules.SelectMany(r => r.Validate(null)));
         errors.AddRange(UniqueEnemyLimit.Validate());
         errors.AddRange(ValidationHelpers.RequireRange(UniqueBossResetCount, 1, 1000, "ReplacementRules.UniqueBossResetCount"));
 
@@ -35,6 +51,15 @@ public sealed class ReplacementRuleSettings : IValidatableSettings
                 errors.Add($"Banned pairing '{pairing.Reason}' needs originals and replacements.");
             }
         }
+
+        errors.AddRange(ValidationHelpers.Duplicates(BossSouls.Select(b => b.NpcParamId), "boss soul NpcParam id"));
+        if (!BossSouls.Select(b => b.NpcParamId).SequenceEqual(BossSouls.Select(b => b.NpcParamId).Order()))
+        {
+            errors.Add("ReplacementRules.BossSouls must be sorted by NpcParamId (rows are matched in order).");
+        }
+
+        errors.AddRange(BossSouls.Where(b => b.Souls < 0 || string.IsNullOrWhiteSpace(b.Name))
+                                 .Select(b => $"Boss soul entry {b.NpcParamId} needs a name and non-negative souls."));
 
         foreach (var rejection in RandomRejections)
         {
@@ -86,6 +111,14 @@ public sealed class BannedPairing
 
     /// <summary>Only applies in the "easy asylum" modes.</summary>
     public bool OnlyWithEasyAsylum { get; set; }
+}
+
+/// <summary>Soul reward of a boss when it replaces a normal enemy (100 % = the original boss fight reward).</summary>
+public sealed class BossSoulDefinition
+{
+    public int NpcParamId { get; set; }
+    public int Souls { get; set; }
+    public string Name { get; set; } = "";
 }
 
 /// <summary>A picked replacement with this model is thrown away with the given chance (spawn-rate nerf).</summary>

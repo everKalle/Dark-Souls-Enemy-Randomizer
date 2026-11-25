@@ -24,9 +24,29 @@ public sealed class MapPatchSettings : IValidatableSettings
 
     public EasyAsylumSettings EasyAsylum { get; set; } = new();
 
+    /// <summary>Maps where no tail cuts are added, per edition (Remastered DLC: bonfire issues).</summary>
+    public Dictionary<GameEdition, List<string>> TailCutsDisabled { get; set; } = [];
+
+    public EventTemplateSettings EventTemplates { get; set; } = new();
+
+    /// <summary>Events replaced by their template version when a part is replaced by a different enemy.</summary>
+    public List<EventFix> EventFixes { get; set; } = [];
+
+    /// <summary>Map id → event ids that are always replaced by their template version.</summary>
+    public Dictionary<string, List<uint>> AlwaysReplacedEvents { get; set; } = [];
+
+    /// <summary>Single argument changes of original event instructions.</summary>
+    public List<InstructionPatch> InstructionPatches { get; set; } = [];
+
+    public bool TailCutsAllowed(GameEdition edition, string mapId) =>
+        !TailCutsDisabled.TryGetValue(edition, out var maps) || !maps.Contains(mapId);
+
     public IEnumerable<string> Validate()
     {
         var errors = new List<string>();
+        errors.AddRange(ValidationHelpers.RequireText(EventTemplates.File, "MapPatches.EventTemplates.File"));
+        errors.AddRange(EventFixes.Where(f => f.TemplateEventIds.Count == 0 || string.IsNullOrWhiteSpace(f.Part))
+                                  .Select(f => $"Event fix '{f.Name}' needs a part and template event ids."));
         foreach (var (mapId, parts) in AmbushPositions.Concat(OtherPositions))
         {
             errors.AddRange(parts.Where(p => p.Value.Length != 3)
@@ -57,9 +77,56 @@ public sealed class TailCutDefinition
     public int ItemLotId { get; set; }
 }
 
+/// <summary>Event templates (compiled from <see cref="File"/> in the data folder) added to every randomized map.</summary>
+public sealed class EventTemplateSettings
+{
+    public string File { get; set; } = "";
+
+    /// <summary>Template that keeps a roaming boss dead; its copy gets the map's <c>DisableRespawnEventId</c>.</summary>
+    public uint DisableRespawn { get; set; }
+
+    /// <summary>Template for tail cuts; copy id = DisableRespawnEventId + <see cref="TailCutOffset"/>.</summary>
+    public uint TailCut { get; set; }
+
+    public int TailCutOffset { get; set; }
+
+    /// <summary>Template that awards an item lot on death; copy id = DisableRespawnEventId + <see cref="ItemLotOffset"/>.</summary>
+    public uint ItemLotOnDeath { get; set; }
+
+    public int ItemLotOffset { get; set; }
+}
+
+/// <summary>Replaces events by their template version when <see cref="Part"/> gets a different enemy.</summary>
+public sealed class EventFix
+{
+    public string Name { get; set; } = "";
+    public List<string> Maps { get; set; } = [];
+    public string Part { get; set; } = "";
+
+    /// <summary>No fix when the replacement id contains this (e.g. the boss replaced by itself).</summary>
+    public string UnlessReplacementContains { get; set; } = "";
+
+    public List<uint> TemplateEventIds { get; set; } = [];
+}
+
+/// <summary>Sets one argument of an instruction, if the instruction at that position is the expected one.</summary>
+public sealed class InstructionPatch
+{
+    public string Name { get; set; } = "";
+    public string Map { get; set; } = "";
+    public uint EventId { get; set; }
+    public int InstructionIndex { get; set; }
+    public int Class { get; set; }
+    public int Index { get; set; }
+    public int ArgumentIndex { get; set; }
+    public int Value { get; set; }
+}
+
 /// <summary>Fixed pools used for the Northern Undead Asylum in "easy asylum" modes.</summary>
 public sealed class EasyAsylumSettings
 {
+    public string MapId { get; set; } = "";
+
     /// <summary>Indices into the enemy catalog (valid_new.txt rows) allowed for normal enemies.</summary>
     public List<int> NormalEnemyIndices { get; set; } = [];
 

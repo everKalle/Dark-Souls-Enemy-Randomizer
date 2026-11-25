@@ -56,6 +56,15 @@ public static class MessageKeys
     public const string EnemyConfigSaveFailed = nameof(EnemyConfigSaveFailed);
     public const string EnemyConfigInvalidName = nameof(EnemyConfigInvalidName);
     public const string ReferenceFileFilter = nameof(ReferenceFileFilter);
+    public const string SetupProgressTitle = nameof(SetupProgressTitle);
+    public const string CopiesFailedTitle = nameof(CopiesFailedTitle);
+    public const string CopiesFailedText = nameof(CopiesFailedText);
+    public const string EffectsWriteFailedTitle = nameof(EffectsWriteFailedTitle);
+    public const string EffectsWriteFailedText = nameof(EffectsWriteFailedText);
+    public const string RevertDone = nameof(RevertDone);
+    public const string RevertParamMissing = nameof(RevertParamMissing);
+    public const string SetupFailed = nameof(SetupFailed);
+    public const string RandomizeDone = nameof(RandomizeDone);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -64,6 +73,8 @@ public static class MessageKeys
         FilesMissingInFolder, DataFolderMissing, DataFileMissing, NoOriginalReferences, OriginalReferencesMissing,
         NoWritePermission, CopiesMissing, CopiesInvalid, AboutTitle, AboutText, AboutThanks, CopyInfoTitle,
         CopyInfoText, TextConfigHelp, TextConfigInvalid, RevertAskEffects, UnsavedEnemyConfig, EnemyConfigExists,
-        EnemyConfigSaved, EnemyConfigSaveFailed, EnemyConfigInvalidName, ReferenceFileFilter,
+        EnemyConfigSaved, EnemyConfigSaveFailed, EnemyConfigInvalidName, ReferenceFileFilter, SetupProgressTitle,
+        CopiesFailedTitle, CopiesFailedText, EffectsWriteFailedTitle, EffectsWriteFailedText, RevertDone, RevertParamMissing,
+        SetupFailed, RandomizeDone,
     ];
 }

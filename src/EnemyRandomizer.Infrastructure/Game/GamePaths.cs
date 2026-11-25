@@ -21,8 +21,13 @@ public sealed class GamePaths : IGamePaths
         DataDirectory = Path.Combine(GameDirectory, settings.DataFolder);
         CustomConfigDirectory = Path.Combine(DataDirectory, folders.CustomConfigs);
         ReplacementReferenceDirectory = Path.Combine(DataDirectory, folders.ReplacementReferences);
+        OriginalEnemyReferenceDirectory = Path.Combine(DataDirectory, folders.OriginalEnemyReferences);
         LayoutReferenceDirectory = Path.Combine(DataDirectory, folders.LayoutReferences);
         LogDirectory = Path.Combine(DataDirectory, folders.Logs);
+        MapStudioCopyDirectory = Path.Combine(DataDirectory, folders.MapStudioCopies);
+        MapAiCopyDirectory = Path.Combine(DataDirectory, folders.MapAiCopies);
+        AiScriptDirectory = Path.Combine(DataDirectory, folders.AiScripts);
+        ParamBackupDirectory = Path.Combine(DataDirectory, folders.ParamBackup);
         LastConfigFile = Path.Combine(DataDirectory, "lastConfig.json");
         LegacyLastConfigFile = Path.Combine(DataDirectory, "lastConfig.txt");
     }
@@ -31,10 +36,22 @@ public sealed class GamePaths : IGamePaths
     public string DataDirectory { get; }
     public string CustomConfigDirectory { get; }
     public string ReplacementReferenceDirectory { get; }
+    public string OriginalEnemyReferenceDirectory { get; }
     public string LayoutReferenceDirectory { get; }
     public string LogDirectory { get; }
+    public string MapStudioCopyDirectory { get; }
+    public string MapAiCopyDirectory { get; }
+    public string AiScriptDirectory { get; }
+    public string ParamBackupDirectory { get; }
     public string LastConfigFile { get; }
     public string LegacyLastConfigFile { get; }
+
+    public string InGame(string relativePath) => Combine(GameDirectory, relativePath);
+
+    public string InData(string relativePath) => Combine(DataDirectory, relativePath);
+
+    private static string Combine(string root, string relativePath) =>
+        Path.GetFullPath(Path.Combine(root, relativePath.Replace('/', Path.DirectorySeparatorChar)));
 
     /// <summary>Empty setting means "the folder of the exe" (the exe is installed into the game folder).</summary>
     public static string ResolveGameDirectory(string configured, string baseDirectory) =>

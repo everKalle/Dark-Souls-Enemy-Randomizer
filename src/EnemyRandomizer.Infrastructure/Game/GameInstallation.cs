@@ -1,30 +1,46 @@
+using System.Security.Cryptography;
 using EnemyRandomizer.Core;
 using EnemyRandomizer.Core.Abstractions;
 using EnemyRandomizer.Core.Configuration;
+using EnemyRandomizer.Core.Installation;
 using Microsoft.Extensions.Options;
 
 namespace EnemyRandomizer.Infrastructure.Game;
 
 /// <summary>
-/// Detects the edition by which exe exists (PTDE is checked first, like <c>check_exe.py:31-52</c>).
-/// Hash based exe states follow in migration step 3.
+/// Detects edition and exe state (legacy <c>check_exe.py:17-52</c>): a PTDE exe is identified by its SHA-256,
+/// unknown hashes are <see cref="ExeState.Unknown"/>; otherwise the Remastered exe is looked for.
 /// </summary>
-public sealed class GameInstallation : IGameInstallation
+public sealed class GameInstallation(IGamePaths paths, IOptions<GameDataSettings> gameData) : IGameInstallation
 {
-    private readonly Lazy<GameEdition?> _edition;
+    private ExeState? _state;
 
-    public GameInstallation(IGamePaths paths, IOptions<GameDataSettings> gameData)
+    public ExeState ExeState => _state ??= Detect(paths.GameDirectory, gameData.Value);
+
+    public GameEdition? Edition => ExeStates.EditionOf(ExeState);
+
+    public void Refresh() => _state = null;
+
+    internal static ExeState Detect(string gameDirectory, GameDataSettings data)
     {
-        ArgumentNullException.ThrowIfNull(paths);
-        ArgumentNullException.ThrowIfNull(gameData);
-        _edition = new Lazy<GameEdition?>(() => Detect(paths.GameDirectory, gameData.Value));
+        var ptde = data.Editions[GameEdition.Ptde];
+        var ptdeExe = Path.Combine(gameDirectory, ptde.ExeName);
+        if (File.Exists(ptdeExe))
+        {
+            var hash = Sha256(ptdeExe);
+            return ptde.ExeHashes.FirstOrDefault(h => string.Equals(h.Key, hash, StringComparison.OrdinalIgnoreCase)) is { Key: not null } match
+                ? match.Value
+                : ExeState.Unknown;
+        }
+
+        return File.Exists(Path.Combine(gameDirectory, data.Editions[GameEdition.Remastered].ExeName))
+            ? ExeState.Remastered
+            : ExeState.NotFound;
     }
 
-    public GameEdition? Edition => _edition.Value;
-
-    internal static GameEdition? Detect(string gameDirectory, GameDataSettings gameData) =>
-        new[] { GameEdition.Ptde, GameEdition.Remastered }
-            .Where(e => gameData.Editions.ContainsKey(e))
-            .Select(e => (GameEdition?)e)
-            .FirstOrDefault(e => File.Exists(Path.Combine(gameDirectory, gameData.Editions[e!.Value].ExeName)));
+    internal static string Sha256(string file)
+    {
+        using var stream = File.OpenRead(file);
+        return Convert.ToHexStringLower(SHA256.HashData(stream));
+    }
 }

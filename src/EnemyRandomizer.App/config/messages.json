@@ -32,7 +32,16 @@
       "EnemyConfigSaved": "Custom enemy config successfully saved as\n'{0}'",
       "EnemyConfigSaveFailed": "Failed to save the custom config: {0}",
       "EnemyConfigInvalidName": "'{0}' is not a valid config name.",
-      "ReferenceFileFilter": "Enemy placement reference (*.txt)|*.txt"
+      "ReferenceFileFilter": "Enemy placement reference (*.txt)|*.txt",
+      "SetupProgressTitle": "Checking and preparing files, please wait",
+      "CopiesFailedTitle": "Copies failed",
+      "CopiesFailedText": "Something went wrong with file copies.\nRetry copying?",
+      "EffectsWriteFailedTitle": "Failed to save .ffxbnd",
+      "EffectsWriteFailedText": "Failed to write modifications to FRPG_SfxBnd_CommonEffects.ffxbnd{0}\n\nMany enemy visual effects will be missing, including certain projectiles being invisible.\n\nTo fix this try launching the randomizer as administrator or installing the game in a different location.",
+      "RevertDone": "{0} original game files restored.",
+      "RevertParamMissing": "The GameParam backup was not found, NpcParam was not restored.",
+      "SetupFailed": "Preparing the game files failed: {0}",
+      "RandomizeDone": "{0} enemies replaced.\n\nSeed: {1}\nEnemy placement saved as refs/{2}"
     }
   }
 }

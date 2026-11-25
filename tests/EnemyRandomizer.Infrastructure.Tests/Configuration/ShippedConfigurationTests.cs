@@ -109,6 +109,19 @@ public sealed class ShippedConfigurationTests : IDisposable
     }
 
     [Fact]
+    public void Creature_rules_use_existing_options_and_enemies()
+    {
+        var rules = Get<ReplacementRuleSettings>();
+        var options = Get<RandomizerOptionSettings>();
+        var catalogIds = File.ReadLines(Path.Combine(AppContext.BaseDirectory, "data", "valid_new.txt"))
+                             .Skip(1).Select(l => l.Split('\t')[0]).ToHashSet();
+
+        Assert.Empty(rules.CreatureRules.SelectMany(r => r.Validate(options)));
+        Assert.All(rules.CreatureRules.Where(r => r.ForcedEnemyId is not null), r => Assert.Contains(r.ForcedEnemyId!, catalogIds));
+        Assert.Equal(27, rules.CreatureRules.Count);
+    }
+
+    [Fact]
     public void Gwyn_rejection_follows_option_value()
     {
         var gwyn = Get<ReplacementRuleSettings>().RandomRejections.Single(r => r.Name == "Gwyn");

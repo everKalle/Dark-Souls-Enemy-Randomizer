@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using EnemyRandomizer.App.Hosting;
+using EnemyRandomizer.App.ViewModels;
 using EnemyRandomizer.App.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,6 +38,7 @@ public partial class App : Application
         var window = _host.Services.GetRequiredService<MainWindow>();
         MainWindow = window;
         window.Show();
+        await _host.Services.GetRequiredService<MainViewModel>().InitializeAsync().ConfigureAwait(true);
     }
 
     protected override async void OnExit(ExitEventArgs e)

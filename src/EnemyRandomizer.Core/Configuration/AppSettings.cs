@@ -23,6 +23,9 @@ public sealed class AppSettings : IValidatableSettings
     /// <summary>Sub folders inside <see cref="DataFolder"/>.</summary>
     public DataFolderSettings DataFolders { get; set; } = new();
 
+    /// <summary>Files inside <see cref="DataFolder"/> that must exist (legacy <c>checkProperUnpack</c>).</summary>
+    public List<string> RequiredDataFiles { get; set; } = [];
+
     /// <summary>How often a failed first-time file copy is retried.</summary>
     public int FileCopyRetries { get; set; }
 

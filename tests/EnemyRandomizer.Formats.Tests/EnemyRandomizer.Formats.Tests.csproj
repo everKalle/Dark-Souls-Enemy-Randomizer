@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EnemyRandomizer.Formats\EnemyRandomizer.Formats.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reference data: event files shipped with v0.4.1.2 and the dkscript sources they were built from. -->
+    <None Include="..\..\dist\enemyRandomizerData\emevd\**\*" Link="samples\emevd\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\legacy\python\eventscripts\**\*.dkscript" Link="samples\dkscript\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\dist\enemyRandomizerData\eventTemplates.dkscript" Link="samples\eventTemplates.dkscript" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

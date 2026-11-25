@@ -22,7 +22,7 @@
       { "Id": "m11_00_00_00", "Name": "Painted World", "StartEventEntityId": 1119400, "DisableRespawnEventId": 11109000, "StartIndices": { "Ptde": 259, "Remastered": 259 } },
       { "Id": "m12_00_00_00", "Name": "Darkroot Garden", "StartEventEntityId": 1209400, "DisableRespawnEventId": 11209000, "StartIndices": { "Ptde": 280, "Remastered": 280 } },
       { "Id": "m12_01_00_00", "Name": "DLC", "HasEditionSpecificReference": true, "StartEventEntityId": 1219400, "DisableRespawnEventId": 11219000, "StartIndices": { "Ptde": 459, "Remastered": 464 } },
-      { "Id": "m12_00_00_01", "Name": "DarkRoot Garden #2", "Randomized": false, "StartIndices": { "Ptde": 282, "Remastered": 282 } },
+      { "Id": "m12_00_00_01", "Name": "DarkRoot Garden #2", "Randomized": false, "CopyOf": "m12_00_00_00", "StartIndices": { "Ptde": 282, "Remastered": 282 } },
       { "Id": "m13_00_00_00", "Name": "Catacombs", "HasEditionSpecificReference": true, "StartEventEntityId": 1309400, "DisableRespawnEventId": 11309000, "StartIndices": { "Ptde": 254, "Remastered": 254 } },
       { "Id": "m13_01_00_00", "Name": "Tomb of the Giants", "StartEventEntityId": 1319400, "DisableRespawnEventId": 11319000, "StartIndices": { "Ptde": 242, "Remastered": 242 } },
       { "Id": "m13_02_00_00", "Name": "Great Hollow & Ash Lake", "StartEventEntityId": 1329400, "DisableRespawnEventId": 11329000, "StartIndices": { "Ptde": 180, "Remastered": 181 } },

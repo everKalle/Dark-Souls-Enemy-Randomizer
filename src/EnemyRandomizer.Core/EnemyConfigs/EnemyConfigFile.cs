@@ -11,11 +11,11 @@ public sealed record EnemyConfigEntry(string Id, string Name, bool Enabled, stri
 /// </summary>
 public static class EnemyConfigFile
 {
-    private const int IdColumn = 0;
-    private const int NameColumn = 1;
-    private const int IgnoredColumn = 3;
-    private const int CommentColumn = 10;
-    private const int MinColumns = 10;
+    private const int IdColumn = Data.DataFiles.Catalog.Id;
+    private const int NameColumn = Data.DataFiles.Catalog.Name;
+    private const int IgnoredColumn = Data.DataFiles.Catalog.Ignored;
+    private const int CommentColumn = Data.DataFiles.Catalog.Comment;
+    private const int MinColumns = Data.DataFiles.Catalog.MinColumns;
 
     /// <summary>Reads the enemy rows (header skipped).</summary>
     public static IReadOnlyList<EnemyConfigEntry> Parse(IEnumerable<string> lines, GameEdition edition)
@@ -31,7 +31,7 @@ public static class EnemyConfigFile
             return new EnemyConfigEntry(
                 parts[IdColumn],
                 parts[NameColumn],
-                IsEnabled(parts[IgnoredColumn], edition),
+                Data.EnemyDefinition.IsEnabled(parts[IgnoredColumn], edition),
                 parts.Length > CommentColumn ? parts[CommentColumn] : "");
         }).ToList();
     }
@@ -63,13 +63,6 @@ public static class EnemyConfigFile
 
         return string.Join('\n', output);
     }
-
-    private static bool IsEnabled(string ignored, GameEdition edition) => ignored switch
-    {
-        "1" => false,
-        "2" => edition == GameEdition.Remastered,
-        _ => true,
-    };
 
     private static IEnumerable<string[]> Rows(IEnumerable<string> lines) =>
         lines.Skip(1)

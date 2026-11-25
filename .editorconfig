@@ -46,6 +46,15 @@ dotnet_naming_symbols.interfaces.applicable_kinds = interface
 dotnet_naming_style.prefix_i.required_prefix = I
 dotnet_naming_style.prefix_i.capitalization = pascal_case
 
+# static readonly fields are PascalCase (checked before the underscore rule)
+dotnet_naming_rule.static_readonly_pascal.severity = warning
+dotnet_naming_rule.static_readonly_pascal.symbols = static_readonly_fields
+dotnet_naming_rule.static_readonly_pascal.style = pascal
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.applicable_accessibilities = private
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = static, readonly
+dotnet_naming_style.pascal.capitalization = pascal_case
+
 dotnet_naming_rule.private_fields_underscore.severity = warning
 dotnet_naming_rule.private_fields_underscore.symbols = private_fields
 dotnet_naming_rule.private_fields_underscore.style = underscore_camel

@@ -102,9 +102,33 @@
     <!-- Description panel -->
     <Border Grid.Row="1" Grid.Column="0" Background="{StaticResource PanelBrush}"
             BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4">
-      <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="6">
-        <ItemsControl ItemsSource="{Binding SelectedTab.Options}" ItemTemplate="{StaticResource DescriptionTemplate}" />
-      </ScrollViewer>
+      <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="6"
+                      Visibility="{Binding HasStartupErrors, Converter={StaticResource InverseBoolToVisibility}}">
+          <ItemsControl ItemsSource="{Binding SelectedTab.Options}" ItemTemplate="{StaticResource DescriptionTemplate}" />
+        </ScrollViewer>
+
+        <!-- Startup problems replace the descriptions (legacy message area in red) -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="14"
+                      Visibility="{Binding HasStartupErrors, Converter={StaticResource BoolToVisibility}}">
+          <StackPanel>
+            <TextBlock Text="{Binding StartupErrorsHeader}" TextWrapping="Wrap" FontWeight="SemiBold"
+                       Foreground="{StaticResource ErrorBrush}" Margin="0,0,0,12" />
+            <ItemsControl ItemsSource="{Binding StartupErrors}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <BulletDecorator Margin="0,0,0,8">
+                    <BulletDecorator.Bullet>
+                      <TextBlock Text="•" Foreground="{StaticResource ErrorBrush}" />
+                    </BulletDecorator.Bullet>
+                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="8,0,0,0" />
+                  </BulletDecorator>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
     </Border>
 
     <!-- Option tabs -->

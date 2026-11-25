@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="EnemyRandomizer.Infrastructure.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\EnemyRandomizer.Formats\EnemyRandomizer.Formats.csproj" />
   </ItemGroup>
 

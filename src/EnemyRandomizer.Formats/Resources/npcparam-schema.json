@@ -1,0 +1,675 @@
+{
+  "_source": "legacy/python/NpcParam.py ParamTypes + ParamEndTypes, converted 1:1. Types: Python struct codes (little-endian, packed). Bit fields: LSB first.",
+  "Fields": [
+    {
+      "Name": "behaviorVariationId",
+      "Type": "i"
+    },
+    {
+      "Name": "aiThinkId",
+      "Type": "i"
+    },
+    {
+      "Name": "nameId",
+      "Type": "i"
+    },
+    {
+      "Name": "turnVellocity",
+      "Type": "f"
+    },
+    {
+      "Name": "hitHeight",
+      "Type": "f"
+    },
+    {
+      "Name": "hitRadius",
+      "Type": "f"
+    },
+    {
+      "Name": "weight",
+      "Type": "I"
+    },
+    {
+      "Name": "hitYOffset",
+      "Type": "f"
+    },
+    {
+      "Name": "hp",
+      "Type": "I"
+    },
+    {
+      "Name": "mp",
+      "Type": "I"
+    },
+    {
+      "Name": "getSoul",
+      "Type": "I"
+    },
+    {
+      "Name": "itemLotId_1",
+      "Type": "i"
+    },
+    {
+      "Name": "itemLotId_2",
+      "Type": "i"
+    },
+    {
+      "Name": "itemLotId_3",
+      "Type": "i"
+    },
+    {
+      "Name": "itemLotId_4",
+      "Type": "i"
+    },
+    {
+      "Name": "itemLotId_5",
+      "Type": "i"
+    },
+    {
+      "Name": "itemLotId_6",
+      "Type": "i"
+    },
+    {
+      "Name": "humanityLotId",
+      "Type": "i"
+    },
+    {
+      "Name": "spEffectID0",
+      "Type": "i"
+    },
+    {
+      "Name": "spEffectID1",
+      "Type": "i"
+    },
+    {
+      "Name": "spEffectID2",
+      "Type": "i"
+    },
+    {
+      "Name": "spEffectID3",
+      "Type": "i"
+    },
+    {
+      "Name": "spEffectID4",
+      "Type": "i"
+    },
+    {
+      "Name": "spEffectID5",
+      "Type": "i"
+    },
+    {
+      "Name": "spEffectID6",
+      "Type": "i"
+    },
+    {
+      "Name": "spEffectID7",
+      "Type": "i"
+    },
+    {
+      "Name": "GameClearSpEffectID",
+      "Type": "i"
+    },
+    {
+      "Name": "physGuardCutRate",
+      "Type": "f"
+    },
+    {
+      "Name": "magGuardCutRate",
+      "Type": "f"
+    },
+    {
+      "Name": "fireGuardCutRate",
+      "Type": "f"
+    },
+    {
+      "Name": "thunGuardCutRate",
+      "Type": "f"
+    },
+    {
+      "Name": "animIdOffset",
+      "Type": "i"
+    },
+    {
+      "Name": "moveAnimId",
+      "Type": "i"
+    },
+    {
+      "Name": "spMoveAnimId1",
+      "Type": "i"
+    },
+    {
+      "Name": "spMoveAnimId2",
+      "Type": "i"
+    },
+    {
+      "Name": "networkWarpDist",
+      "Type": "f"
+    },
+    {
+      "Name": "dbgBehaviorR1",
+      "Type": "i"
+    },
+    {
+      "Name": "dbgBehaviorL1",
+      "Type": "i"
+    },
+    {
+      "Name": "dbgBehaviorR2",
+      "Type": "i"
+    },
+    {
+      "Name": "dbgBehaviorL2",
+      "Type": "i"
+    },
+    {
+      "Name": "dbgBehaviorRL",
+      "Type": "i"
+    },
+    {
+      "Name": "dbgBehaviorRR",
+      "Type": "i"
+    },
+    {
+      "Name": "dbgBehaviorRD",
+      "Type": "i"
+    },
+    {
+      "Name": "dbgBehaviorRU",
+      "Type": "i"
+    },
+    {
+      "Name": "dbgBehaviorLL",
+      "Type": "i"
+    },
+    {
+      "Name": "dbgBehaviorLR",
+      "Type": "i"
+    },
+    {
+      "Name": "dbgBehaviorLD",
+      "Type": "i"
+    },
+    {
+      "Name": "dbgBehaviorLU",
+      "Type": "i"
+    },
+    {
+      "Name": "animIdOffset2",
+      "Type": "i"
+    },
+    {
+      "Name": "partsDamageRate1",
+      "Type": "f"
+    },
+    {
+      "Name": "partsDamageRate2",
+      "Type": "f"
+    },
+    {
+      "Name": "partsDamageRate3",
+      "Type": "f"
+    },
+    {
+      "Name": "partsDamageRate4",
+      "Type": "f"
+    },
+    {
+      "Name": "partsDamageRate5",
+      "Type": "f"
+    },
+    {
+      "Name": "partsDamageRate6",
+      "Type": "f"
+    },
+    {
+      "Name": "partsDamageRate7",
+      "Type": "f"
+    },
+    {
+      "Name": "partsDamageRate8",
+      "Type": "f"
+    },
+    {
+      "Name": "weakPartsDamageRate",
+      "Type": "f"
+    },
+    {
+      "Name": "superArmorRecoverCorrection",
+      "Type": "f"
+    },
+    {
+      "Name": "superArmorBrakeKnockbackDist",
+      "Type": "f"
+    },
+    {
+      "Name": "stamina",
+      "Type": "H"
+    },
+    {
+      "Name": "staminaRecoverBaseVel",
+      "Type": "H"
+    },
+    {
+      "Name": "def_phys",
+      "Type": "H"
+    },
+    {
+      "Name": "def_slash",
+      "Type": "h"
+    },
+    {
+      "Name": "def_blow",
+      "Type": "h"
+    },
+    {
+      "Name": "def_thrust",
+      "Type": "h"
+    },
+    {
+      "Name": "def_mag",
+      "Type": "H"
+    },
+    {
+      "Name": "def_fire",
+      "Type": "H"
+    },
+    {
+      "Name": "def_thunder",
+      "Type": "H"
+    },
+    {
+      "Name": "defFlickPower",
+      "Type": "H"
+    },
+    {
+      "Name": "resist_poison",
+      "Type": "H"
+    },
+    {
+      "Name": "resist_desease",
+      "Type": "H"
+    },
+    {
+      "Name": "resist_blood",
+      "Type": "H"
+    },
+    {
+      "Name": "resist_curse",
+      "Type": "H"
+    },
+    {
+      "Name": "ghostModelId",
+      "Type": "h"
+    },
+    {
+      "Name": "normalChangeResouceId",
+      "Type": "h"
+    },
+    {
+      "Name": "guardAngle",
+      "Type": "h"
+    },
+    {
+      "Name": "slashGuardCutRate",
+      "Type": "h"
+    },
+    {
+      "Name": "blowGuardCutRate",
+      "Type": "h"
+    },
+    {
+      "Name": "thrustGuardCutRate",
+      "Type": "h"
+    },
+    {
+      "Name": "superArmorDurability",
+      "Type": "h"
+    },
+    {
+      "Name": "normalChangeTexChrId",
+      "Type": "h"
+    },
+    {
+      "Name": "dropType",
+      "Type": "H"
+    },
+    {
+      "Name": "knockbackRate",
+      "Type": "B"
+    },
+    {
+      "Name": "knockbackParamId",
+      "Type": "B"
+    },
+    {
+      "Name": "fallDamageDump",
+      "Type": "B"
+    },
+    {
+      "Name": "staminaGuardDef",
+      "Type": "B"
+    },
+    {
+      "Name": "pcAttrB",
+      "Type": "B"
+    },
+    {
+      "Name": "pcAttrW",
+      "Type": "B"
+    },
+    {
+      "Name": "pcAttrL",
+      "Type": "B"
+    },
+    {
+      "Name": "pcAttrR",
+      "Type": "B"
+    },
+    {
+      "Name": "areaAttrB",
+      "Type": "B"
+    },
+    {
+      "Name": "areaAttrW",
+      "Type": "B"
+    },
+    {
+      "Name": "areaAttrL",
+      "Type": "B"
+    },
+    {
+      "Name": "areaAttrR",
+      "Type": "B"
+    },
+    {
+      "Name": "mpRecoverBaseVel",
+      "Type": "B"
+    },
+    {
+      "Name": "flickDamageCutRate",
+      "Type": "B"
+    },
+    {
+      "Name": "defaultLodParamId",
+      "Type": "b"
+    },
+    {
+      "Name": "drawType",
+      "Type": "B"
+    },
+    {
+      "Name": "npcType",
+      "Type": "B"
+    },
+    {
+      "Name": "teamType",
+      "Type": "B"
+    },
+    {
+      "Name": "moveType",
+      "Type": "B"
+    },
+    {
+      "Name": "lockDist",
+      "Type": "B"
+    },
+    {
+      "Name": "material",
+      "Type": "B"
+    },
+    {
+      "Name": "materialSfx",
+      "Type": "B"
+    },
+    {
+      "Name": "material_Weak",
+      "Type": "B"
+    },
+    {
+      "Name": "materialSfx_Weak",
+      "Type": "B"
+    },
+    {
+      "Name": "partsDamageType",
+      "Type": "B"
+    },
+    {
+      "Name": "maxUndurationAng",
+      "Type": "B"
+    },
+    {
+      "Name": "guardLevel",
+      "Type": "b"
+    },
+    {
+      "Name": "burnSfxType",
+      "Type": "B"
+    },
+    {
+      "Name": "poisonGuardResist",
+      "Type": "b"
+    },
+    {
+      "Name": "diseaseGuardResist",
+      "Type": "b"
+    },
+    {
+      "Name": "bloodGuardResist",
+      "Type": "b"
+    },
+    {
+      "Name": "curseGuardResist",
+      "Type": "b"
+    },
+    {
+      "Name": "parryAttack",
+      "Type": "B"
+    },
+    {
+      "Name": "parryDefence",
+      "Type": "B"
+    },
+    {
+      "Name": "sfxSize",
+      "Type": "B"
+    },
+    {
+      "Name": "pushOutCamRegionRadius",
+      "Type": "B"
+    },
+    {
+      "Name": "hitStopType",
+      "Type": "B"
+    },
+    {
+      "Name": "ladderEndChkOffsetTop",
+      "Type": "B"
+    },
+    {
+      "Name": "ladderEndChkOffsetLow",
+      "Type": "B"
+    }
+  ],
+  "BitFields": [
+    {
+      "Name": "useRagdollCamHit:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "disableClothRigidHit:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "useRagdoll:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "isDemon:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "isGhost:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "isNoDamageMotion:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "isUnduration:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "isChangeWanderGhost:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask0:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask1:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask2:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask3:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask4:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask5:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask6:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask7:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask8:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask9:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask10:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask11:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask12:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask13:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask14:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "modelDispMask15:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "isEnableNeckTurn:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "disableRespawn:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "isMoveAnimWait:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "isCrowd:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "isWeakSaint:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "isWeakA:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "isWeakB:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "pad1:1",
+      "Kind": "B",
+      "Bits": 1
+    },
+    {
+      "Name": "vowType:3",
+      "Kind": "B",
+      "Bits": 3
+    },
+    {
+      "Name": "disableInitializeDead:1",
+      "Kind": "?",
+      "Bits": 1
+    },
+    {
+      "Name": "pad3:4",
+      "Kind": "B",
+      "Bits": 4
+    },
+    {
+      "Name": "pad2[6]",
+      "Kind": "B",
+      "Bits": 48
+    }
+  ]
+}

@@ -2,6 +2,7 @@ using EnemyRandomizer.App.ViewModels;
 using EnemyRandomizer.App.ViewModels.Options;
 using EnemyRandomizer.Core;
 using EnemyRandomizer.Core.Configuration;
+using EnemyRandomizer.Core.Installation;
 using EnemyRandomizer.Core.Settings;
 
 namespace EnemyRandomizer.App.Tests;
@@ -13,7 +14,7 @@ public class MainViewModelTests
     private readonly FakeEnemyConfigs _configs = new();
     private readonly FakeRandomizer _randomizer = new();
 
-    private MainViewModel Create() => new(
+    private MainViewModel Create(FakeInstallationStatus? status = null) => new(
         ShippedConfig.Get<AppSettings>(),
         ShippedConfig.Get<RandomizerOptionSettings>(),
         ShippedConfig.Get<MessageSettings>(),
@@ -23,15 +24,103 @@ public class MainViewModelTests
         _randomizer,
         _dialogs,
         new FakePaths(),
-        new FakeInstallation(GameEdition.Ptde));
+        status ?? FakeInstallationStatus.Ok());
+
+    private async Task<MainViewModel> Started(FakeInstallationStatus? status = null)
+    {
+        var vm = Create(status);
+        await vm.InitializeAsync();
+        return vm;
+    }
+
+    [Fact]
+    public void Commands_are_disabled_until_startup_checks_finished() =>
+        Assert.False(Create().RandomizeCommand.CanExecute(null));
+
+    [Fact]
+    public async Task Startup_problems_are_shown_and_block_running()
+    {
+        var report = new InstallationReport(GameEdition.Ptde, ExeState.NotUnpacked,
+        [
+            new InstallationProblem(MessageKeys.ExeNotUnpacked),
+            new InstallationProblem(MessageKeys.FilesMissingInFolder, 2, 18, ".msb", "map/MapStudio"),
+        ]);
+
+        var vm = await Started(new FakeInstallationStatus(report));
+
+        Assert.True(vm.HasStartupErrors);
+        Assert.Contains("UDSFM", vm.StartupErrors[0], StringComparison.Ordinal);
+        Assert.Equal("2/18 .msb files missing from map/MapStudio/", vm.StartupErrors[1]);
+        Assert.False(vm.RandomizeCommand.CanExecute(null));
+        Assert.False(vm.RevertCommand.CanExecute(null));
+        Assert.False(vm.CopyPlacementCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task Unknown_exe_warns_once_but_allows_running()
+    {
+        var vm = await Started(FakeInstallationStatus.Ok(ExeState.Unknown));
+
+        Assert.Single(_dialogs.Warnings);
+        Assert.True(vm.RandomizeCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task Effect_write_failure_is_a_warning_only()
+    {
+        var report = new InstallationReport(GameEdition.Remastered, ExeState.Remastered, [])
+        {
+            Warnings = [new InstallationProblem(MessageKeys.EffectsWriteFailedText, ".dcx")],
+        };
+
+        var vm = await Started(new FakeInstallationStatus(report));
+
+        Assert.Contains("CommonEffects.ffxbnd.dcx", Assert.Single(_dialogs.Warnings), StringComparison.Ordinal);
+        Assert.True(vm.RandomizeCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task Failed_copies_ask_to_retry_until_they_succeed()
+    {
+        var failed = new InstallationReport(GameEdition.Ptde, ExeState.Patched, [new InstallationProblem(MessageKeys.CopiesMissing, 1, 18, ".msb", "x")])
+        {
+            CopiesFailed = true,
+        };
+        var status = new FakeInstallationStatus(failed, failed, new InstallationReport(GameEdition.Ptde, ExeState.Patched, []));
+
+        var vm = await Started(status);
+
+        Assert.Equal(3, status.Calls);
+        Assert.False(vm.HasStartupErrors);
+        Assert.True(vm.RandomizeCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task Declining_the_retry_keeps_the_copy_problem()
+    {
+        var failed = new InstallationReport(GameEdition.Ptde, ExeState.Patched, [new InstallationProblem(MessageKeys.CopiesMissing, 1, 18, ".msb", "x")])
+        {
+            CopiesFailed = true,
+        };
+        _dialogs.ConfirmAnswer = false;
+
+        var vm = await Started(new FakeInstallationStatus(failed));
+
+        Assert.True(vm.HasStartupErrors);
+        Assert.False(vm.RandomizeCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task Title_shows_current_mode() =>
+        Assert.EndsWith("[Current Mode: REMASTERED]", (await Started(FakeInstallationStatus.Ok(ExeState.Remastered))).Title, StringComparison.Ordinal);
 
     private static OptionViewModel Option(MainViewModel vm, string key) =>
         vm.Tabs.SelectMany(t => t.Options).Single(o => o.Key == key);
 
     [Fact]
-    public void Starts_with_defaults_when_nothing_saved()
+    public async Task Starts_with_defaults_when_nothing_saved()
     {
-        var vm = Create();
+        var vm = await Started();
 
         Assert.Equal(3, vm.Tabs.Count);
         Assert.Equal(21, vm.Tabs.Sum(t => t.Options.Count));
@@ -88,14 +177,14 @@ public class MainViewModelTests
     [Fact]
     public async Task Randomize_saves_settings_and_reports_result()
     {
-        var vm = Create();
+        var vm = await Started();
         vm.Seed = " seed ";
 
         await vm.RandomizeCommand.ExecuteAsync(null);
 
         Assert.Equal("seed", _store.Saved!.Seed);
         Assert.Equal("seed", _randomizer.LastSettings!.Seed);
-        Assert.Equal(1, _dialogs.ProgressRuns);
+        Assert.Equal(2, _dialogs.ProgressRuns); // startup checks + randomize
         Assert.Equal(["done"], _dialogs.Infos);
         Assert.False(vm.IsBusy);
     }

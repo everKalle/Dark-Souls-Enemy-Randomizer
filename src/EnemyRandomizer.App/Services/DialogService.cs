@@ -18,6 +18,8 @@ public sealed class DialogService(IServiceProvider services) : IDialogService, I
 
     public void ShowInfo(string title, string message) => Show(title, message, MessageBoxImage.Information);
 
+    public void ShowWarning(string title, string message) => Show(title, message, MessageBoxImage.Warning);
+
     public void ShowError(string title, string message) => Show(title, message, MessageBoxImage.Error);
 
     public bool Confirm(string title, string message) =>
@@ -47,9 +49,9 @@ public sealed class DialogService(IServiceProvider services) : IDialogService, I
         window.ShowDialog();
     }
 
-    public async Task<OperationResult> RunWithProgressAsync(
+    public async Task<T> RunWithProgressAsync<T>(
         string title,
-        Func<IProgress<OperationProgress>, CancellationToken, Task<OperationResult>> work)
+        Func<IProgress<OperationProgress>, CancellationToken, Task<T>> work)
     {
         ArgumentNullException.ThrowIfNull(work);
 

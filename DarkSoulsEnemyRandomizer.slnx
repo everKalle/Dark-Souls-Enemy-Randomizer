@@ -20,5 +20,6 @@
     <Project Path="tests/EnemyRandomizer.Core.Tests/EnemyRandomizer.Core.Tests.csproj" />
     <Project Path="tests/EnemyRandomizer.Infrastructure.Tests/EnemyRandomizer.Infrastructure.Tests.csproj" />
     <Project Path="tests/EnemyRandomizer.App.Tests/EnemyRandomizer.App.Tests.csproj" />
+    <Project Path="tests/EnemyRandomizer.Formats.Tests/EnemyRandomizer.Formats.Tests.csproj" />
   </Folder>
 </Solution>

@@ -65,7 +65,27 @@
       { "ModelId": "c5350", "Name": "Bell Gargoyle", "RelativeModelIndex": 129, "NpcParamId": 535200, "PartNpcType": 5350, "ItemLotId": 53520000 },
       { "ModelId": "c5351", "Name": "Anor Londo Gargoyle", "RelativeModelIndex": 130, "NpcParamId": 535300, "PartNpcType": 5351, "ItemLotId": 53530000 }
     ],
+    "TailCutsDisabled": { "Remastered": [ "m12_01_00_00" ] },
+    "EventTemplates": {
+      "File": "eventTemplates.dkscript",
+      "DisableRespawn": 10009000,
+      "TailCut": 10009010,
+      "TailCutOffset": 200,
+      "ItemLotOnDeath": 10008800,
+      "ItemLotOffset": -200
+    },
+    "EventFixes": [
+      { "Name": "Second Bell Gargoyle replaced", "Maps": [ "m10_01_00_00" ], "Part": "c5350_0001", "UnlessReplacementContains": "c5350", "TemplateEventIds": [ 11015396, 11015382 ] },
+      { "Name": "No forced Moonlight Butterfly intro animation", "Maps": [ "m12_00_00_00" ], "Part": "c3230_0000", "UnlessReplacementContains": "c3230", "TemplateEventIds": [ 11205382 ] }
+    ],
+    "AlwaysReplacedEvents": { "m18_01_00_00": [ 11810310 ] },
+    "InstructionPatches": [
+      { "Name": "Painted World undead dragon: gravity back on", "Map": "m11_00_00_00", "EventId": 11100400, "InstructionIndex": 7, "Class": 2004, "Index": 10, "ArgumentIndex": 1, "Value": 1 },
+      { "Name": "New Londo undead dragon: collision back on", "Map": "m16_00_00_00", "EventId": 11600400, "InstructionIndex": 0, "Class": 2004, "Index": 31, "ArgumentIndex": 0, "Value": 0 },
+      { "Name": "New Londo undead dragon: gravity back on", "Map": "m16_00_00_00", "EventId": 11600400, "InstructionIndex": 1, "Class": 2004, "Index": 10, "ArgumentIndex": 1, "Value": 1 }
+    ],
     "EasyAsylum": {
+      "MapId": "m18_01_00_00",
       "NormalEnemyIndices": [ 1, 4, 12, 16, 23, 24, 28, 29, 30, 62 ],
       "BossIndices": [ 8, 9, 118 ],
       "Targets": [

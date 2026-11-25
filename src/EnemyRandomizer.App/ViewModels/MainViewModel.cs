@@ -7,6 +7,7 @@ using EnemyRandomizer.App.ViewModels.Options;
 using EnemyRandomizer.Core;
 using EnemyRandomizer.Core.Abstractions;
 using EnemyRandomizer.Core.Configuration;
+using EnemyRandomizer.Core.Installation;
 using EnemyRandomizer.Core.Settings;
 using Microsoft.Extensions.Options;
 
@@ -34,13 +35,14 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
         IRandomizerService randomizer,
         IDialogService dialogs,
         IGamePaths paths,
-        IGameInstallation installation)
+        IInstallationStatus installation)
     {
         ArgumentNullException.ThrowIfNull(app);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(messages);
         ArgumentNullException.ThrowIfNull(factory);
         ArgumentNullException.ThrowIfNull(installation);
+        ArgumentNullException.ThrowIfNull(paths);
 
         _options = options.Value;
         _messages = messages.Value;
@@ -67,22 +69,101 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
             .ToList();
         SelectedTab = Tabs[0];
 
-        Title = $"{app.Value.Title} v{GetVersion()} (.NET)";
-        EditionText = installation.Edition switch
-        {
-            GameEdition.Ptde => "Current mode: PTDE",
-            GameEdition.Remastered => "Current mode: REMASTERED",
-            _ => "No Dark Souls installation found in " + paths.GameDirectory,
-        };
+        _installation = installation;
+        _baseTitle = $"{app.Value.Title} v{GetVersion()} (.NET)";
+        Title = _baseTitle;
+        EditionText = "Checking game files...";
+        StartupErrorsHeader = _messages.Get(MessageKeys.StartupErrorsHeader);
 
         _enemyConfigs.ConfigsChanged += (_, _) => RefreshEnemyConfigs();
         RefreshEnemyConfigs();
         Apply(_lastConfig.Load() ?? RandomizerSettings.CreateDefault(_options));
     }
 
-    public string Title { get; }
+    private readonly IInstallationStatus _installation;
+    private readonly string _baseTitle;
 
-    public string EditionText { get; }
+    [ObservableProperty]
+    public partial string Title { get; set; }
+
+    [ObservableProperty]
+    public partial string EditionText { get; set; }
+
+    /// <summary>Result of the startup checks; <c>null</c> until <see cref="InitializeAsync"/> finished.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RandomizeCommand), nameof(RevertCommand), nameof(CopyPlacementCommand))]
+    public partial InstallationReport? Report { get; set; }
+
+    /// <summary>Problems that block randomizing; shown instead of the option descriptions.</summary>
+    public ObservableCollection<string> StartupErrors { get; } = [];
+
+    public string StartupErrorsHeader { get; }
+
+    [ObservableProperty]
+    public partial bool HasStartupErrors { get; set; }
+
+    /// <summary>
+    /// Runs the startup checks and the first-time setup with a progress window once the main window is visible,
+    /// asks to retry failed copies and shows startup warnings (legacy <c>randomizer.py:625-648</c>).
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            var title = _messages.Get(MessageKeys.SetupProgressTitle);
+            var report = await _dialogs.RunWithProgressAsync(title, _installation.CheckAsync).ConfigureAwait(true);
+            while (report.CopiesFailed && _dialogs.Confirm(_messages.Get(MessageKeys.CopiesFailedTitle), _messages.Get(MessageKeys.CopiesFailedText)))
+            {
+                report = await _dialogs.RunWithProgressAsync(title, _installation.CheckAsync).ConfigureAwait(true);
+            }
+
+            ShowReport(report);
+        }
+#pragma warning disable CA1031 // A crash during setup must end up as a visible startup error.
+        catch (Exception ex)
+#pragma warning restore CA1031
+        {
+            ShowReport(new InstallationReport(null, ExeState.NotFound, [new InstallationProblem(MessageKeys.SetupFailed, ex.Message)]));
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private void ShowReport(InstallationReport report)
+    {
+        Report = report;
+        StartupErrors.Clear();
+        foreach (var problem in report.Problems)
+        {
+            StartupErrors.Add(_messages.Get(problem.MessageKey, problem.Arguments));
+        }
+
+        HasStartupErrors = StartupErrors.Count > 0;
+
+        var mode = report.Edition switch
+        {
+            GameEdition.Ptde => "PTDE",
+            GameEdition.Remastered => "REMASTERED",
+            _ => null,
+        };
+        Title = _baseTitle + (mode is null ? "" : $"    [Current Mode: {mode}]");
+        EditionText = mode is null
+            ? "No Dark Souls installation found in " + _paths.GameDirectory
+            : $"Current mode: {mode} · exe: {report.ExeState} · {_paths.GameDirectory}";
+
+        if (report.ShowUnknownExeWarning)
+        {
+            _dialogs.ShowWarning(_messages.Get(MessageKeys.UnknownExeTitle), _messages.Get(MessageKeys.UnknownExeText));
+        }
+
+        foreach (var warning in report.Warnings)
+        {
+            _dialogs.ShowWarning(_messages.Get(MessageKeys.EffectsWriteFailedTitle), _messages.Get(warning.MessageKey, warning.Arguments));
+        }
+    }
 
     public IReadOnlyList<OptionTabViewModel> Tabs { get; }
 
@@ -163,7 +244,7 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
     [RelayCommand]
     private void ShowAbout() => _dialogs.ShowAbout();
 
-    private bool CanRun() => !IsBusy;
+    private bool CanRun() => !IsBusy && Report is { CanRandomize: true };
 
     private async Task RunAsync(
         string title,

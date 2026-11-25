@@ -1,9 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Game file formats (DCX, BND3, MSB, PARAM, LUAGNL, LUAINFO, EMEVD, FFX). Filled in migration step 4. -->
+  <!-- Game file formats: pure byte[] <-> model, no file system access (migration step 4). -->
   <PropertyGroup>
     <RootNamespace>EnemyRandomizer.Formats</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\*.json" LogicalName="EnemyRandomizer.Formats.Resources.%(Filename)%(Extension)" />
+    <InternalsVisibleTo Include="EnemyRandomizer.Formats.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\EnemyRandomizer.Core\EnemyRandomizer.Core.csproj" />
