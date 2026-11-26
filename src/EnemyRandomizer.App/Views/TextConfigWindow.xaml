@@ -11,12 +11,29 @@
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
   <StackPanel Margin="16">
     <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" Margin="0,0,0,12" />
-    <TextBox Text="{Binding ConfigText, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" Margin="0,0,0,4" />
-    <TextBlock Text="This field does NOT update automatically, press 'Generate' to update."
-               Foreground="{StaticResource MutedTextBrush}" FontSize="11" Margin="0,0,0,12" />
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-      <Button Content="Generate current settings as text" Command="{Binding GenerateCommand}" Margin="0,0,8,0" />
-      <Button Content="Apply settings from text" Command="{Binding ApplyCommand}" Style="{StaticResource PrimaryButton}" Margin="0" />
+    <TextBox Text="{Binding ConfigText, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas"
+             TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" MinHeight="110" MaxHeight="220"
+             AutomationProperties.Name="Settings text" Margin="0,0,0,4" />
+    <TextBlock Text="This field does not update by itself. Select Generate to fill it with your current settings."
+               Foreground="{DynamicResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,6" />
+    <TextBlock Text="{Binding ErrorText}" Foreground="{DynamicResource ErrorBrush}" TextWrapping="Wrap"
+               AutomationProperties.LiveSetting="Assertive" Margin="0,0,0,6">
+      <TextBlock.Style>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+          <Style.Triggers>
+            <Trigger Property="Text" Value="">
+              <Setter Property="Visibility" Value="Collapsed" />
+            </Trigger>
+          </Style.Triggers>
+        </Style>
+      </TextBlock.Style>
+    </TextBlock>
+    <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource MutedTextBrush}"
+               AutomationProperties.LiveSetting="Polite" Margin="0,0,0,6" />
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
+      <Button Content="_Generate from current settings" Command="{Binding GenerateCommand}" Margin="0,0,8,0" />
+      <Button Content="_Copy" Command="{Binding CopyCommand}" Margin="0,0,8,0" />
+      <Button Content="_Apply to settings" Command="{Binding ApplyCommand}" Style="{StaticResource PrimaryButton}" Margin="0" />
     </StackPanel>
   </StackPanel>
 </Window>

@@ -8,6 +8,32 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: `M
 This project is a .NET 10 migration and fork of <https://github.com/xtvsx/Dark-Souls-Enemy-Randomizer>.
 Thanks to rycheNhavalys, the original author of the Enemy Randomizer.
 
+### UI/UX refactor of the WPF app
+#### Added
+- Light and dark theme (follows Windows by default, switch in the menu), a systematic palette with readable muted text,
+  and visible keyboard focus on all controls.
+- Keyboard and screen-reader support: access keys, Ctrl+R to randomize, F1 for About, automation names, and option help
+  that also shows on keyboard focus (not only on mouse hover).
+- New layout: category list, option grid, help pane and a fixed bottom bar with Randomize and Revert.
+- In-window progress overlay with a Cancel button for Randomize and Copy placement. Revert and the startup check cannot
+  be cancelled, because stopping them half way would leave mixed files.
+- Result banner instead of message boxes, with "Open folder"/"Open log folder" and "Copy details".
+- Choose the game folder in the UI (menu, or the button shown with startup errors). The choice is remembered in
+  `%LocalAppData%\EnemyRandomizer\preferences.json`; the command line and environment variables still win.
+- Window size, position and theme are remembered. Settings are also saved when the window closes.
+- Text config: wrapped multi-line field, Copy button, inline errors. Enemy config editor: live name check, replace hint
+  and an empty state.
+
+#### Fixed
+- A damaged `lastConfig.json` no longer stops the app from starting.
+- Failures of a run are now written to the log file, not only shown.
+- "Revert to normal" can now be aborted at the question (Yes / No / Cancel).
+- The main window is locked while an operation runs.
+
+#### Changed
+- Several hardcoded texts moved to `config/messages.json`.
+- The About link opens through the shell service instead of the view model.
+
 ### Step 9 - Publish
 #### Added
 - `dotnet publish` (single file, self-contained, win-x64) now also copies `dist/enemyRandomizerData` next to the exe,

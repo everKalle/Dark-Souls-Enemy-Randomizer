@@ -67,6 +67,17 @@ public static class MessageKeys
     public const string RandomizeDone = nameof(RandomizeDone);
     public const string CopyDone = nameof(CopyDone);
     public const string CopyFailed = nameof(CopyFailed);
+    public const string RandomizingTitle = nameof(RandomizingTitle);
+    public const string RevertingTitle = nameof(RevertingTitle);
+    public const string CopyingTitle = nameof(CopyingTitle);
+    public const string RevertTitle = nameof(RevertTitle);
+    public const string CancelledTitle = nameof(CancelledTitle);
+    public const string CancelledText = nameof(CancelledText);
+    public const string ChangeFolderTitle = nameof(ChangeFolderTitle);
+    public const string ChangeFolderText = nameof(ChangeFolderText);
+    public const string TextConfigApplied = nameof(TextConfigApplied);
+    public const string TextConfigCopied = nameof(TextConfigCopied);
+    public const string EnemyConfigReplaceHint = nameof(EnemyConfigReplaceHint);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -78,5 +89,6 @@ public static class MessageKeys
         EnemyConfigSaved, EnemyConfigSaveFailed, EnemyConfigInvalidName, ReferenceFileFilter, SetupProgressTitle,
         CopiesFailedTitle, CopiesFailedText, EffectsWriteFailedTitle, EffectsWriteFailedText, RevertDone, RevertParamMissing,
         SetupFailed, RandomizeDone, CopyDone, CopyFailed,
+        RandomizingTitle, RevertingTitle, CopyingTitle, RevertTitle, CancelledTitle, CancelledText, ChangeFolderTitle, ChangeFolderText, TextConfigApplied, TextConfigCopied, EnemyConfigReplaceHint,
     ];
 }

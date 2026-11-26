@@ -1,9 +1,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
-using EnemyRandomizer.App.ViewModels;
 using EnemyRandomizer.App.Views;
-using EnemyRandomizer.Core.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
 
@@ -27,6 +25,19 @@ public sealed class DialogService(IServiceProvider services) : IDialogService, I
             ? MessageBox.Show(owner, message, title, MessageBoxButton.YesNo, MessageBoxImage.Question)
             : MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question)) == MessageBoxResult.Yes;
 
+    public bool? ConfirmOrCancel(string title, string message)
+    {
+        var result = Owner is { } owner
+            ? MessageBox.Show(owner, message, title, MessageBoxButton.YesNoCancel, MessageBoxImage.Question)
+            : MessageBox.Show(message, title, MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+        return result switch
+        {
+            MessageBoxResult.Yes => true,
+            MessageBoxResult.No => false,
+            _ => null,
+        };
+    }
+
     public string? OpenFile(string filter, string? initialDirectory)
     {
         var dialog = new OpenFileDialog { Filter = filter, CheckFileExists = true };
@@ -47,28 +58,6 @@ public sealed class DialogService(IServiceProvider services) : IDialogService, I
         var window = services.GetRequiredService<AboutWindow>();
         window.Owner = Owner;
         window.ShowDialog();
-    }
-
-    public async Task<T> RunWithProgressAsync<T>(
-        string title,
-        Func<IProgress<OperationProgress>, CancellationToken, Task<T>> work)
-    {
-        ArgumentNullException.ThrowIfNull(work);
-
-        var viewModel = new ProgressViewModel(title);
-        var window = new ProgressWindow(viewModel) { Owner = Owner };
-        var progress = new Progress<OperationProgress>(viewModel.Report); // captures the UI context
-        window.Show();
-
-        try
-        {
-            return await Task.Run(() => work(progress, CancellationToken.None)).ConfigureAwait(true);
-        }
-        finally
-        {
-            window.AllowClose();
-            window.Close();
-        }
     }
 
     public void Post(Action action) =>

@@ -61,7 +61,24 @@ public sealed partial class EnemyConfigEditorViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConfirmSaveAsCommand))]
+    [NotifyPropertyChangedFor(nameof(NameError), nameof(NameWarning))]
     public partial string NewConfigName { get; set; } = "";
+
+    /// <summary>Why the typed name cannot be used; empty while the name is acceptable.</summary>
+    public string NameError =>
+        string.IsNullOrWhiteSpace(NewConfigName) || _repository.IsValidName(NewConfigName.Trim())
+            ? ""
+            : _messages.Get(MessageKeys.EnemyConfigInvalidName, NewConfigName.Trim());
+
+    /// <summary>Hint that saving replaces an existing config.</summary>
+    public string NameWarning =>
+        NameError.Length == 0 && !string.IsNullOrWhiteSpace(NewConfigName) && _repository.Exists(NewConfigName.Trim())
+            ? _messages.Get(MessageKeys.EnemyConfigReplaceHint)
+            : "";
+
+    /// <summary>True when the loaded config has no rows, so the grid can explain itself.</summary>
+    [ObservableProperty]
+    public partial bool IsEmpty { get; set; }
 
     partial void OnSelectedConfigChanged(string oldValue, string newValue)
     {
@@ -123,7 +140,7 @@ public sealed partial class EnemyConfigEditorViewModel : ObservableObject
     private bool CanSave() =>
         HasUnsavedChanges && !string.Equals(SelectedConfig, RandomizerSettings.DefaultEnemyConfig, StringComparison.OrdinalIgnoreCase);
 
-    private bool CanConfirmSaveAs() => !string.IsNullOrWhiteSpace(NewConfigName);
+    private bool CanConfirmSaveAs() => !string.IsNullOrWhiteSpace(NewConfigName) && NameError.Length == 0;
 
     private void SaveAs(string name)
     {
@@ -183,6 +200,7 @@ public sealed partial class EnemyConfigEditorViewModel : ObservableObject
             Rows.Add(row);
         }
 
+        IsEmpty = Rows.Count == 0;
         HasUnsavedChanges = false;
     }
 

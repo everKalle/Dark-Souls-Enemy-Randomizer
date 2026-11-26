@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,6 +10,7 @@ using EnemyRandomizer.Core.Abstractions;
 using EnemyRandomizer.Core.Configuration;
 using EnemyRandomizer.Core.Installation;
 using EnemyRandomizer.Core.Settings;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace EnemyRandomizer.App.ViewModels;
@@ -16,6 +18,9 @@ namespace EnemyRandomizer.App.ViewModels;
 /// <summary>Main window: option tabs, seed, enemy config selection and the randomizer commands.</summary>
 public sealed partial class MainViewModel : ObservableObject, ISettingsHost
 {
+    private readonly IUserPreferences _preferences;
+    private readonly IAppShell _shell;
+    private readonly ILogger<MainViewModel> _logger;
     private readonly RandomizerOptionSettings _options;
     private readonly MessageSettings _messages;
     private readonly IReadOnlyList<OptionViewModel> _allOptions;
@@ -24,6 +29,8 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
     private readonly IRandomizerService _randomizer;
     private readonly IDialogService _dialogs;
     private readonly IGamePaths _paths;
+    private readonly IInstallationStatus _installation;
+    private readonly string _baseTitle;
 
     public MainViewModel(
         IOptions<AppSettings> app,
@@ -35,7 +42,10 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
         IRandomizerService randomizer,
         IDialogService dialogs,
         IGamePaths paths,
-        IInstallationStatus installation)
+        IInstallationStatus installation,
+        IUserPreferences preferences,
+        IAppShell shell,
+        ILogger<MainViewModel> logger)
     {
         ArgumentNullException.ThrowIfNull(app);
         ArgumentNullException.ThrowIfNull(options);
@@ -43,6 +53,9 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
         ArgumentNullException.ThrowIfNull(factory);
         ArgumentNullException.ThrowIfNull(installation);
         ArgumentNullException.ThrowIfNull(paths);
+        ArgumentNullException.ThrowIfNull(preferences);
+        ArgumentNullException.ThrowIfNull(shell);
+        ArgumentNullException.ThrowIfNull(logger);
 
         _options = options.Value;
         _messages = messages.Value;
@@ -51,6 +64,9 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
         _randomizer = randomizer;
         _dialogs = dialogs;
         _paths = paths;
+        _preferences = preferences;
+        _shell = shell;
+        _logger = logger;
 
         _allOptions = _options.Options.Select(factory.Create).ToList();
         foreach (var option in _allOptions)
@@ -79,9 +95,6 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
         RefreshEnemyConfigs();
         Apply(_lastConfig.Load() ?? RandomizerSettings.CreateDefault(_options));
     }
-
-    private readonly IInstallationStatus _installation;
-    private readonly string _baseTitle;
 
     [ObservableProperty]
     public partial string Title { get; set; }
@@ -112,10 +125,10 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
         try
         {
             var title = _messages.Get(MessageKeys.SetupProgressTitle);
-            var report = await _dialogs.RunWithProgressAsync(title, _installation.CheckAsync).ConfigureAwait(true);
+            var report = await RunWithProgressAsync(title, _installation.CheckAsync, allowCancel: false).ConfigureAwait(true);
             while (report.CopiesFailed && _dialogs.Confirm(_messages.Get(MessageKeys.CopiesFailedTitle), _messages.Get(MessageKeys.CopiesFailedText)))
             {
-                report = await _dialogs.RunWithProgressAsync(title, _installation.CheckAsync).ConfigureAwait(true);
+                report = await RunWithProgressAsync(title, _installation.CheckAsync, allowCancel: false).ConfigureAwait(true);
             }
 
             ShowReport(report);
@@ -179,8 +192,16 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
     public partial string SelectedEnemyConfig { get; set; } = RandomizerSettings.DefaultEnemyConfig;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(RandomizeCommand), nameof(RevertCommand), nameof(CopyPlacementCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RandomizeCommand), nameof(RevertCommand), nameof(CopyPlacementCommand), nameof(ChooseGameFolderCommand))]
     public partial bool IsBusy { get; set; }
+
+    /// <summary>Progress overlay state while an operation runs; <c>null</c> otherwise.</summary>
+    [ObservableProperty]
+    public partial ProgressViewModel? ActiveProgress { get; set; }
+
+    /// <summary>Result banner of the last operation; <c>null</c> when dismissed.</summary>
+    [ObservableProperty]
+    public partial NoticeViewModel? Notice { get; set; }
 
     public RandomizerSettings Current =>
         new(_allOptions.ToDictionary(o => o.Key, o => o.Value), Seed.Trim(), SelectedEnemyConfig);
@@ -208,15 +229,25 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
     private async Task RandomizeAsync()
     {
         var settings = Current;
-        _lastConfig.Save(settings);
-        await RunAsync("Randomizing, please wait", (p, ct) => _randomizer.RandomizeAsync(settings, p, ct)).ConfigureAwait(true);
+        Persist();
+        await RunAsync(
+            _messages.Get(MessageKeys.RandomizingTitle),
+            (p, ct) => _randomizer.RandomizeAsync(settings, p, ct),
+            allowCancel: true,
+            successFolder: _paths.LayoutReferenceDirectory).ConfigureAwait(true);
     }
 
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task RevertAsync()
     {
-        var restoreEffects = _dialogs.Confirm("Revert to normal", _messages.Get(MessageKeys.RevertAskEffects));
-        await RunAsync("Reverting, please wait", (p, ct) => _randomizer.RevertAsync(restoreEffects, p, ct)).ConfigureAwait(true);
+        var restoreEffects = _dialogs.ConfirmOrCancel(_messages.Get(MessageKeys.RevertTitle), _messages.Get(MessageKeys.RevertAskEffects));
+        if (restoreEffects is null)
+        {
+            return;
+        }
+
+        // Not cancellable: stopping half way would leave a mix of original and randomized files.
+        await RunAsync(_messages.Get(MessageKeys.RevertingTitle), (p, ct) => _randomizer.RevertAsync(restoreEffects.Value, p, ct), allowCancel: false).ConfigureAwait(true);
     }
 
     [RelayCommand(CanExecute = nameof(CanRun))]
@@ -228,7 +259,7 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
             return;
         }
 
-        await RunAsync("Copying enemy placement, please wait", (p, ct) => _randomizer.CopyPlacementAsync(file, p, ct)).ConfigureAwait(true);
+        await RunAsync(_messages.Get(MessageKeys.CopyingTitle), (p, ct) => _randomizer.CopyPlacementAsync(file, p, ct), allowCancel: true).ConfigureAwait(true);
     }
 
     [RelayCommand]
@@ -244,36 +275,126 @@ public sealed partial class MainViewModel : ObservableObject, ISettingsHost
     [RelayCommand]
     private void ShowAbout() => _dialogs.ShowAbout();
 
+    [RelayCommand(CanExecute = nameof(IsNotBusy))]
+    private void ChooseGameFolder()
+    {
+        var folder = _shell.PickFolder(_paths.GameDirectory);
+        if (folder is null)
+        {
+            return;
+        }
+
+        if (!_dialogs.Confirm(_messages.Get(MessageKeys.ChangeFolderTitle), _messages.Get(MessageKeys.ChangeFolderText, folder)))
+        {
+            return;
+        }
+
+        Persist();
+        _preferences.Save(_preferences.Current with { GameDirectory = folder });
+        _shell.Restart();
+    }
+
+    [RelayCommand]
+    private void SetTheme(AppTheme theme)
+    {
+        _preferences.Save(_preferences.Current with { Theme = theme });
+        _shell.ApplyTheme(theme);
+    }
+
+    [RelayCommand]
+    private void DismissNotice() => Notice = null;
+
+    [RelayCommand]
+    private void OpenNoticeFolder()
+    {
+        if (Notice?.FolderPath is { } folder)
+        {
+            _shell.OpenPath(folder);
+        }
+    }
+
+    [RelayCommand]
+    private void CopyNoticeDetails()
+    {
+        if (Notice is { } notice)
+        {
+            _shell.CopyText(notice.Details);
+        }
+    }
+
+    /// <summary>Saves the current settings. Called on randomize and when the window closes.</summary>
+    public void Persist()
+    {
+        try
+        {
+            _lastConfig.Save(Current);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            LogSaveFailed(_logger, ex);
+        }
+    }
+
     private bool CanRun() => !IsBusy && Report is { CanRandomize: true };
+
+    private bool IsNotBusy() => !IsBusy;
+
+    private async Task<T> RunWithProgressAsync<T>(
+        string title,
+        Func<IProgress<OperationProgress>, CancellationToken, Task<T>> work,
+        bool allowCancel)
+    {
+        using var cancellation = new CancellationTokenSource();
+        var progress = new ProgressViewModel(title, allowCancel ? cancellation : null);
+        var reporter = new Progress<OperationProgress>(progress.Report); // captures the UI context
+        ActiveProgress = progress;
+        try
+        {
+            return await Task.Run(() => work(reporter, cancellation.Token)).ConfigureAwait(true);
+        }
+        finally
+        {
+            ActiveProgress = null;
+        }
+    }
 
     private async Task RunAsync(
         string title,
-        Func<IProgress<OperationProgress>, CancellationToken, Task<OperationResult>> work)
+        Func<IProgress<OperationProgress>, CancellationToken, Task<OperationResult>> work,
+        bool allowCancel,
+        string? successFolder = null)
     {
         IsBusy = true;
+        Notice = null;
         try
         {
-            var result = await _dialogs.RunWithProgressAsync(title, work).ConfigureAwait(true);
-            if (result.Success)
-            {
-                _dialogs.ShowInfo(result.Title, result.Message);
-            }
-            else
-            {
-                _dialogs.ShowError(result.Title, result.Message);
-            }
+            var result = await RunWithProgressAsync(title, work, allowCancel).ConfigureAwait(true);
+            Notice = result.Success
+                ? new NoticeViewModel(NoticeKind.Success, result.Title, result.Message, successFolder, "Open folder")
+                : new NoticeViewModel(NoticeKind.Error, result.Title, result.Message, _paths.LogDirectory, "Open log folder");
+        }
+        catch (OperationCanceledException)
+        {
+            Notice = new NoticeViewModel(NoticeKind.Warning, _messages.Get(MessageKeys.CancelledTitle), _messages.Get(MessageKeys.CancelledText));
         }
 #pragma warning disable CA1031 // Any failure of a run must end up in a message, never crash the app.
         catch (Exception ex)
 #pragma warning restore CA1031
         {
-            _dialogs.ShowError(title, ex.Message);
+            LogRunFailed(_logger, ex, title);
+            Notice = new NoticeViewModel(NoticeKind.Error, title, ex.Message, _paths.LogDirectory, "Open log folder");
         }
         finally
         {
             IsBusy = false;
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Operation failed: {Title}")]
+    private static partial void LogRunFailed(ILogger logger, Exception exception, string title);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Could not save the last settings")]
+    private static partial void LogSaveFailed(ILogger logger, Exception exception);
 
     private void RefreshEnemyConfigs()
     {

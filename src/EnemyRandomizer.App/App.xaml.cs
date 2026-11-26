@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using EnemyRandomizer.App.Hosting;
+using EnemyRandomizer.App.Services;
 using EnemyRandomizer.App.ViewModels;
 using EnemyRandomizer.App.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,10 +36,26 @@ public partial class App : Application
         var logger = _host.Services.GetRequiredService<ILogger<App>>();
         LogStarted(logger, AppContext.BaseDirectory);
 
-        var window = _host.Services.GetRequiredService<MainWindow>();
-        MainWindow = window;
-        window.Show();
-        await _host.Services.GetRequiredService<MainViewModel>().InitializeAsync().ConfigureAwait(true);
+        ThemeService.Apply(_host.Services.GetRequiredService<IUserPreferences>().Current.Theme);
+
+        MainViewModel viewModel;
+        try
+        {
+            var window = _host.Services.GetRequiredService<MainWindow>();
+            viewModel = _host.Services.GetRequiredService<MainViewModel>();
+            MainWindow = window;
+            window.Show();
+        }
+#pragma warning disable CA1031 // Anything that fails while building the main window is fatal and must be shown, not swallowed.
+        catch (Exception ex)
+#pragma warning restore CA1031
+        {
+            LogStartupFailed(logger, ex);
+            ShowFatal("The app could not start", ex.Message);
+            return;
+        }
+
+        await viewModel.InitializeAsync().ConfigureAwait(true);
     }
 
     protected override async void OnExit(ExitEventArgs e)
@@ -65,6 +82,9 @@ public partial class App : Application
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Enemy randomizer started from {BaseDirectory}")]
     private static partial void LogStarted(ILogger logger, string baseDirectory);
+
+    [LoggerMessage(Level = LogLevel.Critical, Message = "Could not create the main window")]
+    private static partial void LogStartupFailed(ILogger logger, Exception exception);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Unhandled UI exception")]
     private static partial void LogUnhandled(ILogger logger, Exception exception);

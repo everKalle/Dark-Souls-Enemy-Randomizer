@@ -1,9 +1,12 @@
+using EnemyRandomizer.App.Services;
 using EnemyRandomizer.App.ViewModels;
 using EnemyRandomizer.App.ViewModels.Options;
 using EnemyRandomizer.Core;
+using EnemyRandomizer.Core.Abstractions;
 using EnemyRandomizer.Core.Configuration;
 using EnemyRandomizer.Core.Installation;
 using EnemyRandomizer.Core.Settings;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EnemyRandomizer.App.Tests;
 
@@ -13,6 +16,8 @@ public class MainViewModelTests
     private readonly FakeLastConfigStore _store = new();
     private readonly FakeEnemyConfigs _configs = new();
     private readonly FakeRandomizer _randomizer = new();
+    private readonly FakeShell _shell = new();
+    private readonly FakePreferences _preferences = new();
 
     private MainViewModel Create(FakeInstallationStatus? status = null) => new(
         ShippedConfig.Get<AppSettings>(),
@@ -24,7 +29,10 @@ public class MainViewModelTests
         _randomizer,
         _dialogs,
         new FakePaths(),
-        status ?? FakeInstallationStatus.Ok());
+        status ?? FakeInstallationStatus.Ok(),
+        _preferences,
+        _shell,
+        NullLogger<MainViewModel>.Instance);
 
     private async Task<MainViewModel> Started(FakeInstallationStatus? status = null)
     {
@@ -184,9 +192,150 @@ public class MainViewModelTests
 
         Assert.Equal("seed", _store.Saved!.Seed);
         Assert.Equal("seed", _randomizer.LastSettings!.Seed);
-        Assert.Equal(2, _dialogs.ProgressRuns); // startup checks + randomize
-        Assert.Equal(["done"], _dialogs.Infos);
+        Assert.Equal(NoticeKind.Success, vm.Notice!.Kind);
+        Assert.Equal("done", vm.Notice.Message);
+        Assert.Null(vm.ActiveProgress);
         Assert.False(vm.IsBusy);
+    }
+
+    [Fact]
+    public async Task Failed_run_shows_an_error_notice_with_the_log_folder()
+    {
+        var vm = await Started();
+        _randomizer.RandomizeOverride = _ => throw new InvalidOperationException("boom");
+
+        await vm.RandomizeCommand.ExecuteAsync(null);
+
+        Assert.Equal(NoticeKind.Error, vm.Notice!.Kind);
+        Assert.Equal("boom", vm.Notice.Message);
+        Assert.Equal("C:/game/data/logs", vm.Notice.FolderPath);
+        Assert.False(vm.IsBusy);
+        Assert.True(vm.RandomizeCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task Cancelling_a_run_shows_a_warning_and_unlocks_the_window()
+    {
+        var vm = await Started();
+        var started = new TaskCompletionSource();
+        _randomizer.RandomizeOverride = async ct =>
+        {
+            started.SetResult();
+            await Task.Delay(Timeout.Infinite, ct);
+            return OperationResult.Ok("x", "x");
+        };
+
+        var run = vm.RandomizeCommand.ExecuteAsync(null);
+        await started.Task;
+
+        Assert.True(vm.IsBusy);
+        Assert.True(vm.ActiveProgress!.CanCancel);
+        Assert.False(vm.RandomizeCommand.CanExecute(null)); // no second run while busy
+        vm.ActiveProgress.CancelCommand.Execute(null);
+        await run;
+
+        Assert.Equal(NoticeKind.Warning, vm.Notice!.Kind);
+        Assert.False(vm.IsBusy);
+        Assert.Null(vm.ActiveProgress);
+    }
+
+    [Fact]
+    public async Task Revert_is_not_cancellable_and_can_be_aborted_at_the_question()
+    {
+        var vm = await Started();
+
+        _dialogs.ConfirmOrCancelAnswer = null;
+        await vm.RevertCommand.ExecuteAsync(null);
+        Assert.Null(vm.Notice);
+
+        _dialogs.ConfirmOrCancelAnswer = false;
+        await vm.RevertCommand.ExecuteAsync(null);
+        Assert.Equal("done", vm.Notice!.Message);
+    }
+
+    [Fact]
+    public void Corrupt_settings_do_not_break_saving()
+    {
+        var vm = Create();
+        _store.ThrowOnSave = true;
+
+        vm.Persist(); // must not throw
+
+        Assert.Null(_store.Saved);
+    }
+
+    [Fact]
+    public void Persist_saves_the_current_settings()
+    {
+        var vm = Create();
+        vm.Seed = "abc";
+
+        vm.Persist();
+
+        Assert.Equal("abc", _store.Saved!.Seed);
+    }
+
+    [Fact]
+    public async Task Choosing_a_game_folder_stores_it_and_restarts()
+    {
+        var vm = await Started();
+        _shell.PickedFolder = "D:/DS";
+
+        vm.ChooseGameFolderCommand.Execute(null);
+
+        Assert.Equal("D:/DS", _preferences.Current.GameDirectory);
+        Assert.Equal(1, _shell.Restarts);
+    }
+
+    [Fact]
+    public async Task Cancelling_the_folder_picker_changes_nothing()
+    {
+        var vm = await Started();
+        _shell.PickedFolder = null;
+
+        vm.ChooseGameFolderCommand.Execute(null);
+
+        Assert.Equal("", _preferences.Current.GameDirectory);
+        Assert.Equal(0, _shell.Restarts);
+    }
+
+    [Fact]
+    public async Task Declining_the_restart_keeps_the_old_folder()
+    {
+        var vm = await Started();
+        _shell.PickedFolder = "D:/DS";
+        _dialogs.ConfirmAnswer = false;
+
+        vm.ChooseGameFolderCommand.Execute(null);
+
+        Assert.Equal("", _preferences.Current.GameDirectory);
+        Assert.Equal(0, _shell.Restarts);
+    }
+
+    [Fact]
+    public void Theme_choice_is_applied_and_remembered()
+    {
+        var vm = Create();
+
+        vm.SetThemeCommand.Execute(AppTheme.Dark);
+
+        Assert.Equal(AppTheme.Dark, _shell.Theme);
+        Assert.Equal(AppTheme.Dark, _preferences.Current.Theme);
+    }
+
+    [Fact]
+    public async Task Notice_actions_open_the_folder_copy_details_and_dismiss()
+    {
+        var vm = await Started();
+        await vm.RandomizeCommand.ExecuteAsync(null);
+
+        vm.OpenNoticeFolderCommand.Execute(null);
+        vm.CopyNoticeDetailsCommand.Execute(null);
+        Assert.Equal(["C:/game/data/refs"], _shell.Opened);
+        Assert.Contains("done", Assert.Single(_shell.Copied), StringComparison.Ordinal);
+
+        vm.DismissNoticeCommand.Execute(null);
+        Assert.Null(vm.Notice);
     }
 
     [Fact]
@@ -261,7 +410,7 @@ public class TextConfigViewModelTests
     {
         var options = ShippedConfig.Get<RandomizerOptionSettings>();
         var host = new Host(RandomizerSettings.CreateDefault(options.Value));
-        var vm = new TextConfigViewModel(host, options, ShippedConfig.Get<MessageSettings>(), new FakeDialogs());
+        var vm = new TextConfigViewModel(host, options, ShippedConfig.Get<MessageSettings>(), new FakeShell());
 
         vm.GenerateCommand.Execute(null);
 
@@ -275,13 +424,48 @@ public class TextConfigViewModelTests
         var options = ShippedConfig.Get<RandomizerOptionSettings>();
         var original = RandomizerSettings.CreateDefault(options.Value);
         var host = new Host(original);
-        var dialogs = new FakeDialogs();
-        var vm = new TextConfigViewModel(host, options, ShippedConfig.Get<MessageSettings>(), dialogs) { ConfigText = "nonsense" };
+        var vm = new TextConfigViewModel(host, options, ShippedConfig.Get<MessageSettings>(), new FakeShell()) { ConfigText = "nonsense" };
 
         vm.ApplyCommand.Execute(null);
 
-        Assert.Single(dialogs.Errors);
+        Assert.NotEmpty(vm.ErrorText);
         Assert.Same(original, host.Current);
+
+        vm.ConfigText = "still nonsense"; // editing clears the stale error
+        Assert.Empty(vm.ErrorText);
+    }
+
+    [Fact]
+    public void Apply_and_copy_need_text()
+    {
+        var options = ShippedConfig.Get<RandomizerOptionSettings>();
+        var shell = new FakeShell();
+        var vm = new TextConfigViewModel(new Host(RandomizerSettings.CreateDefault(options.Value)), options, ShippedConfig.Get<MessageSettings>(), shell);
+
+        Assert.False(vm.ApplyCommand.CanExecute(null));
+        Assert.False(vm.CopyCommand.CanExecute(null));
+
+        vm.GenerateCommand.Execute(null);
+        Assert.True(vm.ApplyCommand.CanExecute(null));
+
+        vm.CopyCommand.Execute(null);
+        Assert.Equal([vm.ConfigText], shell.Copied);
+    }
+
+    [Fact]
+    public void Applying_a_valid_text_updates_the_settings()
+    {
+        var options = ShippedConfig.Get<RandomizerOptionSettings>();
+        var original = RandomizerSettings.CreateDefault(options.Value);
+        var host = new Host(original);
+        var vm = new TextConfigViewModel(host, options, ShippedConfig.Get<MessageSettings>(), new FakeShell());
+        vm.GenerateCommand.Execute(null);
+
+        vm.ApplyCommand.Execute(null);
+
+        Assert.Empty(vm.ErrorText);
+        Assert.NotEmpty(vm.StatusText);
+        Assert.NotSame(original, host.Current);
     }
 }
 
@@ -346,6 +530,35 @@ public class EnemyConfigEditorViewModelTests
         Assert.False(vm.HasUnsavedChanges);
         Assert.False(vm.IsSaveAsMode);
         Assert.False(vm.Rows[0].IsEnabled); // not reloaded
+    }
+
+    [Fact]
+    public void Invalid_names_are_explained_before_saving()
+    {
+        var vm = Create();
+        vm.Rows[0].IsEnabled = false;
+        vm.StartSaveAsCommand.Execute(null);
+
+        vm.NewConfigName = "Default"; // reserved, rejected by the repository
+
+        Assert.NotEmpty(vm.NameError);
+        Assert.False(vm.ConfirmSaveAsCommand.CanExecute(null));
+
+        vm.NewConfigName = "Mine";
+        Assert.Empty(vm.NameError);
+        Assert.True(vm.ConfirmSaveAsCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void Existing_names_show_a_replace_hint()
+    {
+        _configs.Names.Add("Mine");
+        var vm = Create();
+
+        vm.NewConfigName = "Mine";
+
+        Assert.Empty(vm.NameError);
+        Assert.NotEmpty(vm.NameWarning);
     }
 
     [Fact]

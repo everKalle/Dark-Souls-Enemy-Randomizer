@@ -6,9 +6,12 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Themes/Colors.Light.xaml" />
         <ResourceDictionary Source="Themes/Styles.xaml" />
+        <ResourceDictionary Source="Themes/Popups.xaml" />
       </ResourceDictionary.MergedDictionaries>
       <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
+      <conv:NullToCollapsedConverter x:Key="NullToCollapsed" />
     </ResourceDictionary>
   </Application.Resources>
 </Application>

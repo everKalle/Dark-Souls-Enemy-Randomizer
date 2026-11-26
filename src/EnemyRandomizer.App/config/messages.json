@@ -23,8 +23,8 @@
       "AboutText": "This is a .NET 10 migration of the Python Dark Souls Enemy Randomizer (v0.4.1.2), forked from:",
       "AboutThanks": "Thanks to {0}, the original author of the Enemy Randomizer, and to everyone credited in the README.",
       "CopyInfoTitle": "Enemy copy info",
-      "CopyInfoText": "The enemy placement copying lets you directly copy the enemy placement from a reference file if, for some reason, the same settings and seed fail to produce the same placement for different people.\n\nThe enemy placement file for each randomization is automatically saved in the 'enemyRandomizerData/refs' folder.\n\nTo copy the enemy placement from another person, ask them to send over the latest enemy placement text file from that folder and select it by clicking the 'Copy enemy placement' button.",
-      "TextConfigHelp": "This window allows you to generate a text representation of the currently selected settings and seed.\nAfter pressing 'Generate current settings as text' the text version of the current settings is put into the text field.\nYou can also paste a config into the text field and press 'Apply settings from text' to apply it.\n\nThis is useful if you want to get the same enemy configuration as a friend: one of you configures the randomizer, generates the text and sends it to the other person, who pastes it here and applies the settings and seed.\n\nMake sure you also enter a seed before generating this config.",
+      "CopyInfoText": "The enemy placement copying lets you directly copy the enemy placement from a reference file if, for some reason, the same settings and seed fail to produce the same placement for different people.\n\nThe enemy placement file for each randomization is automatically saved in the 'enemyRandomizerData/refs' folder.\n\nTo copy the enemy placement from another person, ask them to send over the latest enemy placement text file from that folder and select it with 'Copy enemy placement' in the Menu.",
+      "TextConfigHelp": "This window allows you to generate a text representation of the currently selected settings and seed.\nAfter selecting 'Generate from current settings' the text version of the current settings is put into the text field.\nYou can also paste a config into the text field and select 'Apply to settings' to apply it.\n\nThis is useful if you want to get the same enemy configuration as a friend: one of you configures the randomizer, generates the text and sends it to the other person, who pastes it here and applies the settings and seed.\n\nMake sure you also enter a seed before generating this config.",
       "TextConfigInvalid": "The text config is not valid: {0}",
       "RevertAskEffects": "Restore effect files too?",
       "UnsavedEnemyConfig": "You have unsaved changes, do you really wish to discard your changes and open a different enemy config?",
@@ -43,7 +43,18 @@
       "SetupFailed": "Preparing the game files failed: {0}",
       "RandomizeDone": "{0} enemies replaced.\n\nSeed: {1}\nEnemy placement saved as refs/{2}",
       "CopyDone": "Enemy placement was successfully copied from the reference.",
-      "CopyFailed": "The selected file is either not an enemy placement reference file or is malformed:\n\n'{0}'"
+      "CopyFailed": "The selected file is either not an enemy placement reference file or is malformed:\n\n'{0}'",
+      "RandomizingTitle": "Randomizing, please wait",
+      "RevertingTitle": "Reverting, please wait",
+      "CopyingTitle": "Copying enemy placement, please wait",
+      "RevertTitle": "Revert to normal",
+      "CancelledTitle": "Cancelled",
+      "CancelledText": "Maps processed before you cancelled were already changed. Run Randomize again, or use Revert to normal.",
+      "ChangeFolderTitle": "Change game folder",
+      "ChangeFolderText": "The app restarts to use this folder:\n{0}\n\nRestart now?",
+      "TextConfigApplied": "Settings applied.",
+      "TextConfigCopied": "Copied to the clipboard.",
+      "EnemyConfigReplaceHint": "A config with this name exists. Saving replaces it."
     }
   }
 }

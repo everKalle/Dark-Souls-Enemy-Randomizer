@@ -32,7 +32,7 @@ internal sealed class FakeDialogs : IDialogService, IUiThread
     public List<string> Errors { get; } = [];
     public List<string> Infos { get; } = [];
     public bool ConfirmAnswer { get; set; } = true;
-    public int ProgressRuns { get; private set; }
+    public bool? ConfirmOrCancelAnswer { get; set; } = true;
 
     public List<string> Warnings { get; } = [];
 
@@ -40,27 +40,51 @@ internal sealed class FakeDialogs : IDialogService, IUiThread
     public void ShowWarning(string title, string message) => Warnings.Add(message);
     public void ShowError(string title, string message) => Errors.Add(message);
     public bool Confirm(string title, string message) => ConfirmAnswer;
+    public bool? ConfirmOrCancel(string title, string message) => ConfirmOrCancelAnswer;
     public string? OpenFile(string filter, string? initialDirectory) => null;
     public void ShowTextConfig() { }
     public void ShowEnemyConfigEditor() { }
     public void ShowAbout() { }
 
-    public Task<T> RunWithProgressAsync<T>(
-        string title,
-        Func<IProgress<OperationProgress>, CancellationToken, Task<T>> work)
-    {
-        ProgressRuns++;
-        return work(new Progress<OperationProgress>(), CancellationToken.None);
-    }
-
     public void Post(Action action) => action();
+}
+
+internal sealed class FakeShell : IAppShell
+{
+    public string? PickedFolder { get; set; }
+    public List<string> Opened { get; } = [];
+    public List<string> Copied { get; } = [];
+    public AppTheme? Theme { get; private set; }
+    public int Restarts { get; private set; }
+
+    public string? PickFolder(string? initialDirectory) => PickedFolder;
+    public void OpenPath(string path) => Opened.Add(path);
+    public void CopyText(string text) => Copied.Add(text);
+    public void ApplyTheme(AppTheme theme) => Theme = theme;
+    public void Restart() => Restarts++;
+}
+
+internal sealed class FakePreferences : IUserPreferences
+{
+    public UserPreferencesData Current { get; private set; } = new();
+    public void Save(UserPreferencesData data) => Current = data;
 }
 
 internal sealed class FakeLastConfigStore : ILastConfigStore
 {
     public RandomizerSettings? Saved { get; set; }
+    public bool ThrowOnSave { get; set; }
     public RandomizerSettings? Load() => Saved;
-    public void Save(RandomizerSettings settings) => Saved = settings;
+
+    public void Save(RandomizerSettings settings)
+    {
+        if (ThrowOnSave)
+        {
+            throw new IOException("disk full");
+        }
+
+        Saved = settings;
+    }
 }
 
 internal sealed class FakeEnemyConfigs : IEnemyConfigRepository
@@ -97,10 +121,13 @@ internal sealed class FakeRandomizer : IRandomizerService
 {
     public RandomizerSettings? LastSettings { get; private set; }
 
+    /// <summary>Replaces the randomize result (to simulate failures, slow runs and cancellation).</summary>
+    public Func<CancellationToken, Task<OperationResult>>? RandomizeOverride { get; set; }
+
     public Task<OperationResult> RandomizeAsync(RandomizerSettings settings, IProgress<OperationProgress> progress, CancellationToken cancellationToken)
     {
         LastSettings = settings;
-        return Task.FromResult(OperationResult.Ok("Randomize", "done"));
+        return RandomizeOverride?.Invoke(cancellationToken) ?? Task.FromResult(OperationResult.Ok("Randomize", "done"));
     }
 
     public Task<OperationResult> CopyPlacementAsync(string referenceFile, IProgress<OperationProgress> progress, CancellationToken cancellationToken) =>

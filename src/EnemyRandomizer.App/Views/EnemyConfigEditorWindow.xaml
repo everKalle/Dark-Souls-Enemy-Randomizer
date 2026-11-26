@@ -13,15 +13,15 @@
     <!-- Toolbar -->
     <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-        <Button Content="Disable All" Command="{Binding DisableAllCommand}" Margin="0,0,8,0" />
-        <Button Content="Enable All" Command="{Binding EnableAllCommand}" Margin="0" />
+        <Button Content="_Disable all" Command="{Binding DisableAllCommand}" Margin="0,0,8,0" />
+        <Button Content="_Enable all" Command="{Binding EnableAllCommand}" Margin="0" />
       </StackPanel>
 
       <!-- Normal mode -->
       <StackPanel Orientation="Horizontal"
                   Visibility="{Binding IsSaveAsMode, Converter={StaticResource InverseBoolToVisibility}}">
         <TextBlock Text="Current config:" VerticalAlignment="Center" Margin="0,0,8,0" />
-        <ComboBox ItemsSource="{Binding ConfigNames}" SelectedItem="{Binding SelectedConfig}" MinWidth="200" Margin="0,0,8,0" />
+        <ComboBox AutomationProperties.Name="Current config" ItemsSource="{Binding ConfigNames}" SelectedItem="{Binding SelectedConfig}" MinWidth="200" Margin="0,0,8,0" />
         <Button Content="Save" Command="{Binding SaveCommand}" Margin="0,0,8,0" />
         <Button Content="Save As" Command="{Binding StartSaveAsCommand}" Margin="0" />
       </StackPanel>
@@ -30,16 +30,24 @@
       <StackPanel Orientation="Horizontal"
                   Visibility="{Binding IsSaveAsMode, Converter={StaticResource BoolToVisibility}}">
         <TextBlock Text="Name the config:" VerticalAlignment="Center" Margin="0,0,8,0" />
-        <TextBox Text="{Binding NewConfigName, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="0,0,8,0" />
-        <Button Content="Save" Command="{Binding ConfirmSaveAsCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0" />
-        <Button Content="Cancel" Command="{Binding CancelSaveAsCommand}" Margin="0" />
+        <TextBox x:Name="NameBox" Text="{Binding NewConfigName, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="0,0,8,0"
+                 AutomationProperties.Name="Config name" />
+        <Button Content="_Save" Command="{Binding ConfirmSaveAsCommand}" Style="{StaticResource PrimaryButton}" IsDefault="True" Margin="0,0,8,0" />
+        <Button Content="Cancel" Command="{Binding CancelSaveAsCommand}" IsCancel="True" Margin="0,0,12,0" />
+        <TextBlock Text="{Binding NameError}" Foreground="{DynamicResource ErrorBrush}" VerticalAlignment="Center"
+                   AutomationProperties.LiveSetting="Assertive" />
+        <TextBlock Text="{Binding NameWarning}" Foreground="{DynamicResource MutedTextBrush}" VerticalAlignment="Center" />
       </StackPanel>
     </DockPanel>
 
+    <TextBlock DockPanel.Dock="Top" Text="This config has no enemies. Pick another config to edit."
+               Foreground="{DynamicResource MutedTextBrush}" Margin="0,0,0,8"
+               Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
+
     <DataGrid ItemsSource="{Binding Rows}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
               HeadersVisibility="Column" GridLinesVisibility="Horizontal" AlternationCount="2"
-              AlternatingRowBackground="{StaticResource HighlightBrush}" SelectionUnit="FullRow"
-              BorderBrush="{StaticResource BorderBrush}">
+              AlternatingRowBackground="{DynamicResource HighlightBrush}" SelectionUnit="FullRow"
+              BorderBrush="{DynamicResource BorderBrush}">
       <DataGrid.Columns>
         <DataGridTextColumn Header="ID" Binding="{Binding Id}" IsReadOnly="True" Width="80" />
         <DataGridTextColumn Header="Enemy" Binding="{Binding Name}" IsReadOnly="True" Width="240" />
@@ -53,7 +61,7 @@
         <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" IsReadOnly="True" Width="*">
           <DataGridTextColumn.ElementStyle>
             <Style TargetType="TextBlock">
-              <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+              <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
               <Setter Property="TextWrapping" Value="Wrap" />
             </Style>
           </DataGridTextColumn.ElementStyle>

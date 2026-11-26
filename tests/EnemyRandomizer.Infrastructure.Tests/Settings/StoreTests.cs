@@ -89,6 +89,19 @@ public sealed class JsonLastConfigStoreTests : IDisposable
         Assert.Equal(settings.Values.OrderBy(v => v.Key), loaded.Values.OrderBy(v => v.Key));
     }
 
+    [Theory]
+    [InlineData("{ this is not json")]
+    [InlineData("")]
+    [InlineData("null")]
+    [InlineData("{}")]
+    public void Damaged_settings_file_is_ignored(string content)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(_folder.Paths.LastConfigFile)!);
+        File.WriteAllText(_folder.Paths.LastConfigFile, content);
+
+        Assert.Null(new JsonLastConfigStore(_folder.Paths, _options).Load());
+    }
+
     [Fact]
     public void Imports_legacy_last_config_txt()
     {

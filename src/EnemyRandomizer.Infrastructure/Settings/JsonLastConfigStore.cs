@@ -16,13 +16,23 @@ public sealed class JsonLastConfigStore(IGamePaths paths, IOptions<RandomizerOpt
 
     public RandomizerSettings? Load()
     {
-        if (File.Exists(paths.LastConfigFile))
+        try
         {
-            var document = JsonSerializer.Deserialize<LastConfigDocument>(File.ReadAllText(paths.LastConfigFile), JsonOptions);
-            return document is null ? null : new RandomizerSettings(document.Options, document.Seed, document.EnemyConfig);
-        }
+            if (File.Exists(paths.LastConfigFile))
+            {
+                var document = JsonSerializer.Deserialize<LastConfigDocument>(File.ReadAllText(paths.LastConfigFile), JsonOptions);
+                return document?.Options is null
+                    ? null
+                    : new RandomizerSettings(document.Options, document.Seed ?? "", document.EnemyConfig ?? RandomizerSettings.DefaultEnemyConfig);
+            }
 
-        return LoadLegacy();
+            return LoadLegacy();
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            // A damaged settings file must not stop the app from starting; fall back to the defaults.
+            return null;
+        }
     }
 
     public void Save(RandomizerSettings settings)

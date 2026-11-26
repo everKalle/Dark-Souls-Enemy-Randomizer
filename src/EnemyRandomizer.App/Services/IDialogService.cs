@@ -1,5 +1,3 @@
-using EnemyRandomizer.Core.Abstractions;
-
 namespace EnemyRandomizer.App.Services;
 
 /// <summary>
@@ -16,6 +14,9 @@ public interface IDialogService
 
     bool Confirm(string title, string message);
 
+    /// <summary>Yes = <c>true</c>, No = <c>false</c>, Cancel = <c>null</c>.</summary>
+    bool? ConfirmOrCancel(string title, string message);
+
     /// <summary>Returns the chosen file or <c>null</c> when cancelled.</summary>
     string? OpenFile(string filter, string? initialDirectory);
 
@@ -24,11 +25,6 @@ public interface IDialogService
     void ShowEnemyConfigEditor();
 
     void ShowAbout();
-
-    /// <summary>Runs <paramref name="work"/> off the UI thread while a progress window is shown.</summary>
-    Task<T> RunWithProgressAsync<T>(
-        string title,
-        Func<IProgress<OperationProgress>, CancellationToken, Task<T>> work);
 }
 
 /// <summary>Posts work to the UI thread (used to undo a selection after the binding finished).</summary>

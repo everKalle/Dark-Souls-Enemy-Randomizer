@@ -1,48 +1,67 @@
+using System.ComponentModel;
 using System.Windows;
-using System.Windows.Input;
+using EnemyRandomizer.App.Services;
 using EnemyRandomizer.App.ViewModels;
-using EnemyRandomizer.App.ViewModels.Options;
 
 namespace EnemyRandomizer.App.Views;
 
-/// <summary>Main window. Code-behind only forwards mouse hover to the option view models.</summary>
+/// <summary>Main window. Hover/focus help tracking lives in <c>OptionHelp</c>; this file restores and saves the window bounds.</summary>
 public partial class MainWindow : Window
 {
-    public MainWindow(MainViewModel viewModel)
+    private readonly MainViewModel _viewModel;
+    private readonly IUserPreferences _preferences;
+
+    public MainWindow(MainViewModel viewModel, IUserPreferences preferences)
     {
         InitializeComponent();
+        _viewModel = viewModel;
+        _preferences = preferences;
         DataContext = viewModel;
+        ApplySavedBounds(preferences.Current);
     }
 
-    private void Option_MouseEnter(object sender, MouseEventArgs e)
+    protected override void OnClosing(CancelEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: OptionViewModel option })
+        base.OnClosing(e);
+        if (e.Cancel)
         {
-            option.Hover();
+            return;
         }
+
+        _viewModel.Persist();
+        var bounds = RestoreBounds;
+        _preferences.Save(_preferences.Current with
+        {
+            Left = bounds.Left,
+            Top = bounds.Top,
+            Width = bounds.Width,
+            Height = bounds.Height,
+            Maximized = WindowState == WindowState.Maximized,
+        });
     }
 
-    private void Option_MouseLeave(object sender, MouseEventArgs e)
+    private void ApplySavedBounds(UserPreferencesData saved)
     {
-        if (sender is FrameworkElement { DataContext: OptionViewModel option })
+        if (saved is not { Left: { } left, Top: { } top, Width: { } width, Height: { } height })
         {
-            option.ClearHover();
+            return;
         }
-    }
 
-    private void Choice_MouseEnter(object sender, MouseEventArgs e)
-    {
-        if (sender is FrameworkElement { DataContext: ChoiceViewModel choice })
+        // Ignore bounds from a monitor setup that no longer exists, so the window never opens off screen.
+        var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop, SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
+        if (width < MinWidth || height < MinHeight || !screen.IntersectsWith(new Rect(left, top, width, height)))
         {
-            choice.Owner.Hover(choice);
+            return;
         }
-    }
 
-    private void Choice_MouseLeave(object sender, MouseEventArgs e)
-    {
-        if (sender is FrameworkElement { DataContext: ChoiceViewModel choice } && choice.Owner.IsHovered)
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = left;
+        Top = top;
+        Width = width;
+        Height = height;
+        if (saved.Maximized)
         {
-            choice.Owner.Hover();
+            WindowState = WindowState.Maximized;
         }
     }
 }

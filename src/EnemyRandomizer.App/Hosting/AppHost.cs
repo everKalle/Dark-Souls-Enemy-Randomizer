@@ -27,14 +27,24 @@ public static class AppHost
             DisableDefaults = true,
         });
 
+        var preferences = new JsonUserPreferences(JsonUserPreferences.DefaultFile);
+
+        builder.Configuration.AddRandomizerConfigFiles(baseDirectory);
+        if (!string.IsNullOrWhiteSpace(preferences.Current.GameDirectory))
+        {
+            // The folder chosen in the UI overrides appsettings.json; env vars and the command line still win.
+            builder.Configuration.AddInMemoryCollection(
+                [new($"{AppSettings.SectionName}:{nameof(AppSettings.GameDirectory)}", preferences.Current.GameDirectory)]);
+        }
+
         builder.Configuration
-               .AddRandomizerConfigFiles(baseDirectory)
                .AddEnvironmentVariables("ENEMYRANDOMIZER_")
                .AddCommandLine(args);
 
         var app = builder.Configuration.GetSection(AppSettings.SectionName).Get<AppSettings>() ?? new AppSettings();
         var logDirectory = new GamePaths(app, baseDirectory).LogDirectory;
 
+        builder.Services.AddSingleton<IUserPreferences>(preferences);
         builder.Services
                .AddRandomizerSettings(builder.Configuration)
                .AddRandomizerLogging(builder.Configuration, logDirectory)
@@ -46,6 +56,7 @@ public static class AppHost
 
     private static IServiceCollection AddUi(this IServiceCollection services)
     {
+        services.AddSingleton<IAppShell, AppShell>();
         services.AddSingleton<DialogService>();
         services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<DialogService>());
         services.AddSingleton<IUiThread>(sp => sp.GetRequiredService<DialogService>());

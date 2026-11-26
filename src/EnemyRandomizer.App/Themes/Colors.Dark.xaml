@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Dark palette: ash surface, bone text, brighter ember so it keeps contrast. -->
+  <Color x:Key="AccentColor">#C2410C</Color>
+  <SolidColorBrush x:Key="AccentBrush" Color="#C2410C" />
+  <SolidColorBrush x:Key="AccentHoverBrush" Color="#DC4F12" />
+  <SolidColorBrush x:Key="AccentPressedBrush" Color="#9A3412" />
+  <SolidColorBrush x:Key="OnAccentBrush" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="AccentSoftBrush" Color="#3A2418" />
+  <SolidColorBrush x:Key="WindowBrush" Color="#1F1B18" />
+  <SolidColorBrush x:Key="PanelBrush" Color="#2A2521" />
+  <SolidColorBrush x:Key="BorderBrush" Color="#4A433C" />
+  <SolidColorBrush x:Key="TextBrush" Color="#EDE7DF" />
+  <SolidColorBrush x:Key="MutedTextBrush" Color="#A89F94" />
+  <SolidColorBrush x:Key="HighlightBrush" Color="#352F2A" />
+  <SolidColorBrush x:Key="PressedBrush" Color="#403934" />
+  <SolidColorBrush x:Key="FocusBrush" Color="#7DA7FF" />
+  <SolidColorBrush x:Key="ErrorBrush" Color="#F87171" />
+</ResourceDictionary>

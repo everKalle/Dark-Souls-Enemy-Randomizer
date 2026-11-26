@@ -12,7 +12,7 @@
   <StackPanel Margin="20">
     <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Margin="0,0,0,6" />
     <TextBlock Margin="0,0,0,14">
-      <Hyperlink Command="{Binding OpenProjectCommand}" Foreground="{StaticResource AccentBrush}">
+      <Hyperlink Command="{Binding OpenProjectCommand}" Foreground="{DynamicResource AccentBrush}">
         <Run Text="{Binding ProjectUrl, Mode=OneWay}" />
       </Hyperlink>
     </TextBlock>
