@@ -68,7 +68,7 @@ public sealed class MapPlanApplier(
         {
             aiScripts.Require(ai);
         }
-        else
+        else if (!decision.FromLayout)
         {
             throw new InvalidDataException($"AI {decision.Ai} of {enemy.Id} is not listed in airef.csv.");
         }
@@ -86,6 +86,11 @@ public sealed class MapPlanApplier(
         if (decision.Rotation is { } rotation)
         {
             (row["Rot X"], row["Rot Y"], row["Rot Z"]) = (rotation[0], rotation[1], rotation[2]);
+        }
+
+        if (decision.EntityId is { } savedEntityId)
+        {
+            row["EventEntityID"] = savedEntityId;
         }
 
         if (decision.ItemLot is { } itemLot)

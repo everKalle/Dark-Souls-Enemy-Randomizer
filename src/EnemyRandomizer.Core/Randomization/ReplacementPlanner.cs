@@ -78,7 +78,7 @@ public sealed class ReplacementPlanner
             return new CreatureDecision(row, part, target.Name, ReplacementOutcome.SpecialCase);
         }
 
-        var type = rules.Select(r => r.ReclassifyAs).OfType<string>().Select(Enum.Parse<EnemyType>).Cast<EnemyType?>().LastOrDefault() ?? target.Type;
+        var type = ReclassifiedType(rules) ?? target.Type;
         var typeKey = part.Split('_')[0];
         var chosen = Choose(part, creature.Size, target, type, rules);
 
@@ -101,15 +101,12 @@ public sealed class ReplacementPlanner
             param += 50; // "with souls" NpcParam copy
         }
 
-        var patches = _settings.Patches;
         var keepsOwnPlace = part.Contains("c2232", StringComparison.Ordinal) && enemy.Id.Contains("c2232", StringComparison.Ordinal);
         var positionRule = keepsOwnPlace ? null : rules.FirstOrDefault(r => r.Position is not null);
-        var newPosition = Lookup(patches.AmbushPositions, part) ?? Lookup(patches.OtherPositions, part);
+        var newPosition = Lookup(_settings.Patches.AmbushPositions, part) ?? Lookup(_settings.Patches.OtherPositions, part);
 
-        return new CreatureDecision(row, part, target.Name, ReplacementOutcome.Replaced)
+        return Describe(row, part, target, type, enemy, edition) with
         {
-            Enemy = enemy,
-            OriginalType = type,
             Ai = enemy.Ais[pair],
             ChangeAi = target.Type != EnemyType.Npc,
             Param = param,
@@ -118,6 +115,65 @@ public sealed class ReplacementPlanner
                 : null,
             Position = newPosition ?? positionRule?.Position,
             Rotation = positionRule?.Rotation,
+        };
+    }
+
+    /// <summary>
+    /// Replays a saved layout (legacy <c>CopyFromReference</c>, <c>randomizer_rng.py:1957-2055</c>): creatures listed
+    /// in <paramref name="layout"/> get exactly the saved model, AI, param, entity id, animation and position; the
+    /// follow-up changes (item lots, tails, allegiances, event fixes) are derived like in a normal run.
+    /// No random numbers are used.
+    /// </summary>
+    public MapPlan PlanMapFromLayout(
+        string mapId, GameEdition edition, IReadOnlyList<MapCreature> creatures, MapLayout layout, int modelStartIndex)
+    {
+        ArgumentNullException.ThrowIfNull(creatures);
+        ArgumentNullException.ThrowIfNull(layout);
+        _map = new MapState(mapId);
+        var decisions = creatures.Select((c, row) => FromLayout(row, c.PartName, edition, layout, modelStartIndex)).ToList();
+        return new MapPlan(mapId, _map.UniqueLimit, decisions);
+    }
+
+    private CreatureDecision FromLayout(int row, string part, GameEdition edition, MapLayout layout, int modelStartIndex)
+    {
+        var target = _targets.Find(part);
+        if (!layout.Rows.TryGetValue(part, out var saved))
+        {
+            return new CreatureDecision(row, part, target?.Name ?? "", ReplacementOutcome.NotATarget);
+        }
+
+        var index = saved.Model - modelStartIndex;
+        if (target is null || index < 0 || index >= _pool.Catalog.Count)
+        {
+            throw new InvalidDataException(
+                $"{_map.MapId}: '{part}' cannot be restored (model {saved.Model} is not an enemy of this game edition).");
+        }
+
+        var enemy = _pool[index];
+        var rules = _settings.Rules.CreatureRules.Where(r => r.Matches(_map.MapId, part, _options.Value)).ToList();
+        var type = ReclassifiedType(rules) ?? target.Type;
+
+        return Describe(row, part, target, type, enemy, edition) with
+        {
+            Ai = saved.Ai,
+            ChangeAi = true,
+            Param = saved.Param,
+            IdleAnimation = saved.AnimId,
+            Position = [saved.X, saved.Y, saved.Z],
+            Rotation = [saved.RotX, saved.RotY, saved.RotZ],
+            EntityId = saved.EntityId,
+            FromLayout = true,
+        };
+    }
+
+    /// <summary>The parts of a decision that depend only on the creature and the new enemy, not on a random pick.</summary>
+    private CreatureDecision Describe(int row, string part, ReplacementTarget target, EnemyType type, EnemyDefinition enemy, GameEdition edition)
+    {
+        var patches = _settings.Patches;
+        return new CreatureDecision(row, part, target.Name, ReplacementOutcome.Replaced)
+        {
+            Enemy = enemy,
+            OriginalType = type,
             ItemLot = patches.ItemLotsToAward.TryGetValue(_map.MapId, out var lots) && lots.TryGetValue(part, out var lot) ? lot : null,
             DisableRespawn = _options.DisableRoamingBossRespawn && enemy.Type == EnemyType.Boss && type == EnemyType.Normal,
             TailCut = patches.TailCutsAllowed(edition, _map.MapId) ? patches.TailCuts.FirstOrDefault(t => t.ModelId == enemy.Id) : null,
@@ -129,6 +185,9 @@ public sealed class ReplacementPlanner
                 .ToList(),
         };
     }
+
+    private static EnemyType? ReclassifiedType(IEnumerable<CreatureRule> rules) =>
+        rules.Select(r => r.ReclassifyAs).OfType<string>().Select(Enum.Parse<EnemyType>).Cast<EnemyType?>().LastOrDefault();
 
     /// <summary>Chooses the replacement index (or a negative outcome code) for one original creature.</summary>
     private int Choose(string part, int size, ReplacementTarget target, EnemyType type, IReadOnlyList<CreatureRule> rules)

@@ -8,6 +8,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: `M
 This project is a .NET 10 migration and fork of <https://github.com/xtvsx/Dark-Souls-Enemy-Randomizer>.
 Thanks to rycheNhavalys, the original author of the Enemy Randomizer.
 
+### Step 8 - Copy placement from reference
+#### Added
+- **"Copy enemy placement" works.** Pick an `enemy-layout-*.txt` (v0.4.x files work too) and the same layout is
+  written to the game without any random numbers: saved model, AI, param, entity id, idle animation and position, plus
+  the derived changes (AI scripts, item lots, tail cuts, allegiances, event fixes, roaming boss respawn, Darkroot Garden #2).
+  A log file is written; no new layout file.
+- `LayoutReference` (Core) parses the file with the v0.4.x error texts (missing settings/version, wrong edition,
+  malformed lines); `ReplacementPlanner.PlanMapFromLayout` reuses the normal decision logic; `RandomizationRun`
+  shares everything else between randomize and copy.
+- Tests: parser (valid, missing header parts, malformed rows), copy after a different randomization restores the
+  saved rows on PTDE and Remastered, edition mismatch is rejected.
+
+#### Changed
+- The placeholder `PreviewRandomizerService` was removed.
+
 ### Step 7 - Randomization engine
 #### Added
 - **Randomize now changes game files.** `RandomizationRun` prepares copies, resets event files and copies the

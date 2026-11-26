@@ -41,7 +41,9 @@
       "RevertDone": "{0} original game files restored.",
       "RevertParamMissing": "The GameParam backup was not found, NpcParam was not restored.",
       "SetupFailed": "Preparing the game files failed: {0}",
-      "RandomizeDone": "{0} enemies replaced.\n\nSeed: {1}\nEnemy placement saved as refs/{2}"
+      "RandomizeDone": "{0} enemies replaced.\n\nSeed: {1}\nEnemy placement saved as refs/{2}",
+      "CopyDone": "Enemy placement was successfully copied from the reference.",
+      "CopyFailed": "The selected file is either not an enemy placement reference file or is malformed:\n\n'{0}'"
     }
   }
 }

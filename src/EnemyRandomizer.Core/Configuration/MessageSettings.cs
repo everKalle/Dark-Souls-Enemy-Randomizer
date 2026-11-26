@@ -65,6 +65,8 @@ public static class MessageKeys
     public const string RevertParamMissing = nameof(RevertParamMissing);
     public const string SetupFailed = nameof(SetupFailed);
     public const string RandomizeDone = nameof(RandomizeDone);
+    public const string CopyDone = nameof(CopyDone);
+    public const string CopyFailed = nameof(CopyFailed);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -75,6 +77,6 @@ public static class MessageKeys
         CopyInfoText, TextConfigHelp, TextConfigInvalid, RevertAskEffects, UnsavedEnemyConfig, EnemyConfigExists,
         EnemyConfigSaved, EnemyConfigSaveFailed, EnemyConfigInvalidName, ReferenceFileFilter, SetupProgressTitle,
         CopiesFailedTitle, CopiesFailedText, EffectsWriteFailedTitle, EffectsWriteFailedText, RevertDone, RevertParamMissing,
-        SetupFailed, RandomizeDone,
+        SetupFailed, RandomizeDone, CopyDone, CopyFailed,
     ];
 }

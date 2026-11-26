@@ -1,6 +1,7 @@
 using EnemyRandomizer.Core;
 using EnemyRandomizer.Core.Abstractions;
 using EnemyRandomizer.Core.Configuration;
+using EnemyRandomizer.Core.Randomization;
 using EnemyRandomizer.Core.Settings;
 using EnemyRandomizer.Formats.Binary;
 using EnemyRandomizer.Formats.Bnd;
@@ -218,6 +219,53 @@ public sealed class RandomizationRunTests : IDisposable
         Assert.Equal(first.Replaced, second.Replaced);
         Assert.Equal(firstMaps, _layout.Maps.Select(m => File.ReadAllBytes(Game(_layout.MapStudio(m.Id)))));
         Assert.Equal(firstEvents, File.ReadAllBytes(Game(_layout.Event("m10_00_00_00", GameEdition.Ptde))));
+    }
+
+    private static readonly string[] CopiedFields =
+        ["Model", "AI", "NPCParam", "EventEntityID", "AnimID", "X pos", "Y pos", "Z pos", "Rot X", "Rot Y", "Rot Z"];
+
+    private List<List<object?[]>> ReadCreatures() => _layout.Maps
+        .Select(m => MsbFile.Read(File.ReadAllBytes(Game(_layout.MapStudio(m.Id)))).Creatures.Rows
+            .Select(r => CopiedFields.Select(f => (object?)r[f]).ToArray()).ToList())
+        .ToList();
+
+    [Theory]
+    [InlineData(GameEdition.Ptde)]
+    [InlineData(GameEdition.Remastered)]
+    public void Copy_placement_restores_the_saved_layout_without_randomness(GameEdition edition)
+    {
+        CreateGame(edition);
+        var first = Randomize(edition, Settings("copy me", ("RespawningBosses", 1)));
+        var randomized = ReadCreatures();
+        var source = LayoutReference.Parse(File.ReadLines(first.LayoutFile)); // read now: a run in the same second reuses the file name
+        _run.Run(Settings("another seed", ("RespawningBosses", 0)), edition, NoProgress, TestContext.Current.CancellationToken);
+        Assert.NotEqual(randomized.SelectMany(m => m).Select(r => r[0]), ReadCreatures().SelectMany(m => m).Select(r => r[0]));
+
+        var copy = _run.CopyPlacement(source, edition, NoProgress, TestContext.Current.CancellationToken);
+
+        Assert.Equal(first.Replaced, copy.Replaced);
+        Assert.Equal("", copy.LayoutFile);
+        Assert.True(File.Exists(copy.LogFile));
+
+        // Tail parts are appended after the original rows and may get other entity ids; compare the original rows.
+        var copied = ReadCreatures();
+        for (var map = 0; map < randomized.Count; map++)
+        {
+            var original = _data.LoadOriginalEnemies(_layout.Maps[map].Id, edition).Count;
+            Assert.True(randomized[map].Take(original).Zip(copied[map]).All(p => p.First.SequenceEqual(p.Second)), $"{_layout.Maps[map].Id} differs");
+        }
+    }
+
+    [Fact]
+    public void Copy_placement_rejects_a_reference_of_the_other_edition()
+    {
+        CreateGame(GameEdition.Ptde);
+        var layoutFile = Randomize(GameEdition.Ptde).LayoutFile;
+        var source = LayoutReference.Parse(File.ReadLines(layoutFile));
+
+        var error = Assert.Throws<InvalidDataException>(() =>
+            _run.CopyPlacement(source, GameEdition.Remastered, NoProgress, TestContext.Current.CancellationToken));
+        Assert.Contains("Prepare to Die Edition", error.Message, StringComparison.Ordinal);
     }
 
     [Fact]

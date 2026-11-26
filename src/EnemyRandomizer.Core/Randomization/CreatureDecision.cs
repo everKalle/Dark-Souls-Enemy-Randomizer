@@ -64,6 +64,12 @@ public sealed record CreatureDecision(int Row, string PartName, string OriginalN
 
     public int? Allegiance { get; init; }
 
+    /// <summary>Event entity id to write (copied from a saved layout); <c>null</c> = keep or assign.</summary>
+    public int? EntityId { get; init; }
+
+    /// <summary>The decision replays a saved layout: values are written as saved, unknown AIs are tolerated.</summary>
+    public bool FromLayout { get; init; }
+
     /// <summary>Events to replace by their template version.</summary>
     public IReadOnlyList<uint> EventFixes { get; init; } = [];
 }

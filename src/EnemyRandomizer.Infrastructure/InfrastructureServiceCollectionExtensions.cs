@@ -31,7 +31,6 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IEnemyConfigRepository, EnemyConfigRepository>();
         services.AddSingleton<IGameDataRepository, Data.GameDataRepository>();
         services.AddSingleton<ILastConfigStore, JsonLastConfigStore>();
-        services.AddSingleton<PreviewRandomizerService>();
         services.AddSingleton<RandomizationRun>();
         services.AddSingleton<IRandomizerService, RandomizerService>();
         return services;
