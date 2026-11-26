@@ -5,15 +5,14 @@ Enemy randomizer generates a random placement of enemies to make your playthroug
 Supports **Dark Souls: Prepare to Die Edition** and **Dark Souls Remastered**.
 
 > **About this fork:** this project is a **.NET 10 migration** of the Python/Tkinter Dark Souls Enemy Randomizer
-> (v0.4.1.2), forked from <https://github.com/xtvsx/Dark-Souls-Enemy-Randomizer>.
+> (v0.4.1.2), forked from <https://github.com/everKalle/Dark-Souls-Enemy-Randomizer>.
 > The migration is feature complete (not yet checked against a real game install, see the CHANGELOG). The last Python build
 > stays in `dist/`. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Thanks
 
-A big thank you to **rycheNhavalys**, the original author of the Enemy Randomizer. All of the game knowledge,
-file format work and randomization rules in this project come from the original Python implementation,
-which is kept unchanged in `legacy/python/` for reference.
+A big thank you to **everKalle**, the original author of the Enemy Randomizer. All of the game knowledge,
+file format work and randomization rules in this project come from the original Python implementation.
 
 ## Repository layout
 
@@ -82,46 +81,3 @@ The output folder contains `EnemyRandomizer.exe`, `config/` and `enemyRandomizer
 `dist/enemyRandomizerData`). Ship all three together; the `.pdb`/`.xml` files are not needed.
 
 Format tests that need real game files run only when `DS_GAME_DIR` points to a Dark Souls install folder.
-
-### Legacy Python
-
-The old version stays runnable for comparison tests: `python legacy/python/randomizer.py` (Python 3, Tkinter),
-started from inside a game folder that contains `enemyRandomizerData/`.
-
-## Installation [Prepare to Die Edition]
-
-### Fresh install
-
-1. Unpack your Dark Souls archive files using [UnpackDarkSoulsForModding](https://www.nexusmods.com/darksouls/mods/1304/?).
-2. Place `EnemyRandomizer.exe` and the `enemyRandomizerData` folder from the `.zip` file in `Dark Souls Prepare to Die Edition\DATA\` (the folder with `DARKSOULS.exe`).
-3. Run `EnemyRandomizer.exe`. The first start takes a while: it prepares files for randomization and backs up the originals.
-4. Press **Randomize** to randomize the enemies with the selected settings and write the modified `.msb` and `.luabnd` files.
-
-### Updating from a previous version
-
-1. Open the previous version and press **Revert to normal**.
-2. Delete or rename the old `EnemyRandomizer.exe` and `enemyRandomizerData` folder.
-3. Copy the new `EnemyRandomizer.exe` and `enemyRandomizerData` folder to `Dark Souls Prepare to Die Edition\DATA\`.
-
-## Installation [Remastered]
-
-1. Place `EnemyRandomizer.exe` and the `enemyRandomizerData` folder in `DARK SOULS REMASTERED\` (the folder with `DarkSoulsRemastered.exe`).
-2. Run `EnemyRandomizer.exe`. The first start takes a while (longer than on PTDE).
-3. Press **Randomize**.
-4. Back up your save file in `Documents/NBGI/DARK SOULS REMASTERED` and consider Steam offline mode (it is unknown whether the changes can get you banned from online play).
-
-Updating works the same as for PTDE, using `DARK SOULS REMASTERED\` as the target folder.
-
-## Restoring normal enemy placement
-
-1. Run the randomizer and press **Revert to normal** to restore the original map and script files.
-2. [Remastered] Restore your backed-up save file as well.
-
-## Credits / Thanks
-
-* __HotPocketRemix__ - bnd file unpacking/repacking implementation, event scripting tools that allowed me to change certain event scripts, program GUI inspiration
-* __Wulf2k__ - looking at MSBEdit's source code helped me create my implementation of msb editing
-* __Meowmaritus__ - [this](https://www.reddit.com/r/DarkSoulsMods/comments/6a4sbg/are_custom_maps_technically_feasible/dhe114q/) comment describing luagnl and luainfo file formats
-* __Metal Crow__ - fix for the game (PTDE) crashing when trying to load all visual effects at once
-* __Lan5432__ - helping test v0.2, providing the best comments about screenshots
-* __DuckyKoi__ - gifting the remaster so the randomizer could be ported to it
