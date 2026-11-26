@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using EnemyRandomizer.Formats.Msb;
+using EnemyRandomizer.Infrastructure.Game;
 
 namespace EnemyRandomizer.Infrastructure.Randomization;
 
@@ -46,7 +47,7 @@ public sealed class LayoutReferenceWriter
     public void Save(string file)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(file)!);
-        File.WriteAllText(file, _text.ToString());
+        AtomicFile.WriteAllText(file, _text.ToString());
     }
 
     private void Line(string text) => _text.Append(text).Append('\n');
@@ -62,6 +63,6 @@ public sealed class RunLog
     public void Save(string file)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(file)!);
-        File.WriteAllText(file, _text.ToString());
+        AtomicFile.WriteAllText(file, _text.ToString());
     }
 }

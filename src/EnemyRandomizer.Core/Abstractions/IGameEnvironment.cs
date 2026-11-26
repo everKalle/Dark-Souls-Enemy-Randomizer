@@ -19,6 +19,9 @@ public interface IGamePaths
     /// <summary>Original .luabnd copies.</summary>
     string MapAiCopyDirectory { get; }
 
+    /// <summary>The randomizer's own event files, one subfolder per edition.</summary>
+    string EmevdDirectory { get; }
+
     /// <summary>Extracted <c>*_battle.lua</c>/<c>*_logic.lua</c> AI scripts.</summary>
     string AiScriptDirectory { get; }
 

@@ -2,6 +2,7 @@ using System.Text.Json;
 using EnemyRandomizer.Core.Abstractions;
 using EnemyRandomizer.Core.Configuration;
 using EnemyRandomizer.Core.Settings;
+using EnemyRandomizer.Infrastructure.Game;
 using Microsoft.Extensions.Options;
 
 namespace EnemyRandomizer.Infrastructure.Settings;
@@ -44,7 +45,7 @@ public sealed class JsonLastConfigStore(IGamePaths paths, IOptions<RandomizerOpt
             settings.Values.ToDictionary(v => v.Key, v => v.Value));
 
         Directory.CreateDirectory(Path.GetDirectoryName(paths.LastConfigFile)!);
-        File.WriteAllText(paths.LastConfigFile, JsonSerializer.Serialize(document, JsonOptions));
+        AtomicFile.WriteAllText(paths.LastConfigFile, JsonSerializer.Serialize(document, JsonOptions));
     }
 
     private RandomizerSettings? LoadLegacy()

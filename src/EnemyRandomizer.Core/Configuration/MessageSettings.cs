@@ -67,6 +67,8 @@ public static class MessageKeys
     public const string RandomizeDone = nameof(RandomizeDone);
     public const string CopyDone = nameof(CopyDone);
     public const string CopyFailed = nameof(CopyFailed);
+    public const string RandomizeFailed = nameof(RandomizeFailed);
+    public const string RevertFailed = nameof(RevertFailed);
     public const string RandomizingTitle = nameof(RandomizingTitle);
     public const string RevertingTitle = nameof(RevertingTitle);
     public const string CopyingTitle = nameof(CopyingTitle);
@@ -88,7 +90,7 @@ public static class MessageKeys
         CopyInfoText, TextConfigHelp, TextConfigInvalid, RevertAskEffects, UnsavedEnemyConfig, EnemyConfigExists,
         EnemyConfigSaved, EnemyConfigSaveFailed, EnemyConfigInvalidName, ReferenceFileFilter, SetupProgressTitle,
         CopiesFailedTitle, CopiesFailedText, EffectsWriteFailedTitle, EffectsWriteFailedText, RevertDone, RevertParamMissing,
-        SetupFailed, RandomizeDone, CopyDone, CopyFailed,
+        SetupFailed, RandomizeDone, CopyDone, CopyFailed, RandomizeFailed, RevertFailed,
         RandomizingTitle, RevertingTitle, CopyingTitle, RevertTitle, CancelledTitle, CancelledText, ChangeFolderTitle, ChangeFolderText, TextConfigApplied, TextConfigCopied, EnemyConfigReplaceHint,
     ];
 }

@@ -8,6 +8,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: `M
 This project is a .NET 10 migration and fork of <https://github.com/xtvsx/Dark-Souls-Enemy-Randomizer>.
 Thanks to rycheNhavalys, the original author of the Enemy Randomizer.
 
+### Code review fixes
+#### Fixed
+- A cancelled or failed randomization or placement copy now puts every game file back to its state before the run
+  (`FileTransaction`); previously maps written so far stayed modified.
+- Boss soul variants are always built from the original NpcParam of the first-time-setup copy, never from the current
+  (possibly already patched) one.
+- The GameParam copy is checked for validity and recreated when an earlier copy was interrupted.
+- Game files, settings, preferences, enemy configs and layout references are written atomically (temp file + move).
+- Randomize and Revert report locked or damaged files as a failed result with a message instead of a raw exception;
+  the service now runs its work on the thread pool itself.
+- Broken or hostile BND3, DCX, MSB and EMEVD files end as `InvalidDataException` (bounds and size checks, 512 MB limit
+  for decompressed DCX content).
+- Enemy config names that could leave `customConfigs` are rejected when loading.
+- The difficulty curve roll covered 101 outcomes for chances that add up to 100; it now rolls 0-99. Layouts of a given
+  seed can differ from earlier .NET builds.
+#### Changed
+- `BossSoulPatcher` and `DerivedMapCopier` split out of `RandomizationRun`.
+- The `Emevd` data folder setting is used; the unused `SfxCopies` setting was removed.
+
 ### UI/UX refactor of the WPF app
 #### Added
 - Light and dark theme (follows Windows by default, switch in the menu), a systematic palette with readable muted text,

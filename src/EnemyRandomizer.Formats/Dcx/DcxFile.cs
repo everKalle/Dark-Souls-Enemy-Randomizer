@@ -35,12 +35,20 @@ public static class DcxFile
     private static ReadOnlySpan<byte> DcpDflt => "DCP\0DFLT"u8;
     private static ReadOnlySpan<byte> Dca => "DCA\0"u8;
 
+    /// <summary>Upper bound for the decompressed size; guards against corrupt headers and decompression bombs.</summary>
+    private const uint MaxUncompressedSize = 512 * 1024 * 1024;
+
     public static bool IsDcx(ReadOnlySpan<byte> data) => data.StartsWith(Dcx);
 
     /// <summary>Returns the header and the decompressed content.</summary>
     public static (DcxHeader Header, byte[] Data) Read(ReadOnlySpan<byte> data)
     {
         Expect(data, 0, Dcx, "DCX");
+        if (data.Length < 76 + 2)
+        {
+            throw new InvalidDataException("DCX header is truncated.");
+        }
+
         var req1 = BinaryPrimitives.ReadUInt32LittleEndian(data[4..]);
         var req2 = BinaryPrimitives.ReadUInt32BigEndian(data[8..]);
         var req3 = BinaryPrimitives.ReadUInt32BigEndian(data[12..]);
@@ -52,8 +60,15 @@ public static class DcxFile
 
         var headerLength = BinaryPrimitives.ReadUInt32BigEndian(data[20..]);
         Expect(data, 24, Dcs, "DCS");
-        var uncompressedSize = (int)BinaryPrimitives.ReadUInt32BigEndian(data[28..]);
-        var compressedSize = (int)BinaryPrimitives.ReadUInt32BigEndian(data[32..]);
+        var uncompressedLength = BinaryPrimitives.ReadUInt32BigEndian(data[28..]);
+        var compressedLength = BinaryPrimitives.ReadUInt32BigEndian(data[32..]);
+        if (uncompressedLength > MaxUncompressedSize || compressedLength < 2 || compressedLength > data.Length)
+        {
+            throw new InvalidDataException($"Implausible DCX sizes ({compressedLength} compressed, {uncompressedLength} uncompressed).");
+        }
+
+        var uncompressedSize = (int)uncompressedLength;
+        var compressedSize = (int)compressedLength;
         Expect(data, 36, DcpDflt, "DCP DFLT");
         var unknown = data.Slice(44, DcxHeader.UnknownLength).ToArray();
         Expect(data, 68, Dca, "DCA");
@@ -65,7 +80,14 @@ public static class DcxFile
         var output = new byte[uncompressedSize];
         using (var deflate = new DeflateStream(new MemoryStream(body), CompressionMode.Decompress))
         {
-            deflate.ReadExactly(output);
+            try
+            {
+                deflate.ReadExactly(output);
+            }
+            catch (EndOfStreamException e)
+            {
+                throw new InvalidDataException("DCX content is shorter than announced.", e);
+            }
         }
 
         var header = new DcxHeader(req1, req2, req3, req4, headerLength, unknown, compressedHeaderLength);

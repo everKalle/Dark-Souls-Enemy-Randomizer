@@ -66,12 +66,13 @@ public sealed class ReplacementPlanner
     private CreatureDecision Decide(int row, MapCreature creature, GameEdition edition)
     {
         var part = creature.PartName;
-        var rules = _settings.Rules.CreatureRules.Where(r => r.Matches(_map.MapId, part, _options.Value)).ToList();
         var target = _targets.Find(part);
         if (target is null)
         {
             return new CreatureDecision(row, part, "", ReplacementOutcome.NotATarget);
         }
+
+        var rules = _settings.Rules.CreatureRules.Where(r => r.Matches(_map.MapId, part, _options.Value)).ToList();
 
         if (rules.Any(r => r.Skip))
         {
@@ -399,7 +400,7 @@ public sealed class ReplacementPlanner
     {
         var curves = _settings.Curves;
         var chances = curves.Curves[Math.Clamp(_options.DifficultyStrictness, 0, curves.Curves.Count - 1)].Chances;
-        var roll = _random.Between(0, 100);
+        var roll = _random.Between(0, 99); // 100 outcomes: chances add up to at most 100, so 100 would never match
         var sum = 0;
         for (var i = 0; i < chances.Count; i++)
         {

@@ -104,7 +104,7 @@ public sealed partial class FirstTimeSetup(
 
         var msb = MsbFile.Read(File.ReadAllBytes(BackupFiles.Original(paths.InGame(layout.MapStudio(map.Id)))));
         AppendCharacterModels(msb);
-        File.WriteAllBytes(copy, msb.Write());
+        AtomicFile.WriteAllBytes(copy, msb.Write());
         LogMapCopy(logger, map.Id);
     }
 
@@ -152,7 +152,7 @@ public sealed partial class FirstTimeSetup(
                 var target = Path.Combine(paths.AiScriptDirectory, fileName);
                 if (written.Add(fileName) && !File.Exists(target))
                 {
-                    File.WriteAllBytes(target, data);
+                    AtomicFile.WriteAllBytes(target, data);
                 }
             }
         }
@@ -177,7 +177,7 @@ public sealed partial class FirstTimeSetup(
         {
             var msb = MsbFile.Read(File.ReadAllBytes(MapCopy(map.Id)));
             msb.Models.Rows.RemoveRange(map.StartIndices[edition], msb.Models.Rows.Count - map.StartIndices[edition]);
-            File.WriteAllBytes(BackupFiles.BackupOf(paths.InGame(layout.MapStudio(map.Id))), msb.Write());
+            AtomicFile.WriteAllBytes(BackupFiles.BackupOf(paths.InGame(layout.MapStudio(map.Id))), msb.Write());
         }
     }
 
@@ -186,9 +186,10 @@ public sealed partial class FirstTimeSetup(
         Directory.CreateDirectory(paths.ParamBackupDirectory);
         var source = paths.InGame(layout.GameParam(edition));
         var target = Path.Combine(paths.ParamBackupDirectory, Path.GetFileName(source));
-        if (!File.Exists(target))
+        if (!BackupFiles.IsValidCopy(target))
         {
-            File.Copy(source, target);
+            // Copy through a temp file so an interrupted copy never leaves a truncated "original" behind.
+            AtomicFile.WriteAllBytes(target, File.ReadAllBytes(source));
         }
     }
 
@@ -208,7 +209,7 @@ public sealed partial class FirstTimeSetup(
             BackupFiles.EnsureBackup(commonFile);
             if (changed)
             {
-                File.WriteAllBytes(commonFile, common.ToBytes(merged));
+                AtomicFile.WriteAllBytes(commonFile, common.ToBytes(merged));
                 LogEffectsMerged(logger, merged.Count);
             }
 

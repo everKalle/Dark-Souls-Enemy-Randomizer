@@ -152,6 +152,46 @@ public sealed class RandomizationRunTests : IDisposable
         Assert.Equal(17, File.ReadLines(result.LayoutFile).Count(l => l.StartsWith("section m", StringComparison.Ordinal)));
     }
 
+    [Theory]
+    [InlineData(GameEdition.Ptde)]
+    [InlineData(GameEdition.Remastered)]
+    public void Cancelled_run_leaves_every_game_file_as_it_was(GameEdition edition)
+    {
+        CreateGame(edition);
+        _setup.Run(edition, NoProgress, TestContext.Current.CancellationToken);  // first-time setup is not part of a run
+        var gameFiles = _layout.RandomizedMaps.SelectMany(m => new[]
+            {
+                _layout.MapStudio(m.Id), _layout.AiScript(m.Id, edition), _layout.Event(m.Id, edition),
+            })
+            .Append(_layout.GameParam(edition))
+            .Select(Game)
+            .ToList();
+        var before = gameFiles.ToDictionary(f => f, File.ReadAllBytes);
+
+        using var cancellation = new CancellationTokenSource();
+        var written = 0;
+        var progress = new SyncProgress(p =>
+        {
+            if (p.Message.EndsWith("saving map", StringComparison.Ordinal) && ++written == 3)
+            {
+                cancellation.Cancel();
+            }
+        });
+
+        Assert.Throws<OperationCanceledException>(() => _run.Run(Settings(), edition, progress, cancellation.Token));
+
+        Assert.True(written >= 3);
+        foreach (var (file, bytes) in before)
+        {
+            Assert.True(bytes.SequenceEqual(File.ReadAllBytes(file)), file);
+        }
+    }
+
+    private sealed class SyncProgress(Action<OperationProgress> report) : IProgress<OperationProgress>
+    {
+        public void Report(OperationProgress value) => report(value);
+    }
+
     [Fact]
     public void Replaced_creatures_point_to_added_models_and_their_ai_is_known_to_the_map()
     {

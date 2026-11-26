@@ -26,6 +26,11 @@ public static class Bnd3
             throw new InvalidDataException("Expected 'BND3' at offset 0.");
         }
 
+        if (data.Length < HeaderSize)
+        {
+            throw new InvalidDataException("BND3 header is truncated.");
+        }
+
         var flag = BinaryPrimitives.ReadUInt32LittleEndian(data[0x0C..]);
         var count = BinaryPrimitives.ReadInt32LittleEndian(data[0x10..]);
         var recordSize = flag switch
@@ -34,6 +39,11 @@ public static class Bnd3
             0x70 => 20,
             _ => throw new InvalidDataException($"Unknown BND3 flag 0x{flag:X}."),
         };
+
+        if (count < 0 || HeaderSize + ((long)count * recordSize) > data.Length)
+        {
+            throw new InvalidDataException($"BND3 entry count {count} does not fit into the file.");
+        }
 
         var entries = new List<BndEntry>(count);
         for (var i = 0; i < count; i++)
@@ -49,6 +59,11 @@ public static class Bnd3
             var offset = BinaryPrimitives.ReadInt32LittleEndian(record[8..]);
             var id = BinaryPrimitives.ReadInt32LittleEndian(record[12..]);
             var nameOffset = BinaryPrimitives.ReadInt32LittleEndian(record[16..]);
+
+            if (size < 0 || offset < 0 || (long)offset + size > data.Length || nameOffset < 0)
+            {
+                throw new InvalidDataException($"BND3 entry {i} points outside of the file.");
+            }
 
             var name = GameText.Decode(GameText.CString(data, nameOffset));
             entries.Add(new BndEntry(id, name, data.Slice(offset, size).ToArray()));

@@ -26,6 +26,7 @@ public sealed class GamePaths : IGamePaths
         LogDirectory = Path.Combine(DataDirectory, folders.Logs);
         MapStudioCopyDirectory = Path.Combine(DataDirectory, folders.MapStudioCopies);
         MapAiCopyDirectory = Path.Combine(DataDirectory, folders.MapAiCopies);
+        EmevdDirectory = Path.Combine(DataDirectory, folders.Emevd);
         AiScriptDirectory = Path.Combine(DataDirectory, folders.AiScripts);
         ParamBackupDirectory = Path.Combine(DataDirectory, folders.ParamBackup);
         LastConfigFile = Path.Combine(DataDirectory, "lastConfig.json");
@@ -41,6 +42,7 @@ public sealed class GamePaths : IGamePaths
     public string LogDirectory { get; }
     public string MapStudioCopyDirectory { get; }
     public string MapAiCopyDirectory { get; }
+    public string EmevdDirectory { get; }
     public string AiScriptDirectory { get; }
     public string ParamBackupDirectory { get; }
     public string LastConfigFile { get; }

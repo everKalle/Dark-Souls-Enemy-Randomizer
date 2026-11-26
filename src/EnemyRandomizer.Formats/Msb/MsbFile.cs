@@ -31,7 +31,20 @@ public sealed class MsbFile
     /// <summary>Enemies and NPCs (part type 2).</summary>
     public MsbTable Creatures => Parts[2];
 
+    /// <summary>Reads an MSB; any structural problem (offsets outside the file, unknown types) is an <see cref="InvalidDataException"/>.</summary>
     public static MsbFile Read(ReadOnlySpan<byte> data)
+    {
+        try
+        {
+            return ReadCore(data);
+        }
+        catch (Exception e) when (e is ArgumentException or IndexOutOfRangeException or OverflowException or KeyNotFoundException or InvalidCastException)
+        {
+            throw new InvalidDataException("The MSB file is malformed: " + e.Message, e);
+        }
+    }
+
+    private static MsbFile ReadCore(ReadOnlySpan<byte> data)
     {
         var msb = new MsbFile();
         const int modelPointer = 0;

@@ -50,7 +50,6 @@ public sealed class DataFolderSettings
 {
     public string MapStudioCopies { get; set; } = "";
     public string MapAiCopies { get; set; } = "";
-    public string SfxCopies { get; set; } = "";
     public string AiScripts { get; set; } = "";
     public string ParamBackup { get; set; } = "";
     public string Logs { get; set; } = "";
@@ -66,7 +65,6 @@ public sealed class DataFolderSettings
         {
             [nameof(MapStudioCopies)] = MapStudioCopies,
             [nameof(MapAiCopies)] = MapAiCopies,
-            [nameof(SfxCopies)] = SfxCopies,
             [nameof(AiScripts)] = AiScripts,
             [nameof(ParamBackup)] = ParamBackup,
             [nameof(Logs)] = Logs,

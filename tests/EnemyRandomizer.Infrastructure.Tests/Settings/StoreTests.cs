@@ -16,6 +16,18 @@ public sealed class EnemyConfigRepositoryTests : IDisposable
     private EnemyConfigRepository Create(GameEdition edition = GameEdition.Ptde) =>
         new(_folder.Paths, new FixedInstallation(edition));
 
+    [Theory]
+    [InlineData(@"..\..\secret")]
+    [InlineData(@"C:\Windows\win")]
+    [InlineData("a/b")]
+    public void Names_that_leave_the_config_folder_are_not_loaded(string name)
+    {
+        var repository = Create();
+
+        Assert.False(repository.Exists(name));
+        Assert.Throws<ArgumentException>(() => repository.Load(name));
+    }
+
     [Fact]
     public void Default_config_is_the_shipped_catalog()
     {

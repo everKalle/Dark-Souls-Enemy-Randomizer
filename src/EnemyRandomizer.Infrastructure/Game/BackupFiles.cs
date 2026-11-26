@@ -24,7 +24,7 @@ public static class BackupFiles
     public static void WriteWithBackup(string file, byte[] data)
     {
         EnsureBackup(file);
-        File.WriteAllBytes(file, data);
+        AtomicFile.WriteAllBytes(file, data);
     }
 
     /// <summary>Copies the backup over the file. Returns false when there is no backup.</summary>

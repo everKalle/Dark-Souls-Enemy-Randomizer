@@ -16,10 +16,22 @@ public sealed class EmevdFile
 
     public List<EmevdEvent> Events { get; } = [];
 
+    /// <summary>Reads an EMEVD; any structural problem (offsets outside the file) is an <see cref="InvalidDataException"/>.</summary>
     public static EmevdFile Read(ReadOnlySpan<byte> data, InstructionCatalog? catalog = null)
     {
-        catalog ??= InstructionCatalog.Default;
-        if (!data.StartsWith("EVD\0"u8))
+        try
+        {
+            return ReadCore(data, catalog ?? InstructionCatalog.Default);
+        }
+        catch (Exception e) when (e is ArgumentException or IndexOutOfRangeException or OverflowException or KeyNotFoundException or InvalidCastException)
+        {
+            throw new InvalidDataException("The EMEVD file is malformed: " + e.Message, e);
+        }
+    }
+
+    private static EmevdFile ReadCore(ReadOnlySpan<byte> data, InstructionCatalog catalog)
+    {
+        if (data.Length < 0x48 || !data.StartsWith("EVD\0"u8))
         {
             throw new InvalidDataException("Expected 'EVD' at offset 0.");
         }

@@ -3,6 +3,7 @@ using EnemyRandomizer.Core;
 using EnemyRandomizer.Core.Abstractions;
 using EnemyRandomizer.Core.EnemyConfigs;
 using EnemyRandomizer.Core.Settings;
+using EnemyRandomizer.Infrastructure.Game;
 
 namespace EnemyRandomizer.Infrastructure.Settings;
 
@@ -37,7 +38,7 @@ public sealed class EnemyConfigRepository(IGamePaths paths, IGameInstallation in
     public IReadOnlyList<EnemyConfigEntry> Load(string name) =>
         EnemyConfigFile.Parse(File.ReadAllLines(FilePath(name)), installation.Edition ?? GameEdition.Ptde);
 
-    public bool Exists(string name) => IsDefault(name) || File.Exists(FilePath(name));
+    public bool Exists(string name) => IsDefault(name) || (IsValidName(name) && File.Exists(FilePath(name)));
 
     public bool IsValidName(string name) =>
         !string.IsNullOrWhiteSpace(name)
@@ -55,14 +56,24 @@ public sealed class EnemyConfigRepository(IGamePaths paths, IGameInstallation in
         var content = EnemyConfigFile.Write(File.ReadAllLines(CatalogFile), enabled);
         Directory.CreateDirectory(paths.CustomConfigDirectory);
         var file = FilePath(name);
-        File.WriteAllText(file, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        AtomicFile.WriteAllText(file, content);
 
         ConfigsChanged?.Invoke(this, EventArgs.Empty);
         return file;
     }
 
-    private string FilePath(string name) =>
-        IsDefault(name) ? CatalogFile : Path.Combine(paths.CustomConfigDirectory, name + Extension);
+    /// <summary>Names come from files (last config, shared setups), so anything that could leave the config folder is rejected.</summary>
+    private string FilePath(string name)
+    {
+        if (IsDefault(name))
+        {
+            return CatalogFile;
+        }
+
+        return IsValidName(name)
+            ? Path.Combine(paths.CustomConfigDirectory, name + Extension)
+            : throw new ArgumentException($"'{name}' is not a valid config name.", nameof(name));
+    }
 
     private static bool IsDefault(string name) =>
         string.Equals(name, RandomizerSettings.DefaultEnemyConfig, StringComparison.OrdinalIgnoreCase);

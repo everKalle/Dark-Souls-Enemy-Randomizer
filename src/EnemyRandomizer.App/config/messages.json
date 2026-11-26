@@ -44,6 +44,8 @@
       "RandomizeDone": "{0} enemies replaced.\n\nSeed: {1}\nEnemy placement saved as refs/{2}",
       "CopyDone": "Enemy placement was successfully copied from the reference.",
       "CopyFailed": "The selected file is either not an enemy placement reference file or is malformed:\n\n'{0}'",
+      "RandomizeFailed": "The randomization failed. Changed game files were put back to their previous state.\n\n{0}",
+      "RevertFailed": "Reverting failed: {0}\n\nClose the game and any program that uses its files, then run Revert to normal again.",
       "RandomizingTitle": "Randomizing, please wait",
       "RevertingTitle": "Reverting, please wait",
       "CopyingTitle": "Copying enemy placement, please wait",

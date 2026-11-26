@@ -150,6 +150,7 @@ internal sealed class FakePaths : IGamePaths
     public string LogDirectory => "C:/game/data/logs";
     public string MapStudioCopyDirectory => "C:/game/data/mapStudioCopies";
     public string MapAiCopyDirectory => "C:/game/data/mapAiCopies";
+    public string EmevdDirectory => "C:/game/data/emevd";
     public string AiScriptDirectory => "C:/game/data/aiscripts";
     public string ParamBackupDirectory => "C:/game/data/param";
     public string LastConfigFile => "C:/game/data/lastConfig.json";

@@ -19,7 +19,7 @@ which is kept unchanged in `legacy/python/` for reference.
 
 ```
 DarkSoulsEnemyRandomizer.slnx     .NET solution
-src/                              .NET 10 projects (added step by step)
+src/                              .NET 10 projects (Core, Formats, Infrastructure, App)
   EnemyRandomizer.Core/           domain logic, no IO / no UI
   EnemyRandomizer.Formats/        game file formats (DCX, BND3, MSB, PARAM, LUAGNL, LUAINFO, EMEVD, FFX)
   EnemyRandomizer.Infrastructure/ game detection, backups, file system, JSON config

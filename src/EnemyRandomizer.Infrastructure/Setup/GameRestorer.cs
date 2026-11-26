@@ -70,7 +70,7 @@ public sealed partial class GameRestorer(
         var original = GameArchive.Read(backupFile);
         var current = GameArchive.Read(gameFile);
         current.Entries[index] = original.Entries[index];
-        File.WriteAllBytes(gameFile, current.ToBytes());
+        AtomicFile.WriteAllBytes(gameFile, current.ToBytes());
         return true;
     }
 

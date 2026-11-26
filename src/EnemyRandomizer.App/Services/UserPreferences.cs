@@ -1,3 +1,4 @@
+using EnemyRandomizer.Infrastructure.Game;
 using System.IO;
 using System.Text.Json;
 
@@ -55,7 +56,7 @@ public sealed class JsonUserPreferences : IUserPreferences
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_file)!);
-            File.WriteAllText(_file, JsonSerializer.Serialize(data, JsonOptions));
+            AtomicFile.WriteAllText(_file, JsonSerializer.Serialize(data, JsonOptions));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

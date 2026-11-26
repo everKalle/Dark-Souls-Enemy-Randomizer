@@ -25,7 +25,7 @@ internal sealed class TempGameFolder : IDisposable
             RequiredDataFiles = ["airef.csv", "replacement_ref/valid_new.txt", "replacement_ref/valid_replacements.txt"],
             DataFolders = new DataFolderSettings
             {
-                MapStudioCopies = "mapStudioCopies", MapAiCopies = "mapAiCopies", SfxCopies = "sfxCopies",
+                MapStudioCopies = "mapStudioCopies", MapAiCopies = "mapAiCopies",
                 AiScripts = "aiscripts", ParamBackup = "param", Logs = "logs", LayoutReferences = "refs",
                 CustomConfigs = "customConfigs", Emevd = "emevd", ReplacementReferences = "replacement_ref",
                 OriginalEnemyReferences = "original_enemies_ref",

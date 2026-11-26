@@ -34,6 +34,9 @@ public sealed class RandomizationRun(
     IOptions<DifficultyCurveSettings> curves,
     IOptions<RandomizerOptionSettings> optionSettings)
 {
+    private readonly BossSoulPatcher bossSouls = new(paths, layout, gameData, rules);
+    private readonly DerivedMapCopier derivedMaps = new(paths, layout);
+
     private const string Ptde = "PTDE";
     private const string Remastered = "REMASTER";
 
@@ -83,18 +86,41 @@ public sealed class RandomizationRun(
         string enemyConfig, RunOptions options, GameEdition edition, LayoutReference? source,
         IProgress<OperationProgress> progress, CancellationToken cancellationToken)
     {
+        progress.Report(new OperationProgress(1, 2 + (layout.RandomizedMaps.Count() * 4), "Checking and preparing files"));
+        setup.Run(edition, new Progress<OperationProgress>(), cancellationToken);
+
+        // Every game file is captured before its first change, so a failure or cancel leaves the game as it was.
+        var transaction = new FileTransaction();
+        try
+        {
+            return Apply(transaction, enemyConfig, options, edition, source, progress, cancellationToken);
+        }
+        catch
+        {
+            var failed = transaction.Rollback();
+            if (failed.Count > 0)
+            {
+                throw new IOException(
+                    $"The run failed and these files could not be put back, use 'Revert to normal': {string.Join(", ", failed.Select(Path.GetFileName))}");
+            }
+
+            throw;
+        }
+    }
+
+    private RandomizationResult Apply(
+        FileTransaction transaction, string enemyConfig, RunOptions options, GameEdition edition, LayoutReference? source,
+        IProgress<OperationProgress> progress, CancellationToken cancellationToken)
+    {
         var seed = options.Settings.Seed;
         var verb = source is null ? "Randomizing" : "Copying";
         var maps = layout.RandomizedMaps.ToList();
         var total = 2 + (maps.Count * 4);
-        var step = 0;
+        var step = 1;
         var time = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss", CultureInfo.InvariantCulture);
         var log = new RunLog();
         var reference = new LayoutReferenceWriter();
-
-        progress.Report(new OperationProgress(++step, total, "Checking and preparing files"));
-        setup.Run(edition, new Progress<OperationProgress>(), cancellationToken);
-        PrepareEventFiles(edition);
+        PrepareEventFiles(edition, transaction);
         var templates = DkScript.Compile(File.ReadAllText(paths.InData(patches.Value.EventTemplates.File)))
                                 .Events.ToDictionary(e => e.Id);
 
@@ -108,7 +134,7 @@ public sealed class RandomizationRun(
             new SeededRandom(seed));
 
         WriteHeader(log, reference, options, enemyConfig, edition, source);
-        ApplyBossSouls(edition, options);
+        bossSouls.Apply(edition, options, transaction);
 
         var replaced = 0;
         foreach (var map in maps)
@@ -123,7 +149,7 @@ public sealed class RandomizationRun(
             var aiFile = paths.InGame(layout.AiScript(map.Id, edition));
             var ai = new MapAiScripts(File.ReadAllBytes(Path.Combine(paths.MapAiCopyDirectory, Path.GetFileName(aiFile))), paths.AiScriptDirectory);
             var eventFile = paths.InGame(layout.Event(map.Id, edition));
-            var events = new MapEventEditor(ReadEvents(eventFile), map.Id, (uint)map.DisableRespawnEventId!.Value, templates, patches.Value);
+            var events = new MapEventEditor(ReadEvents(eventFile), map.Id, (uint)Required(map.DisableRespawnEventId, map, nameof(map.DisableRespawnEventId)), templates, patches.Value);
 
             var creatures = data.LoadOriginalEnemies(map.Id, edition)
                 .Select((c, row) => new MapCreature(c.PartName, c.Size, row < msb.Creatures.Rows.Count ? msb.Creatures.Rows[row].GetInt("AnimID") : -1))
@@ -135,24 +161,24 @@ public sealed class RandomizationRun(
                 : planner.PlanMapFromLayout(map.Id, edition, creatures, mapLayout, modelStart);
 
             // v0.4.x continues one id after the saved "levID" (the next free id) when copying; kept for identical files.
-            var firstEntityId = mapLayout is null ? map.StartEventEntityId!.Value : mapLayout.NextEventEntityId + 1;
+            var firstEntityId = mapLayout is null ? Required(map.StartEventEntityId, map, nameof(map.StartEventEntityId)) : mapLayout.NextEventEntityId + 1;
             var applier = new MapPlanApplier(msb, ai, events, data.AiReferences, modelStart, firstEntityId);
             applier.Apply(plan, reference, log);
             replaced += plan.Decisions.Count(d => d.Outcome == ReplacementOutcome.Replaced);
 
             progress.Report(new OperationProgress(++step, total, $"{verb} {map.Name} - saving scripts"));
-            BackupFiles.WriteWithBackup(aiFile, ai.Write());
+            transaction.WriteWithBackup(aiFile, ai.Write());
             progress.Report(new OperationProgress(++step, total, $"{verb} {map.Name} - saving events"));
             var eventBytes = events.File.Write();
-            BackupFiles.WriteWithBackup(eventFile, edition == GameEdition.Remastered ? DcxFile.Write(DcxHeader.Emevd, eventBytes) : eventBytes);
+            transaction.WriteWithBackup(eventFile, edition == GameEdition.Remastered ? DcxFile.Write(DcxHeader.Emevd, eventBytes) : eventBytes);
             progress.Report(new OperationProgress(++step, total, $"{verb} {map.Name} - saving map"));
-            BackupFiles.WriteWithBackup(mapFile, msb.Write());
+            transaction.WriteWithBackup(mapFile, msb.Write());
 
             log.Line("---------------------");
             reference.EndMap(applier.NextEventEntityId);
         }
 
-        CopyDerivedMaps(edition, data.ReplacementTargets);
+        derivedMaps.Copy(edition, data.ReplacementTargets, transaction);
 
         var logFile = Path.Combine(paths.LogDirectory, $"rlog{time}.txt");
         var layoutFile = "";
@@ -170,14 +196,14 @@ public sealed class RandomizationRun(
     /// Restores the original event files (so changes are not applied twice), then copies the randomizer's own
     /// event files from <c>enemyRandomizerData/emevd/&lt;edition&gt;</c> (legacy <c>revertEmevds</c> + <c>applyEmevd</c>).
     /// </summary>
-    private void PrepareEventFiles(GameEdition edition)
+    private void PrepareEventFiles(GameEdition edition, FileTransaction transaction)
     {
         foreach (var map in layout.RandomizedMaps)
         {
-            BackupFiles.Restore(paths.InGame(layout.Event(map.Id, edition)));
+            transaction.Restore(paths.InGame(layout.Event(map.Id, edition)));
         }
 
-        var custom = paths.InData(Path.Combine("emevd", edition == GameEdition.Remastered ? Remastered : Ptde));
+        var custom = Path.Combine(paths.EmevdDirectory, edition == GameEdition.Remastered ? Remastered : Ptde);
         if (!Directory.Exists(custom))
         {
             return;
@@ -190,81 +216,18 @@ public sealed class RandomizationRun(
             if (File.Exists(source))
             {
                 BackupFiles.EnsureBackup(target);
-                File.Copy(source, target, overwrite: true);
+                transaction.Copy(source, target);
             }
         }
     }
+
+    private static int Required(int? value, MapDefinition map, string field) =>
+        value ?? throw new InvalidDataException($"Map {map.Id} ({map.Name}) has no {field} in the game data settings.");
 
     private static EmevdFile ReadEvents(string file)
     {
         var bytes = File.ReadAllBytes(file);
         return EmevdFile.Read(DcxFile.IsDcx(bytes) ? DcxFile.Read(bytes).Data : bytes);
-    }
-
-    /// <summary>"With souls" boss copies for bosses on normal enemy spots (legacy <c>applyBossSouls</c>).</summary>
-    private void ApplyBossSouls(GameEdition edition, RunOptions options)
-    {
-        var file = paths.InGame(layout.GameParam(edition));
-        var archive = GameArchive.Read(file);
-        var index = gameData.Value.NpcParamIndex;
-        var bosses = rules.Value.BossSouls.Select(b => new BossSoul(b.NpcParamId, b.Souls, b.Name)).ToList();
-
-        var npcParam = NpcParam.Read(archive.Entries[index].Data);
-        npcParam.AddSoulVariants(bosses);
-        npcParam.ApplyBossSoulCount(bosses, options.BossSoulDrops);
-        npcParam.SetRespawnFlags(bosses, disableRespawn: false, disableInitializeDead: false);
-        npcParam.RemoveItemLots(rules.Value.NpcParamsWithoutItemLot);
-
-        archive.Entries[index] = archive.Entries[index] with { Data = npcParam.Write() };
-        File.WriteAllBytes(file, archive.ToBytes());
-    }
-
-    /// <summary>
-    /// Maps derived from a randomized one (Darkroot Garden #2) get the same creatures (legacy <c>copyDarkrootGarden</c>):
-    /// matching rows take model, AI, param, entity id, animation and position; extra rows are appended.
-    /// </summary>
-    private void CopyDerivedMaps(GameEdition edition, ReplacementTargets targets)
-    {
-        foreach (var map in layout.Maps.Where(m => m.CopyOf is not null))
-        {
-            var sourceMap = layout.Maps.Single(m => m.Id == map.CopyOf);
-            var modelOffset = map.StartIndices[edition] - sourceMap.StartIndices[edition];
-            var target = MsbFile.Read(File.ReadAllBytes(Path.Combine(paths.MapStudioCopyDirectory, map.Id + ".msb")));
-            var source = MsbFile.Read(File.ReadAllBytes(paths.InGame(layout.MapStudio(sourceMap.Id))));
-            var existing = target.Creatures.Rows.Count;
-
-            for (var i = 0; i < source.Creatures.Rows.Count; i++)
-            {
-                var from = source.Creatures.Rows[i];
-                if (i >= existing)
-                {
-                    // Fix: v0.4.x appended these rows (tail parts) without the model offset of the derived map.
-                    var added = from.Clone();
-                    added["Model"] = from.GetInt("Model") + modelOffset;
-                    target.AddCreature(added);
-                    continue;
-                }
-
-                var to = target.Creatures.Rows[i];
-                if (targets.Find(to.Name[..Math.Min(5, to.Name.Length)]) is null)
-                {
-                    continue;
-                }
-
-                to["Model"] = from.GetInt("Model") + modelOffset;
-                foreach (var field in new[] { "AI", "NPCParam", "EventEntityID", "AnimID", "X pos", "Y pos", "Z pos", "Rot X", "Rot Y", "Rot Z" })
-                {
-                    to[field] = from[field];
-                }
-            }
-
-            for (var i = existing; i < source.Creatures.Rows.Count; i++)
-            {
-                target.Creatures.Rows[i]["PartIndex"] = source.Creatures.Rows[i]["PartIndex"];
-            }
-
-            BackupFiles.WriteWithBackup(paths.InGame(layout.MapStudio(map.Id)), target.Write());
-        }
     }
 
     private static void WriteHeader(RunLog log, LayoutReferenceWriter reference, RunOptions options, string enemyConfig, GameEdition edition, LayoutReference? source)
