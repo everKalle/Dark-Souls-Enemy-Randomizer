@@ -8,6 +8,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: `M
 This project is a .NET 10 migration and fork of <https://github.com/xtvsx/Dark-Souls-Enemy-Randomizer>.
 Thanks to rycheNhavalys, the original author of the Enemy Randomizer.
 
+### Step 9 - Publish
+#### Added
+- `dotnet publish` (single file, self-contained, win-x64) now also copies `dist/enemyRandomizerData` next to the exe,
+  next to the `config/` folder. The published exe starts and shows the UI.
+
+#### Known issues
+- Not yet verified on a real game install: randomize, revert and copy placement have only been tested on generated
+  game folders. Still to do before tagging v0.5.0: randomize with Python and .NET on PTDE and Remastered, feed each
+  layout to the other's copy function and compare the msb files, then play-test Asylum and two more maps.
+- Tail parts can get other entity ids than in the original run after "Copy enemy placement" (same as v0.4.x).
+
 ### Step 8 - Copy placement from reference
 #### Added
 - **"Copy enemy placement" works.** Pick an `enemy-layout-*.txt` (v0.4.x files work too) and the same layout is

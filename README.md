@@ -6,7 +6,8 @@ Supports **Dark Souls: Prepare to Die Edition** and **Dark Souls Remastered**.
 
 > **About this fork:** this project is a **.NET 10 migration** of the Python/Tkinter Dark Souls Enemy Randomizer
 > (v0.4.1.2), forked from <https://github.com/xtvsx/Dark-Souls-Enemy-Randomizer>.
-> The migration is in progress; until it is done, use the Python build in `dist/`. See [CHANGELOG.md](CHANGELOG.md).
+> The migration is feature complete (not yet checked against a real game install, see the CHANGELOG). The last Python build
+> stays in `dist/`. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Thanks
 
@@ -48,12 +49,8 @@ Run from source against a game install without copying the exe there:
 dotnet run --project src/EnemyRandomizer.App -- --App:GameDirectory="D:\Games\DARK SOULS REMASTERED"
 ```
 
-To try the UI without a game install, point it at `dist` (it contains `enemyRandomizerData`). Until the engine is
-migrated, Randomize/Revert/Copy only show the progress steps and do not change any files:
-
-```powershell
-dotnet run --project src/EnemyRandomizer.App -- --App:GameDirectory=dist
-```
+To try the UI without a game install, point it at `dist` (it contains `enemyRandomizerData`). Randomize and Revert
+then change files in `dist`, so use a copy.
 
 ### Configuration
 
@@ -74,12 +71,15 @@ They are validated at startup; an invalid file shows an error dialog with the ex
 Any value can also be overridden with an environment variable `ENEMYRANDOMIZER_<Section>__<Key>`
 or a command line argument `--<Section>:<Key>=value`.
 
-Publish a single self-contained exe:
+Publish a single self-contained exe (about 136 MB):
 
 ```powershell
 dotnet publish src/EnemyRandomizer.App -c Release -r win-x64 --self-contained `
-  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
 ```
+
+The output folder contains `EnemyRandomizer.exe`, `config/` and `enemyRandomizerData/` (copied from
+`dist/enemyRandomizerData`). Ship all three together; the `.pdb`/`.xml` files are not needed.
 
 Format tests that need real game files run only when `DS_GAME_DIR` points to a Dark Souls install folder.
 
